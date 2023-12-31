@@ -26,6 +26,9 @@ enum ChordType {
 	UNRECOGNIZEDCHORD
 };
 
+
+
+
 //if the pitch is 1 - 12 it is the actual pitch, adding or subtracting 12 is used to store sharp and flat
 enum PitchEnum {
 	NoteRest = -12,
@@ -85,6 +88,24 @@ enum Accidental
 struct Pitch {
 	PitchEnum note;
 	int octave;
+};
+
+class Chord
+{
+private:
+	ChordType type;
+	Pitch rootNote;
+	std::vector<int> modifiers;
+	std::vector<Pitch> notes;
+
+public:
+	Chord(Pitch root, ChordType type);
+	Chord(Pitch root, ChordType type, std::vector<int> mods);
+	Chord(PitchEnum root, int octave, ChordType type);
+
+	//getters
+	ChordType getType() { return type; }
+	Pitch getRoot() { return rootNote; }
 };
 
 struct Note {
@@ -156,6 +177,24 @@ public:
 				key.key[currentNote] = currentAccidental;
 				currentNote = getNextNatural(currentNote);
 			} 
+			return key;
+		case MINOR:
+			//R-II-iii-IV-V-vi-vii-R+
+			//0-2 -3 -5 -7-8 -10
+
+			noteCount = 7;
+			notePattern = { 0, 2, 3, 5, 7, 8, 10};
+
+			currentPitch = (PitchEnum)((root) % 12);
+			currentNote = getNatural(root);
+
+			for (int i : notePattern)
+			{
+				currentPitch = (PitchEnum)((root + i) % 12);
+				currentAccidental = getAccidental(currentPitch, currentNote);
+				key.key[currentNote] = currentAccidental;
+				currentNote = getNextNatural(currentNote);
+			}
 			return key;
 		default:
 			return key;
@@ -253,18 +292,6 @@ public:
 		}
 		return notes;
 	}
-	
-	static ChordType findChord(std::vector<Pitch> pitches)
-	{
-		//at this point a chord can only be 3+ notes
-		if (pitches.size() <= 2)
-		{
-			return UNRECOGNIZEDCHORD;
-		}
-
-		auto intervals = generateIntervals(pitches);
-		return UNRECOGNIZEDCHORD;
-	}
 
 	static std::vector<int> getNotePattern(ChordType type)
 	{
@@ -277,6 +304,223 @@ public:
 		}
 
 		return {};
+	}
+	
+	static float getBeats(TimeSignature timeSignature, NoteValue value)
+	{
+		return ((float)timeSignature.denominator / (float)(int)value);
+	}
+
+	// |-|-|-|-|-|-|-|-|-|-| CHORD DETECTION |-|-|-|-|-|-|-|-|-|-|-|-|
+	
+	static Chord findChord(std::vector<Pitch> pitches)
+	{
+		//at this point a chord can only be 3+ notes
+
+		if (pitches.size() <= 2)
+		{
+			return Chord({NoteC, 0}, UNRECOGNIZEDCHORD);
+		}
+
+		auto ascending = orderPitchAscending(pitches);
+		auto intervals = generateRootIntervals(ascending);
+
+
+		auto chord = findChord(intervals);
+		if (chord != UNRECOGNIZEDCHORD)
+			return Chord(ascending[0], findChordOctave(intervals).first);
+		else
+		{
+			auto chordOctave = findChordOctave(intervals);
+			return Chord(ascending[0], chordOctave.first, chordOctave.second);
+		}
+
+		return Chord({ NoteC, 0 }, UNRECOGNIZEDCHORD);
+
+	}
+
+	static ChordType findChord(std::vector<int> intervals)
+	{
+		for (int type = MAJOR; type < UNRECOGNIZEDCHORD; type++)
+		{
+			std::vector<int> semitonePattern = {};
+			switch (type) {
+			case MAJOR: // I III V
+				semitonePattern = { 0, 4, 7 };
+				break;
+			case MINOR: // I iii V
+				semitonePattern = { 0, 3, 7 };
+				break;
+			case DIMINISHED: // I iii bV
+				semitonePattern = { 0, 3, 6 };
+				break;
+			case AUGMENTED: // I III #V
+				semitonePattern = { 0, 4, 8 };
+				break;
+			case MAJOR7: // I III V VII
+				semitonePattern = { 0, 4, 7, 11 };
+				break;
+			case DOMINANT7: // I III V bVII
+				semitonePattern = { 0, 4, 7, 10 };
+				break;
+			case MINOR7: // I iii V bVII
+				semitonePattern = { 0, 3, 7, 10 };
+				break;
+			case HALFDIMINISHED7: // I iii bV bVII
+				semitonePattern = { 0, 3, 6, 10 };
+				break;
+			case DIMINISHED7: // I iii bV bbVII
+				semitonePattern = { 0, 3, 6, 9 };
+				break;
+			case NINTH: // I III V bVII IX
+				semitonePattern = { 0, 4, 7, 10, 14 };
+				break;
+			case ELEVENTH: // I III V bVII IX XI
+				semitonePattern = { 0, 4, 7, 10, 14, 17 };
+				break;
+			case THIRTEENTH: // I III V bVII IX XI XIII
+				semitonePattern = { 0, 4, 7, 10, 14, 17, 21 };
+				break;
+			case SUS2: // I II V
+				semitonePattern = { 0, 2, 7 };
+				break;
+			case SUS4: // I IV V
+				semitonePattern = { 0, 5, 7 };
+				break;
+			case ADD9: // I III V IX
+				semitonePattern = { 0, 4, 7, 14 };
+				break;
+			case ADD11: // I III V XI
+				semitonePattern = { 0, 4, 7, 17 };
+				break;
+			case ADD13: // I III V XIII
+				semitonePattern = { 0, 4, 7, 21 };
+				break;
+			case UNRECOGNIZEDCHORD:
+				semitonePattern = { };
+				break;
+			}
+
+			if (semitonePattern.size() == 0 || semitonePattern.size() != intervals.size()) continue;
+
+			//Cases
+			// - The intervals are equal: Return
+			// - each of the notes is a multiple of 12 (including 0) away from the interval: Return 
+			//	 (notes don't need to be the same multiple away)
+			// - 
+			bool found = true;
+			for (int j = 0; j < semitonePattern.size(); j++)
+			{
+				if (semitonePattern[j] != intervals[j])
+				{
+					found = false;
+					break;
+				}
+			}
+
+			if (found)
+			{
+				return (ChordType)type;
+			}
+		}
+
+		return UNRECOGNIZEDCHORD;
+	}
+
+	static std::pair<ChordType, std::vector<int>> findChordOctave(std::vector<int> intervals)
+	{
+		for (int type = MAJOR; type < UNRECOGNIZEDCHORD; type++)
+		{
+			std::vector<int> semitonePattern = {};
+			switch (type) {
+			case MAJOR: // I III V
+				semitonePattern = { 0, 4, 7 };
+				break;
+			case MINOR: // I iii V
+				semitonePattern = { 0, 3, 7 };
+				break;
+			case DIMINISHED: // I iii bV
+				semitonePattern = { 0, 3, 6 };
+				break;
+			case AUGMENTED: // I III #V
+				semitonePattern = { 0, 4, 8 };
+				break;
+			case MAJOR7: // I III V VII
+				semitonePattern = { 0, 4, 7, 11 };
+				break;
+			case DOMINANT7: // I III V bVII
+				semitonePattern = { 0, 4, 7, 10 };
+				break;
+			case MINOR7: // I iii V bVII
+				semitonePattern = { 0, 3, 7, 10 };
+				break;
+			case HALFDIMINISHED7: // I iii bV bVII
+				semitonePattern = { 0, 3, 6, 10 };
+				break;
+			case DIMINISHED7: // I iii bV bbVII
+				semitonePattern = { 0, 3, 6, 9 };
+				break;
+			case NINTH: // I III V bVII IX
+				semitonePattern = { 0, 4, 7, 10, 14 };
+				break;
+			case ELEVENTH: // I III V bVII IX XI
+				semitonePattern = { 0, 4, 7, 10, 14, 17 };
+				break;
+			case THIRTEENTH: // I III V bVII IX XI XIII
+				semitonePattern = { 0, 4, 7, 10, 14, 17, 21 };
+				break;
+			case SUS2: // I II V
+				semitonePattern = { 0, 2, 7 };
+				break;
+			case SUS4: // I IV V
+				semitonePattern = { 0, 5, 7 };
+				break;
+			case ADD9: // I III V IX
+				semitonePattern = { 0, 4, 7, 14 };
+				break;
+			case ADD11: // I III V XI
+				semitonePattern = { 0, 4, 7, 17 };
+				break;
+			case ADD13: // I III V XIII
+				semitonePattern = { 0, 4, 7, 21 };
+				break;
+			case UNRECOGNIZEDCHORD:
+				semitonePattern = { };
+				break;
+			}
+
+			if (semitonePattern.size() == 0 || semitonePattern.size() != intervals.size()) continue;
+
+			//Cases
+			// - The intervals are equal: Return
+			// - each of the notes is a multiple of 12 (including 0) away from the interval: Return 
+			//	 (notes don't need to be the same multiple away)
+			// - 
+			bool found = true;
+			auto semitonesModded = semitonePattern;
+
+			for (auto& semitone : semitonesModded)
+			{
+				semitone = negativeMod(semitone, 12);
+			}
+
+			for (int j = 0; j < intervals.size(); j++)
+			{
+				if (std::find(semitonesModded.begin(), semitonesModded.end(), intervals[j] % 12) == semitonesModded.end())
+				{
+					found = false;
+					break;
+				}
+
+			}
+
+			if (found)
+			{
+				return { (ChordType)type, {} };
+			}
+		}
+
+		return { UNRECOGNIZEDCHORD, {} };
 	}
 
 	static std::vector<int> generateIntervals(std::vector<Pitch> pitches)
@@ -301,7 +545,8 @@ public:
 
 		for (int i = 1; i < pitches.size(); i++)
 		{
-			int newInterval = negativeMod((negativeMod(pitches[i].note, 12) - negativeMod(start.note, 12)), 12);
+			int newInterval = getSemitoneDistance(start, pitches[i]);
+			//int newInterval = negativeMod((negativeMod(pitches[i].note, 12) - negativeMod(start.note, 12)), 12);
 			intervals.push_back(newInterval);
 		}
 		return intervals;
@@ -333,10 +578,6 @@ public:
 
 	}
 
-	static float getBeats(TimeSignature timeSignature, NoteValue value)
-	{
-		return ((float)timeSignature.denominator / (float)(int)value);
-	}
 
 	// |-|-|-|-|-|-|-|-|-|-| PITCH AND ACCIDENTALS |-|-|-|-|-|-|-|-|-|-|-|-|
 

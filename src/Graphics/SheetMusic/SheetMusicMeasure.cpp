@@ -133,7 +133,7 @@ SheetMusicMeasure::SheetMusicMeasure()
 SheetMusicMeasure::SheetMusicMeasure(float x, float y, float staffHeight, Clef clef, TimeSignature timeSignature, KeySignature keySignature)
 	:x(x), y(y), width(0), staffHeight(staffHeight), clef(clef), 
 	timeSignature(timeSignature), keySignature(keySignature), 
-	quarterValue(MusicUtilities::getBeats(timeSignature, Quarter)), noteCount(0), noteGap(staffHeight/10.0f)
+	quarterValue(MusicUtilities::getBeats(timeSignature, Quarter)), noteCount(0), noteGap(staffHeight/5.0f)
 {
 }
 
@@ -471,6 +471,8 @@ void SheetMusicMeasure::hoverAction()
 	hoverPanel = addPanel((float)mouse.x, minY - height, 120.0f, height, sf::Color(11, 0, 45), sf::Color(31, 24, 96), 2);
 
 	std::string notesString = "";
+	std::vector<Pitch> pitches;
+
 	for (auto& note : notes[hoverBeat])
 	{
 		std::string pitchString = MusicUtilities::getNoteString(note.pitch.note);
@@ -479,7 +481,17 @@ void SheetMusicMeasure::hoverAction()
 		{
 			notesString += pitchString + ", ";
 		}
+		pitches.push_back(note.pitch);
 	}
+	
+	auto chord = MusicUtilities::findChord(pitches);
+
+	if (chord.getType() != UNRECOGNIZEDCHORD)
+	{
+		std::string chordString = "Chord: " + MusicUtilities::getNoteString(chord.getRoot().note) + " " + MusicUtilities::getChordString(chord.getType());
+		hoverPanel->addText(chordString, 16, sf::Color(190, 188, 216));
+	}
+	
 	if (notesString.length() > 0)
 	{
 		notesString = "Notes: " + notesString.substr(0, notesString.length() - 2);

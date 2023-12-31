@@ -255,7 +255,7 @@ int main() {
 
     //Creation of the staff
     auto staff = std::make_unique<SheetMusicStaff>((float)100, (float)400, (float)500, (float)50, 
-        TrebleClef, MusicUtilities::getKey(NoteG, MAJOR));
+        TrebleClef, MusicUtilities::getKey(NoteC, MINOR));
 
     staff->setColor(sf::Color(94, 94, 255));
     staff->setClefColor(sf::Color(150, 150, 255));
@@ -271,9 +271,9 @@ int main() {
     rect.setOrigin(sf::Vector2f(25, 25));
     
 
-    Note C3Note = Note({ Pitch({NoteC, 5 }), Eighth });
-    Note E3Note = Note({ Pitch({NoteE, 5 }), Eighth });
-    Note G3Note = Note({ Pitch({NoteG, 5 }), Eighth });
+    Note E3Note = Note({ Pitch({NoteE, 5 }), Quarter });
+    Note C3Note = Note({ Pitch({NoteC, 5 }), Quarter });
+    Note G3Note = Note({ Pitch({NoteG, 5 }), Quarter });
     Note F5Note = Note({ Pitch({NoteFs, 5 }), Eighth });
     Note D3Note = Note({ Pitch({NoteD, 5}), Sixteenth });
 
@@ -333,29 +333,7 @@ int main() {
     auto microsecondCount = 0;
 
 
-    auto intervals = MusicUtilities::generateIntervals({ {NoteA, 4},{NoteCs, 4}, {NoteE, 4} });
-    auto intervals2 = MusicUtilities::orderPitchAscending({ 
-        {NoteF, 5},
-        {NoteAs, 7},
-        {NoteC, 6},
-        {NoteE, 5},
-        {NoteAf, 5},
-        {NoteD, 3},
-        {NoteGf, 3},
-        {NoteCf, 7},
-        {NoteGf, 4},
-        {NoteAs, 3},
-        {NoteGs, 6},
-        {NoteGf, 1},
-        {NoteDs, 7},
-        {NoteG, 7},
-        {NoteGf, 2},
-        {NoteFs, 2},
-        {NoteEs, 4},
-        {NoteE, 4},
-        {NoteBf, 2},
-        {NoteC, 4}
-        });
+    auto intervals = MusicUtilities::findChord({ {NoteC, 4},{NoteEf, 4}, {NoteG, 4} });
     
     auto distTest = MusicUtilities::getSemitoneDistance({ NoteB, 4 }, { NoteC, 5 });
 
