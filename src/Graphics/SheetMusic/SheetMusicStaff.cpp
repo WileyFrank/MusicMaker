@@ -1,0 +1,322 @@
+#include "SheetMusicStaff.h"
+#include "../GUI/GUIUtilities.h"
+
+//public
+SheetMusicStaff::SheetMusicStaff()
+	:width(300), height(100), x(0), y(0), clefType(TrebleClef), clef(x, y, width, height, clefType)
+{
+
+	GenerateStaffLines();
+}
+
+SheetMusicStaff::SheetMusicStaff(float x, float y, float width, float height, Clef clefType, KeySignature key, TimeSignature timeSignature)
+	:x(x), y(y), width(width), height(height),
+	clefType(clefType), clef(x, y, width, height, clefType), measureStart(0.0f),
+	keySignature(key), sheetMusicKeySignature((x + clef.getWidth() + height / 6.0f), y, height, key, clefType),
+	timeSignature(timeSignature), sheetMusicTimeSignature((x + clef.getWidth() + sheetMusicKeySignature.getWidth() + height / 3.0f), y, height, timeSignature)
+{
+	//this->clef = SheetMusicClef(x, y, width, height, clefType);
+
+	GenerateStaffLines();
+
+	auto clefWidth = clef.getWidth();
+	clefWidth = sheetMusicKeySignature.getWidth();
+	clefWidth = sheetMusicTimeSignature.getWidth();
+
+	measureStart = (clef.getWidth()) +
+		(sheetMusicKeySignature.getWidth()) +
+		(sheetMusicTimeSignature.getWidth()) +
+		(this->height / 2);
+
+}
+
+SheetMusicStaff::~SheetMusicStaff()
+{
+	for (auto shape : lines)
+	{
+		delete shape;
+	}
+	lines.clear();
+}
+
+void SheetMusicStaff::addMeasure(SheetMusicMeasure* measure)
+{
+	auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));
+
+	newRect->setPosition(sf::Vector2f(currentMeasure + this->x, y));
+	newRect->setFillColor(staffColor);
+	bars.push_back(newRect);
+
+
+	currentMeasure += height / 5;
+
+
+	measure->setupStaff(currentMeasure + measureStart + this->x, this->y, height, clef.getClef());
+	measure->setNoteColor(noteColor);
+	measure->setStaffColor(staffColor);
+	measure->setWindow(this->window);
+	measures.push_back(measure);
+	currentMeasure += measure->getWidth();
+}
+
+SheetMusicMeasure* SheetMusicStaff::addMeasure()
+{
+	if (measures.size() > 0)
+	{
+		auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));
+
+		newRect->setPosition(sf::Vector2f(currentMeasure + measureStart + this->x, y));
+		newRect->setFillColor(staffColor);
+		bars.push_back(newRect);
+	}
+
+	currentMeasure += height / 4;
+
+
+
+
+	SheetMusicMeasure* newMeasure = new SheetMusicMeasure(currentMeasure + measureStart + this->x, this->y, height, clef.getClef(), timeSignature, keySignature);
+
+	newMeasure->setNoteColor(noteColor);
+	newMeasure->setStaffColor(staffColor);
+	newMeasure->setWindow(this->window);
+	measures.push_back(newMeasure);
+
+	return newMeasure;
+}
+
+void SheetMusicStaff::draw()
+{
+	//Draw the lines of the staff
+	for (auto& shape : lines)
+	{
+		window->draw(*shape);
+	}
+
+	for (auto& bar : bars)
+	{
+		window->draw(*bar);
+	}
+
+	for (auto& measure : measures)
+	{
+		measure->draw();
+	}
+
+	clef.draw();
+	sheetMusicKeySignature.draw();
+	sheetMusicTimeSignature.draw();
+}
+
+void SheetMusicStaff::setWindow(sf::RenderWindow* window)
+{
+	this->window = window;
+	clef.setWindow(window);
+	sheetMusicKeySignature.setWindow(window);
+	sheetMusicTimeSignature.setWindow(window);
+}
+
+std::pair<sf::Vector2f, sf::Vector2f> SheetMusicStaff::getHoverArea()
+{
+	sf::Vector2f position(x, y);
+	sf::Vector2f size(0.0f, 0.0f);
+
+	return std::pair<sf::Vector2f, sf::Vector2f>(position, size);
+}
+
+RenderObject& SheetMusicStaff::getHoverObject()
+{
+	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
+
+
+	//clef, key, time
+
+	if (clef.getHoverObject().getType() != EmptyRenderObject)
+	{
+		return clef.getHoverObject();
+	}
+	
+	auto& sheetMusicHover = sheetMusicKeySignature.getHoverObject();
+	if (sheetMusicHover.getType() != EmptyRenderObject)
+	{
+		return sheetMusicHover;
+	}
+
+
+	if (sheetMusicTimeSignature.getHoverObject().getType() != EmptyRenderObject)
+	{
+		return sheetMusicTimeSignature.getHoverObject();
+	}
+	for (auto& measure : measures)
+	{
+		if (measure->getHoverObject().getType() != EmptyRenderObject)
+		{
+			return measure->getHoverObject();
+		}
+	}
+
+
+	RenderObject* empty = GUIUtilities::getEmptyRenderObject();
+	return *empty;
+}
+
+void SheetMusicStaff::setHover(bool hover)
+{
+	this->hover = hover;
+
+	clef.setHover(hover);
+	sheetMusicKeySignature.setHover(hover);
+	sheetMusicTimeSignature.setHover(hover);
+
+	for (auto& measure : measures)
+	{
+		measure->setHover(hover);
+	}
+}
+
+void SheetMusicStaff::render()
+{
+	clef.update();
+	sheetMusicKeySignature.update();
+	sheetMusicTimeSignature.update();
+
+
+	for (auto& measure : measures)
+	{
+		measure->update();
+	}
+	update();
+	draw();
+}
+
+void SheetMusicStaff::update()
+{
+	if (this->hover)
+	{
+		//hoverUpdate();
+		unhover = true;
+		return;
+	}
+	if (this->unhover)
+	{
+		unhover = false;
+		//unhoverUpdate();
+	}
+	draw();
+}
+
+void SheetMusicStaff::hoverUpdate()
+{
+	if (!unhover)
+	{
+		placeholderColor = staffColor;
+
+		setColor(hoverColor);
+	}
+}
+
+void SheetMusicStaff::unhoverUpdate()
+{
+	staffColor = placeholderColor;
+
+	setColor(staffColor);
+}
+
+void SheetMusicStaff::colorUpdate()
+{
+	setColor(staffColor);
+	setNoteColor(noteColor);
+	setNoteHoverColor(noteHoverColor);
+	setHoverColor(hoverColor);
+	setClefColor(clefColor);
+}
+
+void SheetMusicStaff::setColor(sf::Color color)
+{
+	staffColor = color;
+	for (auto shape : lines)
+	{
+		shape->setFillColor(color);
+	}
+	for (auto& measure : measures)
+	{
+		measure->setStaffColor(color);
+	}
+	
+	clef.setColor(color);
+	sheetMusicTimeSignature.setColor(color);
+}
+
+void SheetMusicStaff::setNoteColor(sf::Color color)
+{
+	for (auto& measure : measures)
+	{
+		measure->setNoteColor(color);
+	}
+
+	noteColor = color;
+	sheetMusicKeySignature.setColor(color);
+}
+
+void SheetMusicStaff::setClefColor(sf::Color color)
+{
+	clefColor = color;
+	clef.setColor(color);
+}
+
+void SheetMusicStaff::setHoverColor(sf::Color color)
+{
+	this->hoverColor = color;
+	sheetMusicKeySignature.setHoverColor(color);
+	sheetMusicTimeSignature.setHoverColor(color);
+	clef.setHoverColor(color);
+}
+
+void SheetMusicStaff::setNoteHoverColor(sf::Color color)
+{
+	this->noteHoverColor = color;
+	for (auto measure : measures)
+	{
+		measure->setHoverColor(color);
+	}
+}
+
+void SheetMusicStaff::GenerateStaffLines()
+{
+	int lineWidth = (int)height/40;
+	float spaceWidth = this->height - lineWidth * 5;
+
+	float newY;
+
+	sf::RectangleShape* newShape;
+	for (int i = 0; i < 5; i++)
+	{
+		newY = (spaceWidth / 4 + lineWidth) * i + y;
+
+		newShape = new sf::RectangleShape(sf::Vector2f(width, (float)lineWidth));
+		newShape->setPosition(sf::Vector2f(this->x, newY));
+
+		lines.push_back(newShape);
+	}
+
+	addBar(0);
+}
+
+//returns the position of a note in the staff
+//the position is in terms of height of the staff so a note on the top bar is 0 and a note on the bottom bar is 1
+//this continues to negative for higher values and > 1 for lower notes
+float SheetMusicStaff::getStaffPosition(Pitch note)
+{
+
+
+	return 0.0f;
+}
+
+void SheetMusicStaff::addBar(float xPosition)
+{
+	int lineWidth = (int)height / 20;
+
+	sf::RectangleShape* newShape = new sf::RectangleShape(sf::Vector2f((float)lineWidth, this->height));
+	newShape->setPosition(xPosition + this->x, this->y);
+	lines.push_back(newShape);
+}
