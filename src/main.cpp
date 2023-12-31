@@ -255,7 +255,7 @@ int main() {
 
     //Creation of the staff
     auto staff = std::make_unique<SheetMusicStaff>((float)100, (float)400, (float)500, (float)50, 
-        TrebleClef, MusicUtilities::getKey(NoteC, MINOR));
+        TrebleClef, MusicUtilities::getKey(NoteC, MAJOR));
 
     staff->setColor(sf::Color(94, 94, 255));
     staff->setClefColor(sf::Color(150, 150, 255));
@@ -274,7 +274,7 @@ int main() {
     Note E3Note = Note({ Pitch({NoteE, 5 }), Quarter });
     Note C3Note = Note({ Pitch({NoteC, 5 }), Quarter });
     Note G3Note = Note({ Pitch({NoteG, 5 }), Quarter });
-    Note F5Note = Note({ Pitch({NoteFs, 5 }), Eighth });
+    Note F5Note = Note({ Pitch({NoteB, 5 }), Quarter });
     Note D3Note = Note({ Pitch({NoteD, 5}), Sixteenth });
 
     float currentBeat = 1.0f;
@@ -291,8 +291,9 @@ int main() {
     
     restTest->addNote(C3Note, currentBeat);
     restTest->addNote(E3Note, currentBeat);
+    restTest->addNote(G3Note, currentBeat);
 
-    currentBeat = restTest->addNote(G3Note, currentBeat);
+    currentBeat = restTest->addNote(F5Note, currentBeat);
     currentBeat = restTest->addNote(D3Note, currentBeat);
     //currentBeat = restTest->addNote(F5Note, currentBeat);
     //currentBeat = restTest->addNote(F5Note, currentBeat);

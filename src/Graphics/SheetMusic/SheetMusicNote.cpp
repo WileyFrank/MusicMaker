@@ -7,8 +7,8 @@ SheetMusicNote::SheetMusicNote()
 	this->window = nullptr;
 }
 
-SheetMusicNote::SheetMusicNote(float x, float y, float height, Clef clef, Note note, Accidental accidental)
-	:staffX(x), staffY(y), staffHeight(height), clef(clef), C4Position(1.25f),
+SheetMusicNote::SheetMusicNote(float x, float y, float height, Clef clef, Note note, Accidental accidental, KeySignature key)
+	:staffX(x), staffY(y), staffHeight(height), clef(clef), key(key), C4Position(1.25f),
 	notePointVertical(0), notePointHorizontal(0), halfStep(100.0f / 8),
 	note(note), noteX(0), accidental(accidental), SMAccidental(y, height, 0, 0, accidental)
 {
@@ -35,7 +35,7 @@ void SheetMusicNote::addLinesToNote(Pitch pitch)
 				sf::RectangleShape rect = sf::RectangleShape(sf::Vector2f(staffHeight / 2, (float)lineWidth));
 				rect.setOrigin(sf::Vector2f(staffHeight / 4, 0));
 				rect.setFillColor(staffColor);
-				rect.setPosition(sf::Vector2f(staffX + accidentalWidth, yPos - (2 * halfStep) * i));
+				rect.setPosition(sf::Vector2f(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x, yPos - (2 * halfStep) * i));
 				extraLines.push_back(rect);
 			}
 		}
@@ -53,7 +53,7 @@ void SheetMusicNote::addLinesToNote(Pitch pitch)
 				rect.setOrigin(sf::Vector2f(staffHeight / 4, 0));
 				rect.setFillColor(sf::Color(255, 255, 255));
 				rect.setFillColor(staffColor);
-				rect.setPosition(sf::Vector2f(staffX + accidentalWidth, yPos + (2 * halfStep) * i));
+				rect.setPosition(sf::Vector2f(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x, yPos + (2 * halfStep) * i));
 				extraLines.push_back(rect);
 			}
 		}
@@ -70,7 +70,7 @@ void SheetMusicNote::addLinesToNote(Pitch pitch)
 				sf::RectangleShape rect = sf::RectangleShape(sf::Vector2f(staffHeight / 2, (float)lineWidth));
 				rect.setOrigin(sf::Vector2f(staffHeight / 4, 0));
 				rect.setFillColor(staffColor);
-				rect.setPosition(sf::Vector2f(staffX + accidentalWidth, yPos - (2 * halfStep) * i));
+				rect.setPosition(sf::Vector2f(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x, yPos - (2 * halfStep) * i));
 				extraLines.push_back(rect);
 			}
 		}
@@ -88,7 +88,7 @@ void SheetMusicNote::addLinesToNote(Pitch pitch)
 				rect.setOrigin(sf::Vector2f(staffHeight / 4, 0));
 				rect.setFillColor(sf::Color(255, 255, 255));
 				rect.setFillColor(staffColor);
-				rect.setPosition(sf::Vector2f(staffX + accidentalWidth, yPos + (2 * halfStep) * i));
+				rect.setPosition(sf::Vector2f(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x, yPos + (2 * halfStep) * i));
 				extraLines.push_back(rect);
 			}
 		}
@@ -234,6 +234,7 @@ void SheetMusicNote::hoverAction()
 	{
 		hoverPanel->addText(valueString + noteRest, 16, sf::Color(190, 188, 216));
 		hoverPanel->addText("Pitch: " + pitchString, 14, sf::Color(212, 209,255));
+		hoverPanel->addText("Interval: " + MusicUtilities::getIntervals(note.pitch.note, key), 14, sf::Color(212, 209, 255));
 	}
 }
 
@@ -446,23 +447,6 @@ void SheetMusicNote::loadNote()
 		accidentalWidth = SMAccidental.getWidth();
 	}
 
-	switch (clef)
-	{
-	case TrebleClef:
-		if (!(distance > 0 && distance < 12))
-		{
-			addLinesToNote(note.pitch);
-		}
-		break;
-	case BassClef:
-
-		if (!(distance < 0 && distance > -12))
-		{
-			addLinesToNote(note.pitch);
-		}
-		break;
-	}
-
 
 
 
@@ -548,6 +532,26 @@ void SheetMusicNote::loadNote()
 
 
 	this->sprite.setPosition(sf::Vector2f(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x, staffY + (C4Position * staffHeight) - distance));
+
+	distance = (float)MusicUtilities::getNotesFromMiddleC(note.pitch, true);
+
+	switch (clef)
+	{
+	case TrebleClef:
+		if (!(distance > 0 && distance < 12))
+		{
+			addLinesToNote(note.pitch);
+		}
+		break;
+	case BassClef:
+
+		if (!(distance < 0 && distance > -12))
+		{
+			addLinesToNote(note.pitch);
+		}
+		break;
+	}
+
 
 
 }

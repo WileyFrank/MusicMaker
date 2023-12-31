@@ -123,6 +123,7 @@ struct TimeSignature {
 
 //Each of the notes can be marked as sharp flat or natural
 struct KeySignature {
+	PitchEnum root = NoteC;
 	std::string name = "C Major";
 	std::map<PitchEnum, Accidental> key = { 
 		std::make_pair(NoteF, Natural),
@@ -147,6 +148,7 @@ public:
 	{
 		KeySignature key;
 		key.name = getNoteString(root) + " " + getChordString(type);
+		key.root = root;
 		PitchEnum tempPitch = (PitchEnum)-12;
 		std::vector<int> notePattern;
 		int noteCount = 0;
@@ -523,6 +525,34 @@ public:
 		return { UNRECOGNIZEDCHORD, {} };
 	}
 
+	static std::vector<Pitch> orderPitchAscending(std::vector<Pitch> pitches)
+	{
+		//Sorts the pitched in ascending order;
+
+		if (pitches.size() <= 1)
+		{
+			return pitches;
+		}
+
+		for (int i = 1; i < pitches.size(); i++)
+		{
+			int j = i - 1;
+
+			while (j >= 0 && getSemitoneDistance(pitches[j + 1], pitches[j]) > 0)
+			{
+				auto temp = pitches[j + 1];
+				pitches[j + 1] = pitches[j];
+				pitches[j] = temp;
+				j--;
+			}
+		}
+
+		return pitches;
+
+	}
+
+	// |-|-|-|-|-|-|-|-|-|-| IINTERVALS |-|-|-|-|-|-|-|-|-|-|-|-|
+
 	static std::vector<int> generateIntervals(std::vector<Pitch> pitches)
 	{
 		std::vector<int> intervals = { };
@@ -552,32 +582,53 @@ public:
 		return intervals;
 	}
 
-	static std::vector<Pitch> orderPitchAscending(std::vector<Pitch> pitches)
+	static std::string getIntervals(PitchEnum pitch, KeySignature key)
 	{
-		//Sorts the pitched in ascending order;
+		auto distance = getSemitoneDistance(key.root, pitch);
+		distance = negativeMod(distance, 12);
 
-		if (pitches.size() <= 1)
+		switch (distance)
 		{
-			return pitches;
+		case 0:
+			return "i"; // Unison
+			break;
+		case 1:
+			return "ii"; // Minor second
+			break;
+		case 2:
+			return "II"; // Major second
+			break;
+		case 3:
+			return "iii"; // Minor third
+			break;
+		case 4:
+			return "III"; // Major third
+			break;
+		case 5:
+			return "IV"; // Perfect fourth
+			break;
+		case 6:
+			return "IV+"; // Tritone
+			break;
+		case 7:
+			return "V"; // Perfect fifth
+			break;
+		case 8:
+			return "vi"; // Minor sixth
+			break;
+		case 9:
+			return "VI"; // Major sixth
+			break;
+		case 10:
+			return "vii"; // Minor seventh
+			break;
+		case 11:
+			return "VII"; // Major seventh
+			break;
+		default:
+			return "error";
 		}
-
-		for (int i = 1; i < pitches.size(); i++)
-		{
-			int j = i - 1;
-
-			while (j >= 0 && getSemitoneDistance(pitches[j + 1], pitches[j]) > 0)
-			{
-				auto temp = pitches[j + 1];
-				pitches[j + 1] = pitches[j];
-				pitches[j] = temp;
-				j--;
-			}
-		}
-
-		return pitches;
-
 	}
-
 
 	// |-|-|-|-|-|-|-|-|-|-| PITCH AND ACCIDENTALS |-|-|-|-|-|-|-|-|-|-|-|-|
 
@@ -724,14 +775,8 @@ public:
 	static int getSemitoneDistance(PitchEnum pitchA, PitchEnum pitchB)
 	{
 		int distance = pitchB - pitchA;
-
-		while ((abs(distance) > 6))
-		{
-			if (distance > 6)
-				distance -= 12;
-			if (distance < -6)
-				distance += 12;
-		}
+		distance = distance % 12;
+		
 		return (distance);
 
 	}
@@ -831,12 +876,26 @@ public:
 	static std::string getChordString(ChordType chord)
 	{
 
-		std::map<ChordType, std::string> chordMap = {
+	std::map<ChordType, std::string> chordMap = {
 		{MAJOR, "Major"},
 		{MINOR, "Minor"},
+		{DIMINISHED, "Diminished"},
+		{AUGMENTED, "Augmented"},
 		{MAJOR7, "Major7"},
-		{MAJOR7, "Minor7"},
-		};
+		{DOMINANT7, "Dominant7"},
+		{MINOR7, "Minor7"},
+		{HALFDIMINISHED7, "Half-Diminished7"},
+		{DIMINISHED7, "Diminished7"},
+		{NINTH, "Ninth"},
+		{ELEVENTH, "Eleventh"},
+		{THIRTEENTH, "Thirteenth"},
+		{SUS2, "Suspended2"},
+		{SUS4, "Suspended4"},
+		{ADD9, "Add9"},
+		{ADD11, "Add11"},
+		{ADD13, "Add13"},
+		{UNRECOGNIZEDCHORD, "Unrecognized"},
+	};
 
 		return chordMap[chord];
 	}

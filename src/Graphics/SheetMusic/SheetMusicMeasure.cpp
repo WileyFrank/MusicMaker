@@ -29,7 +29,7 @@ void SheetMusicMeasure::loadSheetNotes()
 			}
 
 
-			newNote = new SheetMusicNote(position, y, staffHeight, clef, singleNote, accidental);
+			newNote = new SheetMusicNote(position, y, staffHeight, clef, singleNote, accidental, this->keySignature);
 			newNote->setWindow(window);
 			newNote->setNoteCount((int)note.second.size());
 			sheetNotes[note.first].push_back(newNote);
@@ -319,6 +319,15 @@ RenderObject& SheetMusicMeasure::getHoverObject()
 
 			if (noteX > mousePosition.x)
 			{
+				if (this->hoverBeat != sheetNoteMap.first)
+				{
+					this->setHoverStart(std::chrono::high_resolution_clock::now());
+					for (auto& note : sheetNotes[sheetNoteMap.first])
+					{
+						note->update();
+					}
+					unhoverUpdate();
+				}
 				this->hoverBeat = sheetNoteMap.first;
 				
 				if (sheetNotes[hoverBeat].size() > 1)

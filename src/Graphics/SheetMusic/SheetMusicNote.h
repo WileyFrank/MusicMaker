@@ -26,6 +26,8 @@ private:
 	SheetMusicAccidental SMAccidental;
 	float accidentalWidth = 0.0f;
 
+	KeySignature key;
+
 	sf::Sprite sprite;
 	sf::Texture* texture;
 	sf::Color staffColor =	sf::Color(255,0,0);
@@ -38,7 +40,7 @@ private:
 	void loadNote();
 public:
 	SheetMusicNote();
-	SheetMusicNote(float x, float y, float height, Clef clef, Note note, Accidental accidental = Natural);
+	SheetMusicNote(float x, float y, float height, Clef clef, Note note, Accidental accidental = Natural, KeySignature key = {});
 
 	void addLinesToNote(Pitch pitch);
 
