@@ -281,6 +281,20 @@ public:
 
 	static std::vector<int> generateIntervals(std::vector<Pitch> pitches)
 	{
+		std::vector<int> intervals = { };
+		auto start = pitches.front();
+
+		for (int i = 1; i < pitches.size(); i++)
+		{
+			int newInterval = negativeMod((negativeMod(pitches[i].note, 12) - negativeMod(start.note, 12)), 12);
+			start = pitches[i];
+			intervals.push_back(newInterval);
+		}
+		return intervals;
+	}
+
+	static std::vector<int> generateRootIntervals(std::vector<Pitch> pitches)
+	{
 
 		std::vector<int> intervals = { 0 };
 		auto start = pitches.front();
@@ -292,6 +306,7 @@ public:
 		}
 		return intervals;
 	}
+
 
 	static float getBeats(TimeSignature timeSignature, NoteValue value)
 	{

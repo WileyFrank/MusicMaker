@@ -334,7 +334,7 @@ int main() {
 
 
     auto intervals = MusicUtilities::generateIntervals({ {NoteA, 3},{NoteCs, 4}, {NoteE, 4} });
-
+    
 
     while (window.isOpen())
     {
