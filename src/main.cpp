@@ -333,8 +333,32 @@ int main() {
     auto microsecondCount = 0;
 
 
-    auto intervals = MusicUtilities::generateIntervals({ {NoteA, 3},{NoteCs, 4}, {NoteE, 4} });
+    auto intervals = MusicUtilities::generateIntervals({ {NoteA, 4},{NoteCs, 4}, {NoteE, 4} });
+    auto intervals2 = MusicUtilities::orderPitchAscending({ 
+        {NoteF, 5},
+        {NoteAs, 7},
+        {NoteC, 6},
+        {NoteE, 5},
+        {NoteAf, 5},
+        {NoteD, 3},
+        {NoteGf, 3},
+        {NoteCf, 7},
+        {NoteGf, 4},
+        {NoteAs, 3},
+        {NoteGs, 6},
+        {NoteGf, 1},
+        {NoteDs, 7},
+        {NoteG, 7},
+        {NoteGf, 2},
+        {NoteFs, 2},
+        {NoteEs, 4},
+        {NoteE, 4},
+        {NoteBf, 2},
+        {NoteC, 4}
+        });
     
+    auto distTest = MusicUtilities::getSemitoneDistance({ NoteB, 4 }, { NoteC, 5 });
+
 
     while (window.isOpen())
     {

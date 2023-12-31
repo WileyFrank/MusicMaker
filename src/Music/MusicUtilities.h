@@ -307,6 +307,31 @@ public:
 		return intervals;
 	}
 
+	static std::vector<Pitch> orderPitchAscending(std::vector<Pitch> pitches)
+	{
+		//Sorts the pitched in ascending order;
+
+		if (pitches.size() <= 1)
+		{
+			return pitches;
+		}
+
+		for (int i = 1; i < pitches.size(); i++)
+		{
+			int j = i - 1;
+
+			while (j >= 0 && getSemitoneDistance(pitches[j + 1], pitches[j]) > 0)
+			{
+				auto temp = pitches[j + 1];
+				pitches[j + 1] = pitches[j];
+				pitches[j] = temp;
+				j--;
+			}
+		}
+
+		return pitches;
+
+	}
 
 	static float getBeats(TimeSignature timeSignature, NoteValue value)
 	{
@@ -451,7 +476,7 @@ public:
 	static int getSemitoneDistance(Pitch pitchA, Pitch pitchB)
 	{
 		int octaves = pitchB.octave - pitchA.octave;
-		return (pitchB.note - pitchA.note) + (octaves * 12);
+		return (negativeMod(pitchB.note, 12) - negativeMod(pitchA.note, 12)) + (octaves * 12);
 
 	}
 
