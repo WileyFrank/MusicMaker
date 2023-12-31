@@ -12,8 +12,13 @@ private:
 
 	std::string textString, fontString;
 
+	Alignment align;
+
 	sf::Font font;
 	sf::Text text;
+
+
+	void reloadText();
 
 public:
 	PrimitiveText();
@@ -30,6 +35,6 @@ public:
 
 
 	void setColor(sf::Color color) { text.setFillColor(color); }
-
+	void setText(std::string text) { textString = text; reloadText(); }
 };
 

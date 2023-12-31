@@ -1,5 +1,25 @@
 #include "PrimitiveText.h"
 
+void PrimitiveText::reloadText()
+{
+	text.setString(textString);
+
+	switch (align)
+	{
+	case ALIGN_LEFT:
+		this->text.setOrigin(sf::Vector2f(0.0f, 0.0f));
+		break;
+	case ALIGN_CENTER:
+		this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().width / 2, 0.0f));
+		break;
+	case ALIGN_RIGHT:
+		this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().width, 0.0f));
+		break;
+	}
+
+	this->text.setPosition(x, y);
+}
+
 PrimitiveText::PrimitiveText()
 	:x(100),y(100),
 	textString("Init"), fontString("resources/fonts/Century 751 Bold.otf"),
@@ -17,7 +37,7 @@ PrimitiveText::PrimitiveText(std::string text)
 
 PrimitiveText::PrimitiveText(float x, float y, int size, std::string text, std::string fontpath, Alignment align)
 	:x(x), y(y),
-	textString(text), fontString(fontpath),
+	textString(text), fontString(fontpath), align(align),
 	font(*ResourceManager::getFont(fontString)), text(textString, font, size)
 {
 	switch (align)

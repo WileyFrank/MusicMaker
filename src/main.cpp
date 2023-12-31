@@ -254,8 +254,8 @@ int main() {
     std::vector<std::unique_ptr<SheetMusicElement>> sheetMusicObjects;
 
     //Creation of the staff
-    auto staff = std::make_unique<SheetMusicStaff>((float)100, (float)400, (float)500, (float)50, 
-        TrebleClef, MusicUtilities::getKey(NoteC, MAJOR));
+    auto staff = std::make_unique<SheetMusicStaff>((float)100, (float)400, (float)600, (float)40, 
+        TrebleClef, MusicUtilities::getKey(NoteD, MAJOR));
 
     staff->setColor(sf::Color(94, 94, 255));
     staff->setClefColor(sf::Color(150, 150, 255));
@@ -299,7 +299,6 @@ int main() {
     //currentBeat = restTest->addNote(F5Note, currentBeat);
     // 
     //currentBeat = restTest->addNote(D3Note, currentBeat);
-
     ////currentBeat = measureTest.addNote(D3Note, currentBeat);
     //currentBeat = restTest->addNote(C3Note, currentBeat + 0.5f);
     //currentBeat = restTest->addNote(D3Note, currentBeat);
@@ -307,6 +306,28 @@ int main() {
 
     restTest->addRests();
     restTest->reload();
+
+    auto measure2 = staff->addMeasure();
+
+    currentBeat = 0.0f;
+
+
+    currentBeat  = measure2->addNote(Note({ Pitch({NoteC, 4 }), Eighth }), currentBeat);
+    currentBeat  = measure2->addNote(Note({ Pitch({NoteD, 4 }), Eighth }), currentBeat);
+    currentBeat  = measure2->addNote(Note({ Pitch({NoteE, 4 }), Eighth }), currentBeat);
+    currentBeat  = measure2->addNote(Note({ Pitch({NoteF, 4 }), Eighth }), currentBeat);
+    currentBeat  = measure2->addNote(Note({ Pitch({NoteG, 4 }), Eighth }), currentBeat);
+    currentBeat  = measure2->addNote(Note({ Pitch({NoteA, 4 }), Eighth }), currentBeat);
+    currentBeat  = measure2->addNote(Note({ Pitch({NoteB, 4 }), Eighth }), currentBeat);
+    currentBeat  = measure2->addNote(Note({ Pitch({NoteC, 5 }), Eighth }), currentBeat);
+
+    measure2->addRests();
+    measure2->reload();
+
+    staff->addMeasure(measure2);
+    staff->addMeasure(measure2);
+    staff->addMeasure(measure2);
+    staff->addMeasure(measure2);
 
     auto smkey = staff->getSheetMusicKeySignature();
     auto smclef = staff->getSheetMusicClef();
@@ -331,7 +352,7 @@ int main() {
     auto currentFrame = std::chrono::high_resolution_clock::now();
     auto previousFrame = std::chrono::high_resolution_clock::now();
     int temp_i = 0;
-    auto microsecondCount = 0;
+    auto microsecondCount = 0.0f;
 
 
     auto intervals = MusicUtilities::findChord({ {NoteC, 4},{NoteEf, 4}, {NoteG, 4} });
@@ -339,10 +360,15 @@ int main() {
     auto distTest = MusicUtilities::getSemitoneDistance({ NoteB, 4 }, { NoteC, 5 });
 
 
+    PrimitiveText fpsText((float)window.getSize().x - 20, (float)window.getSize().y - 30, 24, "FPS: 0", "resources/fonts/Century 751 Bold.otf", ALIGN_RIGHT);
+    fpsText.setColor(sf::Color(60, 60, 180));
+    fpsText.setWindow(&window);
+
+
     while (window.isOpen())
     {
         //Frame data
-        /*
+        
         temp_i++;
 
         currentFrame = std::chrono::high_resolution_clock::now();
@@ -353,13 +379,16 @@ int main() {
 
         microsecondCount += duration.count();
 
-        if (temp_i % 1000 == 0)
+        if (temp_i % 50 == 0)
         {
-            auto averageDuration = microsecondCount / 1000.0f;
-            std::cout << "Average of 500 frames: " << averageDuration << " microseconds\n";
+            auto averageDuration = microsecondCount / 50.0f;
+            //std::cout << "Average of 100 frames: " << averageDuration << " microseconds\n";
             microsecondCount = 0;
+            auto fps = 1000000.0f / averageDuration;
+            std::string fpsString = "FPS: " + std::to_string((int)fps);
+            fpsText.setText(fpsString);
         }
-        */
+        
 
 
 
@@ -374,16 +403,17 @@ int main() {
             }
         }
 
-        sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
+        //sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
 
         //std::cout << "x: " << mousePosition.x << "\t\ty: " << mousePosition.y << "\n";
-        rect.setPosition(sf::Vector2f((float)mousePosition.x, (float)mousePosition.y));
+        //rect.setPosition(sf::Vector2f((float)mousePosition.x, (float)mousePosition.y));
 
 
         // Clear screen
         window.clear(sf::Color(0,3,25));
 
         //smclef->drawBoundingBox();
+        fpsText.draw();
 
         //Draw all objects
         for (auto& obj : renderObjects) {

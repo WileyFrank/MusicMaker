@@ -10,7 +10,7 @@ SheetMusicStaff::SheetMusicStaff()
 }
 
 SheetMusicStaff::SheetMusicStaff(float x, float y, float width, float height, Clef clefType, KeySignature key, TimeSignature timeSignature)
-	:x(x), y(y), width(width), height(height),
+	:x(x), y(y), width(width), height(height), measureGap(height / 3.0f),
 	clefType(clefType), clef(x, y, width, height, clefType), measureStart(0.0f),
 	keySignature(key), sheetMusicKeySignature((x + clef.getWidth() + height / 6.0f), y, height, key, clefType),
 	timeSignature(timeSignature), sheetMusicTimeSignature((x + clef.getWidth() + sheetMusicKeySignature.getWidth() + height / 3.0f), y, height, timeSignature)
@@ -41,9 +41,15 @@ SheetMusicStaff::~SheetMusicStaff()
 
 void SheetMusicStaff::addMeasure(SheetMusicMeasure* measure)
 {
+	currentMeasure = 0.0f;
+
+	for (auto& measure : measures)
+	{
+		currentMeasure += measure->getWidth() + measureGap;
+	}
 	auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));
 
-	newRect->setPosition(sf::Vector2f(currentMeasure + this->x, y));
+	newRect->setPosition(sf::Vector2f(currentMeasure + this->x + measureStart, y));
 	newRect->setFillColor(staffColor);
 	bars.push_back(newRect);
 
@@ -61,6 +67,13 @@ void SheetMusicStaff::addMeasure(SheetMusicMeasure* measure)
 
 SheetMusicMeasure* SheetMusicStaff::addMeasure()
 {
+	currentMeasure = 0.0f;
+
+	for (auto& measure : measures)
+	{
+		currentMeasure += measure->getWidth() + measureGap;
+	}
+
 	if (measures.size() > 0)
 	{
 		auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));

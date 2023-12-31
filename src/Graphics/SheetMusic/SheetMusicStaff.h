@@ -34,6 +34,7 @@ private:
 	float x, y, width, height;
 	
 	float measureStart;
+	float measureGap = 0.0f;
 	float currentMeasure = 0.0f;
 
 
