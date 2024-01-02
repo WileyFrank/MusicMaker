@@ -285,69 +285,28 @@ int main() {
     auto distance = MusicUtilities::getNotesFromMiddleC(Pitch({ NoteD,  3 }));
     distance = MusicUtilities::getNotesFromMiddleC(Pitch({ NoteFs,  8 }));
 
-
-    auto restTest = staff->addMeasure();
-
+    //Adding Notes
     currentBeat = 0.0f;
-    
     
     staff->addNote(C3Note, currentBeat);
     staff->addNote(E3Note, currentBeat);
     staff->addNote(G3Note, currentBeat);
-
     currentBeat = staff->addNote(F5Note, currentBeat);
     staff->addNote(D3Note, currentBeat);
-
-    staff->addNote(D3Note, 4.0f);
-    staff->addNote(D3Note, 4.5f);
+    staff->addNote(D3Note, 8.0f);
     staff->addNote(D3Note, 8.5f);
-
-    //currentBeat = restTest->addNote(F5Note, currentBeat);
-    //currentBeat = restTest->addNote(F5Note, currentBeat);
-    // 
-    //currentBeat = restTest->addNote(D3Note, currentBeat);
-    ////currentBeat = measureTest.addNote(D3Note, currentBeat);
-    //currentBeat = restTest->addNote(C3Note, currentBeat + 0.5f);
-    //currentBeat = restTest->addNote(D3Note, currentBeat);
-    //currentBeat = restTest->addNote(D3Note, currentBeat);
-
-    
-
-    /*staff->addMeasure(measure2);
-    staff->addMeasure(measure2);
-    staff->addMeasure(measure2);
-    staff->addMeasure(measure2);*/
-
-    auto smkey = staff->getSheetMusicKeySignature();
-    auto smclef = staff->getSheetMusicClef();
-
+    staff->addNote(D3Note, 12.5f);
+    staff->addNote(D3Note, 13.0f);
 
     staff->colorUpdate();
-    renderObjects.push_back(std::move(staff));
-
-
-
+    //renderObjects.push_back(std::move(staff));
 
     auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
-
-    //Add scales and notes quickly to measues, and staffs, in a way that can be later automated
-
-    auto acc = MusicUtilities::getAccidentalsInKey(C3Note, key);
-
-    /*auto renderRect = std::make_unique<GUIPanel>(20.0f, 20.0f, 50.0f,50.0f,sf::Color(255,0,255),sf::Color(100,100,255), 2.0f);
-    renderRect->setWindow(&window);
-    renderObjects.push_back(std::move(renderRect));*/
 
     auto currentFrame = std::chrono::high_resolution_clock::now();
     auto previousFrame = std::chrono::high_resolution_clock::now();
     int temp_i = 0;
     auto microsecondCount = 0.0f;
-
-
-    auto intervals = MusicUtilities::findChord({ {NoteC, 4},{NoteEf, 4}, {NoteG, 4} });
-    
-    auto distTest = MusicUtilities::getSemitoneDistance({ NoteB, 4 }, { NoteC, 5 });
-
 
     PrimitiveText fpsText((float)window.getSize().x - 20, (float)window.getSize().y - 30, 24, "FPS: 0", "resources/fonts/Century 751 Bold.otf", ALIGN_RIGHT);
     fpsText.setColor(sf::Color(60, 60, 180));
@@ -377,9 +336,6 @@ int main() {
             std::string fpsString = "FPS: " + std::to_string((int)fps);
             fpsText.setText(fpsString);
         }
-        
-
-
 
         while (window.pollEvent(e))
         {
@@ -401,7 +357,6 @@ int main() {
         // Clear screen
         window.clear(sf::Color(0,3,25));
 
-        //smclef->drawBoundingBox();
         fpsText.draw();
 
         //Draw all objects
