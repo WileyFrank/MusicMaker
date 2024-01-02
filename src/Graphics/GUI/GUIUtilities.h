@@ -56,7 +56,7 @@ public:
     }
 
     //Shape specific
-    static sf::ConvexShape createRoundedRectangle(float width, float height, float cornerRadius, unsigned cornerPointCount) {
+    static sf::ConvexShape createRoundedRectangle(float width, float height, float cornerRadius, int cornerPointCount) {
         sf::ConvexShape shape(4 * cornerPointCount + 8); // Four corners, each with cornerPointCount points, plus 4 for the sides
         std::size_t pointIndex = 0;
 

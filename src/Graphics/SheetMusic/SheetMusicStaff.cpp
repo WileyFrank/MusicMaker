@@ -116,13 +116,13 @@ float SheetMusicStaff::addNote(Note note, float beat)
 
 	}
 
-	float placement = fmod(beat, timeSignature.denominator);
+	float placement = fmod(beat, (float)timeSignature.denominator);
 	measures[measure]->clearRests();
 	measures[measure]->addNote(note,placement);
 	measures[measure]->addRests();
 	measures[measure]->reload();
 
-	return 0.0f;
+	return beat + MusicUtilities::getBeats(timeSignature, note.value);;
 }
 
 void SheetMusicStaff::draw()

@@ -8,6 +8,8 @@
 #pragma warning(push, 0)
 #include <SFML/Graphics/Glyph.hpp>
 #pragma warning(pop)
+#pragma warning(disable : 26812)
+
 
 #include "SFML/Graphics.hpp"
 #include "Graphics/GUI/RenderObject.h"
@@ -210,7 +212,7 @@ int main() {
     system->release();
 
 
-    sf::RenderWindow window(sf::VideoMode(800, 800), "Test");
+    sf::RenderWindow window(sf::VideoMode(1200, 800), "Sheet Music Generator");
     sf::Event e;
 
     //adding objects
@@ -254,7 +256,7 @@ int main() {
     std::vector<std::unique_ptr<SheetMusicElement>> sheetMusicObjects;
 
     //Creation of the staff
-    auto staff = std::make_unique<SheetMusicStaff>((float)100, (float)400, (float)600, (float)40, 
+    auto staff = std::make_unique<SheetMusicStaff>((float)100, (float)400, (float)1000, (float)60, 
         TrebleClef, MusicUtilities::getKey(NoteFs, MAJOR));
 
     staff->setColor(sf::Color(94, 94, 255));
@@ -289,14 +291,12 @@ int main() {
     currentBeat = 0.0f;
     
     
-    restTest->addNote(C3Note, currentBeat);
-    restTest->addNote(E3Note, currentBeat);
-    restTest->addNote(G3Note, currentBeat);
+    staff->addNote(C3Note, currentBeat);
+    staff->addNote(E3Note, currentBeat);
+    staff->addNote(G3Note, currentBeat);
 
-    currentBeat = restTest->addNote(F5Note, currentBeat);
+    currentBeat = staff->addNote(F5Note, currentBeat);
     staff->addNote(D3Note, currentBeat);
-    restTest->addRests();
-    restTest->reload();
 
     staff->addNote(D3Note, 4.0f);
     staff->addNote(D3Note, 4.5f);
