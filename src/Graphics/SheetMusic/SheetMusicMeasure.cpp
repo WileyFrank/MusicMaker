@@ -324,6 +324,7 @@ RenderObject& SheetMusicMeasure::getHoverObject()
 		{
 			for (SheetMusicNote* note : pair.second)
 			{
+				//chord will be displayed
 				note->setOverrideAction(true);
 				note->setHover(false);
 				if (note->getHoverObject().getType() != EmptyRenderObject)
