@@ -23,7 +23,7 @@ private:
 public:
 	PrimitiveText();
 	PrimitiveText(std::string text);
-	PrimitiveText(float x, float y, int size, std::string text, std::string fontname, Alignment align = ALIGN_LEFT);
+	PrimitiveText(float x, float y, int size, std::string text, std::string fontname = "resources/fonts/Sansation_Regular.ttf", Alignment align = ALIGN_LEFT);
 
 	void render() override;
 	void update() override;
