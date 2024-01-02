@@ -7,6 +7,15 @@ SheetMusicNote::SheetMusicNote()
 	this->window = nullptr;
 }
 
+SheetMusicNote::SheetMusicNote(SheetMusicNote* old)
+	:staffX(old->staffX), staffY(old->staffY), staffHeight(old->staffHeight), clef(old->clef), key(old->key), C4Position(old->C4Position),
+	notePointVertical(old->notePointVertical), notePointHorizontal(old->notePointHorizontal), halfStep(100.0f / 8),
+	note(old->note), noteX(old->noteX), accidental(old->accidental), SMAccidental(staffY, staffHeight, 0, 0, accidental),
+	noteCount(old->noteCount)
+{
+	loadNote();
+}
+
 SheetMusicNote::SheetMusicNote(float x, float y, float height, Clef clef, Note note, Accidental accidental, KeySignature key)
 	:staffX(x), staffY(y), staffHeight(height), clef(clef), key(key), C4Position(1.25f),
 	notePointVertical(0), notePointHorizontal(0), halfStep(100.0f / 8),
@@ -18,7 +27,7 @@ SheetMusicNote::SheetMusicNote(float x, float y, float height, Clef clef, Note n
 
 void SheetMusicNote::addLinesToNote(Pitch pitch)
 {
-	int distance = MusicUtilities::getNotesFromMiddleC(note.pitch);
+	int distance = MusicUtilities::getNotesFromMiddleC(note.pitch, true);
 	int lineWidth = (int)(staffHeight / 40);
 
 	switch (clef)
@@ -192,7 +201,7 @@ void SheetMusicNote::hoverUpdate()
 	auto timeNow = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - hoverStart);
 
-	if (duration.count() >= 300 && runHoverAction &&!overrideAction)
+	if (duration.count() >= 150 && runHoverAction &&!overrideAction)
 	{
 		hoverAction();
 		runHoverAction = false;
@@ -236,6 +245,7 @@ void SheetMusicNote::hoverAction()
 		hoverPanel->addText("Pitch: " + pitchString, 14, sf::Color(212, 209,255));
 		hoverPanel->addText("Interval: " + MusicUtilities::getIntervals(note.pitch.note, key), 14, sf::Color(212, 209, 255));
 	}
+	unhover = true;
 }
 
 void SheetMusicNote::unhoverAction()

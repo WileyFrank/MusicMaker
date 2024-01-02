@@ -35,7 +35,7 @@ public:
 	void draw() override;
 	std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() override;
 
-	float getWidth() { return sprite.getLocalBounds().width * sprite.getScale().x * widthFactor; }
+	float getWidth() { return sprite.getLocalBounds().width * sprite.getScale().x; }
 
 	void setPosition(float x, float y);
 	void setColor(sf::Color color) { this->color = color; sprite.setColor(color); }

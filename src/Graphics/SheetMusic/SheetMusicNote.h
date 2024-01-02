@@ -40,6 +40,7 @@ private:
 	void loadNote();
 public:
 	SheetMusicNote();
+	SheetMusicNote(SheetMusicNote* old);
 	SheetMusicNote(float x, float y, float height, Clef clef, Note note, Accidental accidental = Natural, KeySignature key = {});
 
 	void addLinesToNote(Pitch pitch);

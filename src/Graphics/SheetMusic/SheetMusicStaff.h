@@ -28,6 +28,15 @@
 *	is set to the origin and the position is set to the proper not position
 */
 
+// |-|-|-|-|-|-|-|-|-|-|-|-| Notes |-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+/* Notes can be added in one of 3 ways
+*  
+*	- By passed in measure
+*	- By adding notes to an existing staff measure
+*	- By using abstacted methods such as addNote which will use
+*	  one of the above methods to add a note at a provided beat
+*/
+
 class SheetMusicStaff : public SheetMusicElement
 {
 private:
@@ -65,8 +74,10 @@ public:
 
 	~SheetMusicStaff();
 
-	void addMeasure(SheetMusicMeasure* measure);
+	SheetMusicMeasure* addMeasure(SheetMusicMeasure* measure);
 	SheetMusicMeasure* addMeasure();
+
+	float addNote(Note note, float beat);
 
 	void draw() override;
 	void setWindow(sf::RenderWindow* window) override;

@@ -491,7 +491,7 @@ public:
 				break;
 			}
 
-			if (semitonePattern.size() == 0 || semitonePattern.size() != intervals.size()) continue;
+			if (semitonePattern.size() == 0) continue;
 
 			//Cases
 			// - The intervals are equal: Return
@@ -783,10 +783,7 @@ public:
 
 	static int getSemitonesFromMiddleC(Pitch pitch)
 	{
-		if ((int)pitch.note < 0 || (int)pitch.note > 11)
-		{
-			pitch.note = (PitchEnum)((int)pitch.note % 12);
-		}
+		pitch.note = (PitchEnum)negativeMod(pitch.note, 12);
 
 		int distanceToC = pitch.note - NoteC;
 

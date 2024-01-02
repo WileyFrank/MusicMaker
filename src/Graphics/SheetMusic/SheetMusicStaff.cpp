@@ -39,30 +39,32 @@ SheetMusicStaff::~SheetMusicStaff()
 	lines.clear();
 }
 
-void SheetMusicStaff::addMeasure(SheetMusicMeasure* measure)
-{
+SheetMusicMeasure* SheetMusicStaff::addMeasure(SheetMusicMeasure* measure) {
 	currentMeasure = 0.0f;
 
-	for (auto& measure : measures)
-	{
-		currentMeasure += measure->getWidth() + measureGap;
+	// Sum the widths of existing measures
+	for (auto& existingMeasure : measures) {
+		currentMeasure += existingMeasure->getWidth() + measureGap;
 	}
-	auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));
 
+	// Create a new bar
+	auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));
 	newRect->setPosition(sf::Vector2f(currentMeasure + this->x + measureStart, y));
 	newRect->setFillColor(staffColor);
 	bars.push_back(newRect);
 
-
 	currentMeasure += height / 5;
 
+	// Create a copy of the measure
+	SheetMusicMeasure* newMeasure = new SheetMusicMeasure(measure); // Copying the measure
+	newMeasure->setupStaff(currentMeasure + measureStart + this->x, this->y, height, clef.getClef());
+	newMeasure->setNoteColor(noteColor);
+	newMeasure->setStaffColor(staffColor);
+	newMeasure->setWindow(this->window);
+	measures.push_back(newMeasure);
+	currentMeasure += newMeasure->getWidth();
 
-	measure->setupStaff(currentMeasure + measureStart + this->x, this->y, height, clef.getClef());
-	measure->setNoteColor(noteColor);
-	measure->setStaffColor(staffColor);
-	measure->setWindow(this->window);
-	measures.push_back(measure);
-	currentMeasure += measure->getWidth();
+	return newMeasure; // Return the pointer to the new measure
 }
 
 SheetMusicMeasure* SheetMusicStaff::addMeasure()
@@ -96,6 +98,31 @@ SheetMusicMeasure* SheetMusicStaff::addMeasure()
 	measures.push_back(newMeasure);
 
 	return newMeasure;
+}
+
+float SheetMusicStaff::addNote(Note note, float beat)
+{
+	int measure = (int)beat / timeSignature.denominator;
+	if (measures.size() <= measure)
+	{
+		SheetMusicMeasure* newMeasure = this->addMeasure();
+		while (measures.size() <= measure)
+		{
+			newMeasure->addRests();
+			newMeasure->reload();
+			newMeasure = this->addMeasure();
+		}
+
+
+	}
+
+	float placement = fmod(beat, timeSignature.denominator);
+	measures[measure]->clearRests();
+	measures[measure]->addNote(note,placement);
+	measures[measure]->addRests();
+	measures[measure]->reload();
+
+	return 0.0f;
 }
 
 void SheetMusicStaff::draw()

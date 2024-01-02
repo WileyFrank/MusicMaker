@@ -94,7 +94,7 @@ void SheetMusicKeySignature::addAccidental(std::pair<PitchEnum, Accidental> pitc
 		newAccidental = new SheetMusicAccidental(staffY, staffHeight, staffX, positionY, pitch.second);
 
 		accidentals.push_back(newAccidental);
-		staffX += newAccidental->getWidth() / 2;
+		staffX += newAccidental->getWidth();
 		break;
 
 	case BassClef:
@@ -300,7 +300,7 @@ float SheetMusicKeySignature::getWidth()
 		width += accidental->getWidth();
 	}
 
-	return width / 2;
+	return width;
 }
 
 void SheetMusicKeySignature::setColor(sf::Color color)

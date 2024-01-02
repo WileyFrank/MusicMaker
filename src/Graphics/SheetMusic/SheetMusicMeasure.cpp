@@ -49,8 +49,9 @@ void SheetMusicMeasure::loadSheetNotes()
 		{
 			for (auto& singleNote : sheetNotes[note.first])
 			{
-				singleNote->setAccidentalWidth(accidentalOffset);
+				singleNote->setAccidentalWidth(accidentalOffset + noteGap/2);
 			}
+			width += noteGap / 2; //THIS IS THE SPACING BETWEEN ACCIDENTAL AND NOTE
 		}
 		position += width + noteGap;
 	}
@@ -128,6 +129,22 @@ Note SheetMusicMeasure::getLongestRest(float beat, bool dotted)
 SheetMusicMeasure::SheetMusicMeasure()
 	:x(0), y(0), width(0), staffHeight(0), timeSignature(TimeSignature({ 4, 4 })), quarterValue(1.0f), noteCount(0), noteGap(10), clef(TrebleClef) 
 {
+}
+
+SheetMusicMeasure::SheetMusicMeasure(SheetMusicMeasure* old)
+	: x(old->x), y(old->y), width(old->width), staffHeight(old->staffHeight), clef(old->clef),
+	timeSignature(old->timeSignature), keySignature(old->keySignature),
+	quarterValue(old->quarterValue), noteCount(old->noteCount), noteGap(old->noteGap),
+	notes(old->notes), chords(old->chords)
+{
+	for (auto sheetNote : old->sheetNotes)
+	{
+		for (auto singleNote : sheetNote.second)
+		{
+			auto newNote = new SheetMusicNote(singleNote);
+			sheetNotes[sheetNote.first].push_back(newNote);
+		}
+	}
 }
 
 SheetMusicMeasure::SheetMusicMeasure(float x, float y, float staffHeight, Clef clef, TimeSignature timeSignature, KeySignature keySignature)
@@ -209,11 +226,13 @@ std::vector<Note> SheetMusicMeasure::getPlaying(float beat)
 
 void SheetMusicMeasure::addRests()
 {
-	float currentBeat = 1.0f;
+	float currentBeat = 0.0f;
 	float maxTime = 0.0f;
 	float maxBeats = 0.0f;
 
+	clearRests();
 
+	
 	while (currentBeat < (float)timeSignature.denominator)
 	{
 		auto currentNotes = getPlaying(currentBeat);
@@ -235,6 +254,21 @@ void SheetMusicMeasure::addRests()
 		}
 
 		currentBeat += maxBeats;
+	}
+}
+
+void SheetMusicMeasure::clearRests()
+{
+	//Remove old rests
+	for (auto it = notes.begin(); it != notes.end(); /* no increment here */) {
+		if (it->second[0].pitch.note == NoteRest) {
+			// Erase the element and advance the iterator
+			it = notes.erase(it);
+		}
+		else {
+			// Only increment the iterator if you didn't erase
+			++it;
+		}
 	}
 }
 
@@ -281,23 +315,46 @@ RenderObject& SheetMusicMeasure::getHoverObject()
 
 
 	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
-	for (auto& pair : sheetNotes)
+	bool onNote = false;
+
+	//if control is pressed, chord will take dominance over notes
+	if (!sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
 	{
-		for (SheetMusicNote* note : pair.second)
+		for (auto& pair : sheetNotes)
 		{
-			note->setOverrideAction(true);
-			note->setHover(false);
-			if (note->getHoverObject().getType() != EmptyRenderObject)
+			for (SheetMusicNote* note : pair.second)
 			{
-				this->hoverBeat = -1.0f;
-				
-				note->setOverrideAction(false);
-				return note->getHoverObject();
+				note->setOverrideAction(true);
+				note->setHover(false);
+				if (note->getHoverObject().getType() != EmptyRenderObject)
+				{
+					this->hoverBeat = -1.0f;
+					
+					note->setHover(true);
+					note->setOverrideAction(false);
+					return note->getHoverObject();
+				}
+			}
+		}
+	}
+	else
+	{
+		for (auto& pair : sheetNotes)
+		{
+			for (SheetMusicNote* note : pair.second)
+			{
+				note->setOverrideAction(true);
+				note->setHover(false);
+				if (note->getHoverObject().getType() != EmptyRenderObject)
+				{
+					this->hoverBeat = pair.first;
+					onNote = true;
+				}
 			}
 		}
 	}
 
-	if (GUIUtilities::positionInBounds(mousePosition, getHoverArea()))
+	if (GUIUtilities::positionInBounds(mousePosition, getHoverArea()) || onNote)
 	{
 
 		float noteX = x;
@@ -305,17 +362,17 @@ RenderObject& SheetMusicMeasure::getHoverObject()
 		for (auto& sheetNoteMap : sheetNotes)
 		{
 
-			float max = 0.0f;
+			float width = 0;
+			float max = 0;
 			for (auto& note : sheetNoteMap.second)
 			{
-				if (max < note->getHoverArea().second.x)
+				auto area = note->getHoverArea();
+				if (max < (area.first.x + area.second.x))
 				{
-					max = note->getHoverArea().second.x;
+					max = area.first.x + area.second.x;
 				}
 			}
-
-			noteX += max;
-			noteX += noteGap;
+			noteX = max;
 
 			if (noteX > mousePosition.x)
 			{
@@ -335,12 +392,16 @@ RenderObject& SheetMusicMeasure::getHoverObject()
 					for (auto& note : sheetNotes[hoverBeat])
 					{
 						//Used so the note hover menu timer doesn't start from a measure, only from the note itself
+						note->setOverrideAction(true);
+						note->update();
 						note->setHoverStart(std::chrono::high_resolution_clock::now());
+						//note->drawBoundingBox();
 					}
 				}
 				else
 				{
 					sheetNotes[hoverBeat][0]->setOverrideAction(false);
+					//sheetNotes[hoverBeat][0]->drawBoundingBox();
 				}
 
 
@@ -445,7 +506,7 @@ void SheetMusicMeasure::hoverUpdate()
 
 	auto timeNow = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(timeNow - hoverStart);
-	if (duration.count() >= 300 && runHoverAction)
+	if (duration.count() >= 150 && runHoverAction)
 	{
 		hoverAction();
 		runHoverAction = false;
@@ -454,6 +515,7 @@ void SheetMusicMeasure::hoverUpdate()
 
 void SheetMusicMeasure::unhoverUpdate()
 {
+	hoverBeat = -1.0f;
 	unhoverAction();
 }
 
@@ -477,19 +539,26 @@ void SheetMusicMeasure::hoverAction()
 
 	float height = 60.0f;
 
-	hoverPanel = addPanel((float)mouse.x, minY - height, 120.0f, height, sf::Color(11, 0, 45), sf::Color(31, 24, 96), 2);
+	hoverPanel = addPanel((float)mouse.x, minY - height, 150.0f, height, sf::Color(11, 0, 45), sf::Color(31, 24, 96), 2);
 
 	std::string notesString = "";
 	std::vector<Pitch> pitches;
 
+	int i = 0;
 	for (auto& note : notes[hoverBeat])
 	{
+		i++;
 		std::string pitchString = MusicUtilities::getNoteString(note.pitch.note);
 
 		if (note.pitch.note != NoteRest)
 		{
 			notesString += pitchString + ", ";
 		}
+		if (i % 3 == 0)
+		{
+			notesString += "\n";
+		}
+
 		pitches.push_back(note.pitch);
 	}
 	

@@ -40,6 +40,7 @@ private:
 
 public:
 	SheetMusicMeasure();
+	SheetMusicMeasure(SheetMusicMeasure* old);
 	SheetMusicMeasure(float x, float y, float staffHeight, Clef clef, TimeSignature timeSignature, KeySignature keySignature = KeySignature());
 
 	~SheetMusicMeasure();
@@ -51,6 +52,7 @@ public:
 	std::vector<Note> getPlaying(float beat);
 
 	void addRests();
+	void clearRests();
 
 	void draw() override;
 	std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() override;

@@ -255,13 +255,13 @@ int main() {
 
     //Creation of the staff
     auto staff = std::make_unique<SheetMusicStaff>((float)100, (float)400, (float)600, (float)40, 
-        TrebleClef, MusicUtilities::getKey(NoteD, MAJOR));
+        TrebleClef, MusicUtilities::getKey(NoteFs, MAJOR));
 
     staff->setColor(sf::Color(94, 94, 255));
     staff->setClefColor(sf::Color(150, 150, 255));
     staff->setNoteColor(sf::Color(94, 150, 255));
     staff->setNoteHoverColor(sf::Color(55, 220, 255));
-    staff->setHoverColor(sf::Color(255, 150, 255));
+    staff->setHoverColor(sf::Color(255, 200, 255));
     staff->setWindow(&window);
 
     sf::RectangleShape rect(sf::Vector2f(100, 100));
@@ -294,7 +294,14 @@ int main() {
     restTest->addNote(G3Note, currentBeat);
 
     currentBeat = restTest->addNote(F5Note, currentBeat);
-    currentBeat = restTest->addNote(D3Note, currentBeat);
+    staff->addNote(D3Note, currentBeat);
+    restTest->addRests();
+    restTest->reload();
+
+    staff->addNote(D3Note, 4.0f);
+    staff->addNote(D3Note, 4.5f);
+    staff->addNote(D3Note, 8.5f);
+
     //currentBeat = restTest->addNote(F5Note, currentBeat);
     //currentBeat = restTest->addNote(F5Note, currentBeat);
     // 
@@ -304,30 +311,12 @@ int main() {
     //currentBeat = restTest->addNote(D3Note, currentBeat);
     //currentBeat = restTest->addNote(D3Note, currentBeat);
 
-    restTest->addRests();
-    restTest->reload();
+    
 
-    auto measure2 = staff->addMeasure();
-
-    currentBeat = 0.0f;
-
-
-    currentBeat  = measure2->addNote(Note({ Pitch({NoteC, 4 }), Eighth }), currentBeat);
-    currentBeat  = measure2->addNote(Note({ Pitch({NoteD, 4 }), Eighth }), currentBeat);
-    currentBeat  = measure2->addNote(Note({ Pitch({NoteE, 4 }), Eighth }), currentBeat);
-    currentBeat  = measure2->addNote(Note({ Pitch({NoteF, 4 }), Eighth }), currentBeat);
-    currentBeat  = measure2->addNote(Note({ Pitch({NoteG, 4 }), Eighth }), currentBeat);
-    currentBeat  = measure2->addNote(Note({ Pitch({NoteA, 4 }), Eighth }), currentBeat);
-    currentBeat  = measure2->addNote(Note({ Pitch({NoteB, 4 }), Eighth }), currentBeat);
-    currentBeat  = measure2->addNote(Note({ Pitch({NoteC, 5 }), Eighth }), currentBeat);
-
-    measure2->addRests();
-    measure2->reload();
-
+    /*staff->addMeasure(measure2);
     staff->addMeasure(measure2);
     staff->addMeasure(measure2);
-    staff->addMeasure(measure2);
-    staff->addMeasure(measure2);
+    staff->addMeasure(measure2);*/
 
     auto smkey = staff->getSheetMusicKeySignature();
     auto smclef = staff->getSheetMusicClef();

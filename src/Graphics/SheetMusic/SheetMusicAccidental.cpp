@@ -15,7 +15,6 @@ void SheetMusicAccidental::loadAccidental()
 			std::cout << "Accidental Texture unable to load\n";
 		}
 		notePointVertical = 185.0f / 256.0f;
-		widthFactor = 1.2f;
 		break;
 	case Flat:
 		if (!texture.loadFromFile("resources/images/sheet_music/accidentals/flat.png")) {
@@ -23,7 +22,6 @@ void SheetMusicAccidental::loadAccidental()
 			std::cout << "Accidental Texture unable to load\n";
 		}
 		notePointVertical = 185.0f / 256.0f;
-		widthFactor = 2.0f;
 		scale = this->staffHeight * 0.45f;
 
 		break;
@@ -34,7 +32,6 @@ void SheetMusicAccidental::loadAccidental()
 			std::cout << "Accidental Texture unable to load\n";
 		}
 		notePointVertical = 0.5f;
-		widthFactor = 2.1f;
 
 		break;
 	case Sharp:
@@ -43,7 +40,6 @@ void SheetMusicAccidental::loadAccidental()
 			std::cout << "Accidental Texture unable to load\n";
 		}
 		notePointVertical = 0.525f;
-		widthFactor = 2.0f;
 
 		break;
 	case DoubleSharp:
@@ -53,14 +49,13 @@ void SheetMusicAccidental::loadAccidental()
 		}
 		scale = this->staffHeight * 0.25f;
 		notePointVertical = 0.5f;
-		widthFactor = 1.5f;
 		break;
 	}
 
 	this->sprite.setTexture(texture);
 	float newScale = scale / sprite.getLocalBounds().height;
 	this->sprite.setScale(newScale, newScale);
-	this->sprite.setOrigin(sf::Vector2f(sprite.getLocalBounds().width / 2, sprite.getLocalBounds().height * notePointVertical)); //sets the origin to the "center" of the symbol, the part which rests on a note
+	this->sprite.setOrigin(sf::Vector2f(0.0f, sprite.getLocalBounds().height * notePointVertical)); //sets the origin to the "center" of the symbol, the part which rests on a note
 	this->sprite.setColor(color);
 
 	this->sprite.setPosition(sf::Vector2f(positionX + sprite.getOrigin().x * sprite.getScale().x, staffY + (positionY)*staffHeight));
