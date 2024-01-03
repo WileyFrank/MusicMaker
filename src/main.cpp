@@ -318,7 +318,8 @@ int main() {
 
     renderObjects.push_back(textBox);
 
-    RenderObject* activeObject;
+    RenderObject* hoverObject = nullptr;
+    RenderObject* activeObject = nullptr;
 
 
     while (window.isOpen())
@@ -345,8 +346,8 @@ int main() {
             fpsText.setText(fpsString);
         }
 
-        //Active object managment
-        activeObject = nullptr;
+        //Active and Hover object managment
+        hoverObject = nullptr;
         for (auto& obj : renderObjects) {
             auto& object = obj->getHoverObject();
             obj->setHover(false);
@@ -354,7 +355,7 @@ int main() {
             if (object.getType() != EmptyRenderObject)
             {
                 object.setHover(true);
-                activeObject = &object;
+                hoverObject = &object;
             }
         }
 
@@ -373,13 +374,17 @@ int main() {
                     int mouseX = e.mouseButton.x;
                     int mouseY = e.mouseButton.y;
 
-                    
+                    activeObject = nullptr;
+                    if (hoverObject != nullptr)
+                    {
+                        hoverObject->onClick();
+                        activeObject = hoverObject;
+                    }
                     std::cout << "x: " << mouseX << "\t\ty: " << mouseY << "\n";
                     
                 }
             }
         }
-
         //sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
 
         //std::cout << "x: " << mousePosition.x << "\t\ty: " << mousePosition.y << "\n";
@@ -390,6 +395,11 @@ int main() {
         window.clear(sf::Color(0,3,25));
 
         fpsText.draw();
+
+        for (auto& obj : renderObjects) {
+            obj->render();
+        }
+
 
         // Update the window
         window.display();

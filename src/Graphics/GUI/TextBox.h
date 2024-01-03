@@ -72,5 +72,10 @@ public:
 
         return *GUIUtilities::getEmptyRenderObject();
     }
+
+    void onClick() override
+    {
+        std::cout << "Textbox click\n";
+    }
 };
 
