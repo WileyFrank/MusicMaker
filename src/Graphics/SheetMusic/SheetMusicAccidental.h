@@ -12,7 +12,6 @@ private:
 
 	//the position of the symbol in terms of the staff where 0.0 is top and 1.0 is bottom. 
 	// 1.25 = Middle C in treble clef
-	float positionX, positionY; 
 
 
 	//used to change the width and gap from note
@@ -29,7 +28,7 @@ private:
 	void loadAccidental();
 public:
 	SheetMusicAccidental(Accidental accidental = Natural)
-		:accidental(accidental), positionX(0), positionY(0), staffHeight(0), staffY(0){};
+		:accidental(accidental), staffHeight(0), staffY(0){};
 	SheetMusicAccidental(float staffY, float staffHeight, float positionX, float positionY, Accidental accidental, sf::Color color = sf::Color(255,255,255));
 
 	void draw() override;

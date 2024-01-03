@@ -58,13 +58,17 @@ void SheetMusicAccidental::loadAccidental()
 	this->sprite.setOrigin(sf::Vector2f(0.0f, sprite.getLocalBounds().height * notePointVertical)); //sets the origin to the "center" of the symbol, the part which rests on a note
 	this->sprite.setColor(color);
 
-	this->sprite.setPosition(sf::Vector2f(positionX + sprite.getOrigin().x * sprite.getScale().x, staffY + (positionY)*staffHeight));
+	this->sprite.setPosition(sf::Vector2f(this->x + sprite.getOrigin().x * sprite.getScale().x, staffY + (this->y)*staffHeight));
 }
 
 //constructors
 SheetMusicAccidental::SheetMusicAccidental(float staffY, float staffHeight, float positionX, float positionY, Accidental accidental, sf::Color color)
-	:staffY(staffY), staffHeight(staffHeight), positionX(positionX), positionY(positionY), accidental(accidental), color(color)
+	:staffY(staffY), staffHeight(staffHeight), accidental(accidental), color(color)
 {
+	this->x = positionX;
+	this->y = positionY;
+	this->height = staffHeight;
+	
 	loadAccidental();
 }
 
@@ -88,7 +92,7 @@ std::pair<sf::Vector2f, sf::Vector2f> SheetMusicAccidental::getHoverArea()
 
 void SheetMusicAccidental::setPosition(float x, float y)
 {
-	this->positionX = x;
-	this->positionY = y;
+	this->x = x;
+	this->y = y;
 	sprite.setPosition(sf::Vector2f(x, y * staffHeight + staffY));
 }
