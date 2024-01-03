@@ -9,7 +9,6 @@ class RectangleButton : public SFButton
 {
 protected:
 	sf::RectangleShape* shape;
-	float width, height;
 
 	sf::Font* font;
 	sf::Text text;

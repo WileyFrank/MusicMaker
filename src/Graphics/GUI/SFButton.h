@@ -7,7 +7,6 @@ class SFButton : public RenderObject
 private:
 	sf::RectangleShape* shape;
 protected:
-	float positionX, positionY;
 	sf::Color color;
 	sf::Color baseColor;
 	sf::Color hoverColor = sf::Color::Black;

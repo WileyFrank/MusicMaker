@@ -15,6 +15,8 @@ class RenderObject
 {
 private:
 protected:
+	float x, y, width, height;
+
 	sf::RenderWindow* window;
 	bool hover = false, unhover = false;
 

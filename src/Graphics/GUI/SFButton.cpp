@@ -5,7 +5,7 @@ SFButton::SFButton()
 {
 	window = nullptr;
 
-	positionX = 0;
-	positionY = 0;
+	this->x = 0;
+	this->y = 0;
 	color = sf::Color::Blue;
 }

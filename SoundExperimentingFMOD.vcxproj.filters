@@ -158,9 +158,6 @@
     <ClInclude Include="src\Graphics\GUI\GUIUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\GUI\Header.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\GUI\NullRenderObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>

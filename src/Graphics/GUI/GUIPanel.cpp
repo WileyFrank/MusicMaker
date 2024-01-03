@@ -1,19 +1,29 @@
 #include "GUIPanel.h"
 
 GUIPanel::GUIPanel()
-	:x(0), y(0), width(100), height(100), 
-	backgroundColor(sf::Color(255,255,255)), outlineColor(sf::Color(255, 255, 255))
+	:backgroundColor(sf::Color(255,255,255)), outlineColor(sf::Color(255, 255, 255))
 {
 	type = GUIObject;
+
+	this->x = 0;
+	this->y = 0;
+	this->width = 100;
+	this->height = 100;
+
 	auto rect = new Rectangle(x, y, width, height, backgroundColor, outlineColor);
 
 	elements.push_back(rect);
 }
 
 GUIPanel::GUIPanel(float x, float y, float width, float height, sf::Color color, sf::Color outlineColor, float outline)
-	:x(x), y(y), width(width), height(height), currentX(x + 5), currentY(y),
+	:currentX(x + 5), currentY(y),
 	backgroundColor(color), outlineColor(outlineColor)
 {
+	this->x = x;
+	this->y = y;
+	this->width = width;
+	this->height = height;
+
 	PrimitiveRoundRectangle* panel = new PrimitiveRoundRectangle(x, y, width, height, color, outlineColor, outline, 3,10);
 
 	elements.push_back(panel);

@@ -8,7 +8,6 @@ class GUIPanel :
     public RenderObject
 {
 private: 
-    float x, y, width, height;
     float currentX, currentY;
     float padding = 5.0f;
 

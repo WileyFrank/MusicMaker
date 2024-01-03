@@ -8,8 +8,8 @@
 RectangleButton::RectangleButton(float xIn, float yIn, float width, float height, sf::Color colorIn)
 {
 
-	positionX = xIn;
-	positionY = yIn;
+	this->x = xIn;
+	this->y = yIn;
 	this->width = width;
 	this->height = height;
 	this->baseColor = colorIn;
@@ -23,7 +23,7 @@ RectangleButton::RectangleButton(float xIn, float yIn, float width, float height
 	shape = new sf::RectangleShape(sf::Vector2f(width, height));
 
 	shape->setFillColor(colorIn);
-	shape->setPosition(positionX, positionY);
+	shape->setPosition(this->x, this->y);
 
 	font = ResourceManager::getFont("resources/fonts/Dream Orphans Bd.otf");
 	if (font == nullptr) {
@@ -47,7 +47,7 @@ RectangleButton::RectangleButton(float xIn, float yIn, float width, float height
 
 
 	text.setFillColor(sf::Color::White); // Set the text color
-	text.setPosition(positionX + width / 2.0f - text.getLocalBounds().width / 2.0f, positionY + height / 2.0f - text.getLocalBounds().height / 2.0f);
+	text.setPosition(this->x + width / 2.0f - text.getLocalBounds().width / 2.0f, this->y + height / 2.0f - text.getLocalBounds().height / 2.0f);
 
 
 }
@@ -60,7 +60,7 @@ RectangleButton::~RectangleButton()
 void RectangleButton::setText(std::string textString)
 {
 	text.setString(textString);  // Set the string to display
-	text.setPosition(positionX + width / 2.0f - text.getLocalBounds().width / 2.0f, positionY + height / 2.0f - text.getLocalBounds().height / 2.0f);
+	text.setPosition(this->x + width / 2.0f - text.getLocalBounds().width / 2.0f, this->y + height / 2.0f - text.getLocalBounds().height / 2.0f);
 }
 
 void RectangleButton::update()
@@ -69,8 +69,8 @@ void RectangleButton::update()
 	{
 		sf::Vector2i mousePosition = sf::Mouse::getPosition(*this->window);
 
-		if (mousePosition.x > this->positionX && mousePosition.x < this->positionX + this->width && 
-			mousePosition.y > this->positionY && mousePosition.y < this->positionY + this->height)
+		if (mousePosition.x > this->x && mousePosition.x < this->x + this->width && 
+			mousePosition.y > this->y && mousePosition.y < this->y + this->height)
 		{
 			this->color = hoverColor;
 			shape->setFillColor(hoverColor);

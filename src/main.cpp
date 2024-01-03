@@ -300,7 +300,7 @@ int main() {
     staff->addNote(D3Note, 13.0f);
 
     staff->colorUpdate();
-    //renderObjects.push_back(staff);
+    renderObjects.push_back(staff);
 
     auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
 

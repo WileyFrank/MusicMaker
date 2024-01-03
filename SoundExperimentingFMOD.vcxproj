@@ -175,7 +175,6 @@
     <ClInclude Include="src\Graphics\GUI\NullRenderObject.h" />
     <ClInclude Include="src\Graphics\GUI\GUIPanel.h" />
     <ClInclude Include="src\Graphics\GUI\GUIUtilities.h" />
-    <ClInclude Include="src\Graphics\GUI\Header.h" />
     <ClInclude Include="src\Music\SheetMusicUtilities.h" />
     <ClInclude Include="src\Graphics\SheetMusic\SheetMusicTimeSignature.h" />
     <ClInclude Include="src\Graphics\SheetMusic\SheetMusicKeySignature.h" />
