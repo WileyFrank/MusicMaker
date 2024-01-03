@@ -29,7 +29,7 @@ void SheetMusicMeasure::loadSheetNotes()
 			}
 
 
-			newNote = new SheetMusicNote(position, y, staffHeight, clef, singleNote, accidental, this->keySignature);
+			newNote = new SheetMusicNote(position, y, this->height, clef, singleNote, accidental, this->keySignature);
 			newNote->setWindow(window);
 			newNote->setNoteCount((int)note.second.size());
 			sheetNotes[note.first].push_back(newNote);
@@ -127,16 +127,26 @@ Note SheetMusicMeasure::getLongestRest(float beat, bool dotted)
 }
 
 SheetMusicMeasure::SheetMusicMeasure()
-	:x(0), y(0), width(0), staffHeight(0), timeSignature(TimeSignature({ 4, 4 })), quarterValue(1.0f), noteCount(0), noteGap(10), clef(TrebleClef) 
+	:timeSignature(TimeSignature({ 4, 4 })), quarterValue(1.0f), noteCount(0), noteGap(10), clef(TrebleClef) 
 {
+	this->x = 0;
+	this->y = 0;
+	this->width= 0;
+	this->height = 0;
 }
 
 SheetMusicMeasure::SheetMusicMeasure(SheetMusicMeasure* old)
-	: x(old->x), y(old->y), width(old->width), staffHeight(old->staffHeight), clef(old->clef),
+	: clef(old->clef),
 	timeSignature(old->timeSignature), keySignature(old->keySignature),
 	quarterValue(old->quarterValue), noteCount(old->noteCount), noteGap(old->noteGap),
 	notes(old->notes), chords(old->chords)
 {
+
+	this->x = old->x;
+	this->y = old->y;
+	this->width = old->width;
+	this->height = old->height;
+
 	for (auto sheetNote : old->sheetNotes)
 	{
 		for (auto singleNote : sheetNote.second)
@@ -148,10 +158,15 @@ SheetMusicMeasure::SheetMusicMeasure(SheetMusicMeasure* old)
 }
 
 SheetMusicMeasure::SheetMusicMeasure(float x, float y, float staffHeight, Clef clef, TimeSignature timeSignature, KeySignature keySignature)
-	:x(x), y(y), width(0), staffHeight(staffHeight), clef(clef), 
+	:clef(clef), 
 	timeSignature(timeSignature), keySignature(keySignature), 
 	quarterValue(MusicUtilities::getBeats(timeSignature, Quarter)), noteCount(0), noteGap(staffHeight/5.0f)
 {
+	this->x = x;
+	this->y = y;
+	this->width = 0;
+	this->height = staffHeight;
+
 }
 
 SheetMusicMeasure::~SheetMusicMeasure()
@@ -163,7 +178,7 @@ void SheetMusicMeasure::setupStaff(float x, float y, float staffHeight, Clef cle
 	this->clef = clef;
 	this->x = x;
 	this->y = y;
-	this->staffHeight = staffHeight;
+	this->height = staffHeight;
 	loadSheetNotes();
 }
 
@@ -304,7 +319,7 @@ void SheetMusicMeasure::draw()
 std::pair<sf::Vector2f, sf::Vector2f> SheetMusicMeasure::getHoverArea()
 {
 	sf::Vector2f position(x, y);
-	sf::Vector2f size(getWidth(), staffHeight);
+	sf::Vector2f size(getWidth(), this->height);
 
 	return std::pair<sf::Vector2f, sf::Vector2f>(position, size);
 }

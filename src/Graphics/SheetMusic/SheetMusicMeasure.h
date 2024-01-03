@@ -9,7 +9,6 @@
 class SheetMusicMeasure : public SheetMusicElement
 {
 private:
-	float x, y, width, staffHeight;
 	float quarterValue; //Beats per quarter note
 
 	//Initialized in constructor
@@ -79,7 +78,7 @@ public:
 	void setStaffColor(sf::Color color);
 	void setNoteColor(sf::Color color);
 	void setHoverColor(sf::Color color);
-	void setHeight(float height) { this->staffHeight = height; }
+	void setHeight(float height) { this->height = height; }
 	void setX(float x) { this->x = x; }
 	void setY(float y) { this->y = y; }
 	void setKey(KeySignature key) 
