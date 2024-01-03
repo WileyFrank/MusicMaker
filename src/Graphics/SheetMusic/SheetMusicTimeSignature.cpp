@@ -13,10 +13,12 @@ SheetMusicTimeSignature::SheetMusicTimeSignature(TimeSignature timeSignature)
 }
 
 SheetMusicTimeSignature::SheetMusicTimeSignature(float x, float y, float height, TimeSignature timeSignature)
-	:positionX(x), staffY(y), height(height), 
-	timeSignature(timeSignature), numeratorTexture(SheetMusicUtilities::getSignatureTexture(timeSignature.numerator)), 
+	:timeSignature(timeSignature), numeratorTexture(SheetMusicUtilities::getSignatureTexture(timeSignature.numerator)), 
 	denominatorTexture(SheetMusicUtilities::getSignatureTexture(timeSignature.numerator))
 {
+	this->x = x;
+	this->y = y;
+	this->height = height;
 
 	numerator.setTexture(numeratorTexture);
 	denominator.setTexture(denominatorTexture);
@@ -32,8 +34,8 @@ SheetMusicTimeSignature::SheetMusicTimeSignature(float x, float y, float height,
 
 	width = max(numerator.getLocalBounds().width * numeratorScale, denominator.getLocalBounds().width * denominatorScale);
 
-	numerator.setPosition(sf::Vector2f(positionX, staffY));
-	denominator.setPosition(sf::Vector2f(positionX, staffY + (height/2)));
+	numerator.setPosition(sf::Vector2f(x, this->y));
+	denominator.setPosition(sf::Vector2f(x, this->y + (height/2)));
 }
 
 void SheetMusicTimeSignature::draw()
@@ -46,7 +48,7 @@ std::pair<sf::Vector2f, sf::Vector2f> SheetMusicTimeSignature::getHoverArea()
 {
 	sf::Vector2f position(
 		numerator.getPosition().x - numerator.getOrigin().x,
-		staffY);
+		this->y);
 
 	sf::Vector2f size(
 		numerator.getLocalBounds().width * numerator.getScale().x,

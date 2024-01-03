@@ -3,19 +3,27 @@
 
 //public
 SheetMusicStaff::SheetMusicStaff()
-	:width(300), height(100), x(0), y(0), clefType(TrebleClef), clef(x, y, width, height, clefType)
+	: clefType(TrebleClef), clef(x, y, width, height, clefType)
 {
-
+	this->x = 0;
+	this->y = 0;
+	this->width = 100;
+	this->height = 300;
 	GenerateStaffLines();
 }
 
 SheetMusicStaff::SheetMusicStaff(float x, float y, float width, float height, Clef clefType, KeySignature key, TimeSignature timeSignature)
-	:x(x), y(y), width(width), height(height), measureGap(height / 3.0f),
+	:measureGap(height / 3.0f),
 	clefType(clefType), clef(x, y, width, height, clefType), measureStart(0.0f),
 	keySignature(key), sheetMusicKeySignature((x + clef.getWidth() + height / 6.0f), y, height, key, clefType),
 	timeSignature(timeSignature), sheetMusicTimeSignature((x + clef.getWidth() + sheetMusicKeySignature.getWidth() + height / 3.0f), y, height, timeSignature)
 {
 	//this->clef = SheetMusicClef(x, y, width, height, clefType);
+
+	this->x = x;
+	this->y = y;
+	this->width = width;
+	this->height = height;
 
 	GenerateStaffLines();
 

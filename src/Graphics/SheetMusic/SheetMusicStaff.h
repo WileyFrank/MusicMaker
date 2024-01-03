@@ -40,7 +40,6 @@
 class SheetMusicStaff : public SheetMusicElement
 {
 private:
-	float x, y, width, height;
 	
 	float measureStart;
 	float measureGap = 0.0f;

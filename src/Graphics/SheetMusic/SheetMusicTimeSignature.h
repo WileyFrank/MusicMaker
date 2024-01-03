@@ -9,10 +9,8 @@
 class SheetMusicTimeSignature : public SheetMusicElement
 {
 private:
-	float positionX, staffY, height;
 	TimeSignature timeSignature;
 
-	float width;
 	
 	sf::Color color, hoverColor;
 
