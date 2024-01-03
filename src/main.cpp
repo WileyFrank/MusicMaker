@@ -16,6 +16,7 @@
 #include "Graphics/GUI/SFButton.h"
 #include "Graphics/GUI/RectangleButton.h"
 #include "Graphics/GUI/GUIPanel.h"
+#include "Graphics/GUI/TextBox.h"
 #include "Graphics/GUI/Primitives/Rectangle.h"
 #include "Graphics/GUI/Primitives/PrimitiveText.h"
 
@@ -216,11 +217,11 @@ int main() {
     sf::Event e;
 
     //adding objects
-    std::vector<std::unique_ptr<RenderObject>> renderObjects;
+    std::vector<RenderObject*> renderObjects;
 
-    auto button = std::make_unique<PrimitiveText>(100.0f,300.0f,24,"This is a test", "resources/fonts/Century 751 Bold.otf", ALIGN_LEFT);
+    auto button =  new PrimitiveText(100.0f,300.0f,24,"This is a test", "resources/fonts/Century 751 Bold.otf", ALIGN_LEFT);
     button->setColor(sf::Color(20, 20, 60));
-    renderObjects.push_back(std::unique_ptr<RenderObject>(std::move(button)));
+    renderObjects.push_back(button);
 
 
     for (auto& obj : renderObjects) {
@@ -256,7 +257,7 @@ int main() {
     std::vector<std::unique_ptr<SheetMusicElement>> sheetMusicObjects;
 
     //Creation of the staff
-    auto staff = std::make_unique<SheetMusicStaff>((float)100, (float)400, (float)1000, (float)60, 
+    auto staff = new SheetMusicStaff((float)100, (float)400, (float)1000, (float)60, 
         TrebleClef, MusicUtilities::getKey(NoteFs, MAJOR));
 
     staff->setColor(sf::Color(94, 94, 255));
@@ -299,7 +300,7 @@ int main() {
     staff->addNote(D3Note, 13.0f);
 
     staff->colorUpdate();
-    //renderObjects.push_back(std::move(staff));
+    //renderObjects.push_back(staff);
 
     auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
 
@@ -311,6 +312,14 @@ int main() {
     PrimitiveText fpsText((float)window.getSize().x - 20, (float)window.getSize().y - 30, 24, "FPS: 0", "resources/fonts/Century 751 Bold.otf", ALIGN_RIGHT);
     fpsText.setColor(sf::Color(60, 60, 180));
     fpsText.setWindow(&window);
+
+    TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 100, 30, 24);
+    textBox->setWindow(&window);
+
+    renderObjects.push_back(textBox);
+
+    RenderObject* hoverObject = nullptr;
+    RenderObject* activeObject = nullptr;
 
 
     while (window.isOpen())
@@ -337,6 +346,19 @@ int main() {
             fpsText.setText(fpsString);
         }
 
+        //Active and Hover object managment
+        hoverObject = nullptr;
+        for (auto& obj : renderObjects) {
+            auto& object = obj->getHoverObject();
+            obj->setHover(false);
+
+            if (object.getType() != EmptyRenderObject)
+            {
+                object.setHover(true);
+                hoverObject = &object;
+            }
+        }
+
         while (window.pollEvent(e))
         {
             if (e.type == sf::Event::Closed)
@@ -346,8 +368,23 @@ int main() {
                 mixer.stop();
                 window.close();
             }
-        }
+            if (e.type == sf::Event::MouseButtonPressed) {
+                if (e.mouseButton.button == sf::Mouse::Left) {
+                    // Handle left mouse button pressed
+                    int mouseX = e.mouseButton.x;
+                    int mouseY = e.mouseButton.y;
 
+                    activeObject = nullptr;
+                    if (hoverObject != nullptr)
+                    {
+                        hoverObject->onClick();
+                        activeObject = hoverObject;
+                    }
+                    std::cout << "x: " << mouseX << "\t\ty: " << mouseY << "\n";
+                    
+                }
+            }
+        }
         //sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
 
         //std::cout << "x: " << mousePosition.x << "\t\ty: " << mousePosition.y << "\n";
@@ -359,28 +396,10 @@ int main() {
 
         fpsText.draw();
 
-        //Draw all objects
         for (auto& obj : renderObjects) {
-            obj->render(); // This will call the render method of the actual object type
-            auto& object = obj->getHoverObject();
-            obj->setHover(false);
-
-            if (object.getType() != EmptyRenderObject)
-            {
-                object.setHover(true);
-            }
+            obj->render();
         }
 
-        /*for (auto& sme : sheetMusicObjects)
-        {
-            sme->draw(); 
-        }*/
-
-
-        //window.draw(rect);
-        // Draw the sprite
-        /*window.draw(sprite);
-        window.draw(line);*/
 
         // Update the window
         window.display();

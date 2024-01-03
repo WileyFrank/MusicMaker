@@ -42,6 +42,7 @@ public:
 	}
 	virtual RenderObject& getHoverObject() = 0;
 
+	virtual void onClick() {};
 	
 	
 };
