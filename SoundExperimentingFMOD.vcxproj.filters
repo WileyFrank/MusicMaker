@@ -93,9 +93,6 @@
     <ClCompile Include="src\Graphics\GUI\Primitives\PrimitiveRoundRectangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\GUI\TextBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\HeaderFiles\Sound.h">

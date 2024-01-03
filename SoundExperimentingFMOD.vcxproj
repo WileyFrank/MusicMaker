@@ -165,7 +165,6 @@
     <ClCompile Include="src\SoundMixer.cpp" />
     <ClCompile Include="src\Sound.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Graphics\GUI\TextBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Graphics\GUI\Primitives\PrimitiveRoundRectangle.h" />

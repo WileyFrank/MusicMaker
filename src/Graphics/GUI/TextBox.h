@@ -12,7 +12,6 @@ private:
 
     T value; //The value of the string as type T
 
-    float x, y, width, height;
     int fontSize, textDisplayStart = 0;
 
     std::string textString;
@@ -32,8 +31,13 @@ private:
 
 public:
     TextBox(float x, float y, float width, float height, int size, std::string textString = "0") 
-        :x(x), y(y), width(width), height(height), fontSize(size), textString(textString)
+        :fontSize(size), textString(textString)
     {
+        this->x = x;
+        this->y = y;
+        this->width = width;
+        this->height = height;
+
         initializeTextBox();
         this->type = GUIObject;
     }
