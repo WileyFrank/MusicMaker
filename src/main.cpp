@@ -410,8 +410,10 @@ int main() {
         for (auto& obj : renderObjects) {
             obj->render();
         }
-        activeObject->activeDraw();
-
+        if (activeObject != nullptr)
+        {
+            activeObject->activeDraw();
+        }
 
         // Update the window
         window.display();
