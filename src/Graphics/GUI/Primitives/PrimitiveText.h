@@ -39,6 +39,7 @@ public:
 	{ 
 		this->x = position.x; this->y = position.y; text.setPosition(position); 
 	}
+	void setAlign(Alignment align) { this->align = align; reloadText(); }
 
 };
 
