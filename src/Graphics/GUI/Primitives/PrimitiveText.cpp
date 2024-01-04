@@ -21,25 +21,29 @@ void PrimitiveText::reloadText()
 }
 
 PrimitiveText::PrimitiveText()
-	:x(100),y(100),
-	textString("Init"), fontString("resources/fonts/Century 751 Bold.otf"),
+	:textString("Init"), fontString("resources/fonts/Century 751 Bold.otf"),
 	font(*ResourceManager::getFont(fontString)), text(fontString, font)
 {
+	this->x = 100;
+	this->y = 100;
 
 }
 
 PrimitiveText::PrimitiveText(std::string text)
-	:x(100), y(100),
-	textString(text), fontString("resources/fonts/Century 751 Bold.otf"),
+	:textString(text), fontString("resources/fonts/Century 751 Bold.otf"),
 	font(*ResourceManager::getFont(fontString)), text(textString, font)
 {
+	this->x = 100;
+	this->y = 100;
 }
 
 PrimitiveText::PrimitiveText(float x, float y, int size, std::string text, std::string fontpath, Alignment align)
-	:x(x), y(y),
-	textString(text), fontString(fontpath), align(align),
+	:textString(text), fontString(fontpath), align(align),
 	font(*ResourceManager::getFont(fontString)), text(textString, font, size)
 {
+	this->x = x;
+	this->y = y;
+
 	switch (align)
 	{
 	case ALIGN_LEFT:

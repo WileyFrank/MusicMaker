@@ -8,7 +8,6 @@ enum Alignment {ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER};
 class PrimitiveText : public RenderObject
 {
 private:
-	float x, y;
 
 	std::string textString, fontString;
 
@@ -36,5 +35,10 @@ public:
 
 	void setColor(sf::Color color) { text.setFillColor(color); }
 	void setText(std::string text) { textString = text; reloadText(); }
+	void setPosition(sf::Vector2f position) 
+	{ 
+		this->x = position.x; this->y = position.y; text.setPosition(position); 
+	}
+
 };
 

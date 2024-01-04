@@ -313,7 +313,7 @@ int main() {
     fpsText.setColor(sf::Color(60, 60, 180));
     fpsText.setWindow(&window);
 
-    TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 100, 30, 24);
+    TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 100, 30, 20);
     textBox->setWindow(&window);
 
     renderObjects.push_back(textBox);
@@ -321,6 +321,7 @@ int main() {
     RenderObject* hoverObject = nullptr;
     RenderObject* activeObject = nullptr;
 
+    std::string inputString;
 
     while (window.isOpen())
     {
@@ -374,14 +375,25 @@ int main() {
                     int mouseX = e.mouseButton.x;
                     int mouseY = e.mouseButton.y;
 
-                    activeObject = nullptr;
+                    if (activeObject != nullptr)
+                    {
+                        activeObject->setInactive();
+                        activeObject = nullptr;
+                    }
                     if (hoverObject != nullptr)
                     {
                         hoverObject->onClick();
                         activeObject = hoverObject;
                     }
                     std::cout << "x: " << mouseX << "\t\ty: " << mouseY << "\n";
-                    
+                }
+            }
+            if (e.type == sf::Event::TextEntered) {
+                if (e.text.unicode < 128) { // Basic ASCII filter
+                    if (activeObject != nullptr)
+                    {
+                        activeObject->keyboardInput(e.text.unicode);
+                    }
                 }
             }
         }
@@ -389,7 +401,6 @@ int main() {
 
         //std::cout << "x: " << mousePosition.x << "\t\ty: " << mousePosition.y << "\n";
         //rect.setPosition(sf::Vector2f((float)mousePosition.x, (float)mousePosition.y));
-
 
         // Clear screen
         window.clear(sf::Color(0,3,25));
@@ -399,6 +410,7 @@ int main() {
         for (auto& obj : renderObjects) {
             obj->render();
         }
+        activeObject->activeDraw();
 
 
         // Update the window

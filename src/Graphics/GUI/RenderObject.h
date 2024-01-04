@@ -18,7 +18,7 @@ protected:
 	float x, y, width, height;
 
 	sf::RenderWindow* window;
-	bool hover = false, unhover = false;
+	bool hover = false, unhover = false, active = false;
 
 	RenderObjectType type;
 
@@ -35,7 +35,13 @@ public:
 
 	virtual void render() = 0;
 	virtual void draw() = 0;
+	virtual void activeDraw() {};
+	
 	virtual void update() = 0;
+
+
+	virtual void setActive() {}
+	virtual void setInactive() {}
 
 	//returns the x, y width, and height of area
 	
@@ -44,7 +50,8 @@ public:
 	}
 	virtual RenderObject& getHoverObject() = 0;
 
-	virtual void onClick() {};
+	virtual void onClick() {}
+	virtual void keyboardInput(sf::Uint32 input) {}
 	
 	
 };
