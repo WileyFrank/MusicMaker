@@ -9,7 +9,6 @@ class TextBox :
     public RenderObject
 {
 private:
-
     T value; //The value of the string as type T
 
     int fontSize, textDisplayStart = 0;
@@ -164,7 +163,7 @@ private:
 
 
         // Highlighting selected
-        if (selectionStart == selectionEnd)
+        if (selectionStart == selectionEnd && !sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
             selectionStart = -1;
             selectionEnd = -1;
@@ -218,6 +217,15 @@ private:
             cursor.setFillColor(sf::Color::Transparent);
         }
 
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        {
+            auto mouse = sf::Mouse::getPosition(*window);
+            getCursorIndex(mouse.x);
+            if (selectionStart == -1)
+                selectionStart = cursorIndex;
+            selectionEnd = cursorIndex;
+            updateTextBox();
+        }
     }
 
     void truncateTextIndex(int index)
@@ -438,8 +446,8 @@ public:
         window->setMouseCursor(cursor);*/
 
         auto mouse = sf::Mouse::getPosition(*window);
-        std::cout << "Textbox click\n";
-        std::cout << "x: " << mouse.x << "\t\ty: " << mouse.y << "\n";
+        //std::cout << "Textbox click\n";
+        //std::cout << "x: " << mouse.x << "\t\ty: " << mouse.y << "\n";
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
         {
@@ -512,7 +520,7 @@ public:
             cursorIndex++;
         }
         updateTextBox();
-        std::cout << textString << std::endl;
+        //std::cout << textString << std::endl;
     }
     void arrowKeyInput(sf::Keyboard::Key key) override 
     {
@@ -536,7 +544,7 @@ public:
                     cursorIndex = std::max(cursorIndex - 1, 0);
                     selectionEnd = cursorIndex;
                 }
-                std::cout << "Start: " << selectionStart << "\t\tEnd:" << selectionEnd << std::endl;
+                //std::cout << "Start: " << selectionStart << "\t\tEnd:" << selectionEnd << std::endl;
             }
             else
             {
@@ -568,7 +576,7 @@ public:
                     selectionEnd = cursorIndex;
                 }
 
-                std::cout << "Start: " << selectionStart << "\t\tEnd:" << selectionEnd << std::endl;
+                //std::cout << "Start: " << selectionStart << "\t\tEnd:" << selectionEnd << std::endl;
             }
             else
             {
@@ -588,7 +596,7 @@ public:
         case sf::Keyboard::Delete:
             if (cursorIndex < textString.size())
             textString = textString.substr(0, cursorIndex) + textString.substr(cursorIndex + 1, textString.size() - (cursorIndex + 1));
-            std::cout << textString << std::endl;
+            //std::cout << textString << std::endl;
             break;
         case::sf::Keyboard::Home:
             cursorIndex = 0;
