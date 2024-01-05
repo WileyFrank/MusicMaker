@@ -221,10 +221,15 @@ private:
         {
             auto mouse = sf::Mouse::getPosition(*window);
             getCursorIndex(mouse.x);
-            if (selectionStart == -1)
-                selectionStart = cursorIndex;
             selectionEnd = cursorIndex;
-            updateTextBox();
+            if (selectionStart == -1)
+            {
+                selectionStart = cursorIndex;
+            }
+            else
+            {
+                updateTextBox();
+            }
         }
     }
 
@@ -318,6 +323,10 @@ private:
         float cursorMinX = this->x + margin / 2;
         float difference = -1.0f;
         cursorIndex = startIndex;
+        if (mouseX < x + margin / 2)
+        {
+            cursorIndex = std::max(startIndex - 1, 0);
+        }
 
         while (mouseX > cursorMinX && cursorIndex < textString.size())
         {
@@ -351,7 +360,6 @@ private:
         cursor.setFillColor(sf::Color::Transparent);
         selectionHighlight.setFillColor(sf::Color::Transparent);
         selectionHighlight.setOutlineThickness(0);
-
 
         truncateTextStart();
     }

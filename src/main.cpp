@@ -390,7 +390,7 @@ int main() {
                     int mouseX = e.mouseButton.x;
                     int mouseY = e.mouseButton.y;
 
-                    if (activeObject != nullptr)
+                    if (activeObject != nullptr && hoverObject == nullptr)
                     {
                         activeObject->setInactive();
                         activeObject = nullptr;
