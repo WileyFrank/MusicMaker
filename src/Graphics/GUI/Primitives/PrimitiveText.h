@@ -57,5 +57,6 @@ public:
 	}
 	void setAlign(Alignment align) { this->align = align; reloadText(); }
 
+	float getTextWidth(std::string widthText = "");
 };
 

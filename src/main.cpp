@@ -313,7 +313,22 @@ int main() {
     fpsText.setColor(sf::Color(60, 60, 180));
     fpsText.setWindow(&window);
 
-    TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 100, 30, 20);
+    TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 300, 30, 20, "", sf::Color(11,0,44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(149, 139, 239));
+    textBox->setWindow(&window);
+
+    renderObjects.push_back(textBox);
+
+    textBox = new TextBox<std::string>(100, 150, 400, 30, 20, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(149, 139, 239));
+    textBox->setWindow(&window);
+
+    renderObjects.push_back(textBox); 
+
+    textBox = new TextBox<std::string>(100, 200, 500, 30, 20, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(149, 139, 239));
+    textBox->setWindow(&window);
+
+    renderObjects.push_back(textBox); 
+
+    textBox = new TextBox<std::string>(100, 250, 600, 30, 20, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(149, 139, 239));
     textBox->setWindow(&window);
 
     renderObjects.push_back(textBox);
@@ -337,9 +352,9 @@ int main() {
 
         microsecondCount += duration.count();
 
-        if (temp_i % 50 == 0)
+        if (temp_i % 200 == 0)
         {
-            auto averageDuration = microsecondCount / 50.0f;
+            auto averageDuration = microsecondCount / 200.0f;
             //std::cout << "Average of 100 frames: " << averageDuration << " microseconds\n";
             microsecondCount = 0;
             auto fps = 1000000.0f / averageDuration;
@@ -385,11 +400,10 @@ int main() {
                         hoverObject->onClick();
                         activeObject = hoverObject;
                     }
-                    std::cout << "x: " << mouseX << "\t\ty: " << mouseY << "\n";
                 }
             }
             if (e.type == sf::Event::TextEntered) {
-                if (e.text.unicode < 128) { // Basic ASCII filter
+                if (e.text.unicode <= 128) { // Basic ASCII filter
                     if (activeObject != nullptr)
                     {
                         activeObject->keyboardInput(e.text.unicode);
@@ -401,6 +415,9 @@ int main() {
                 
                 switch (e.key.code)
                 {
+                case sf::Keyboard::Home:
+                case sf::Keyboard::End:
+                case sf::Keyboard::Delete:
                 case sf::Keyboard::Up:
                 case sf::Keyboard::Down:
                 case sf::Keyboard::Left:

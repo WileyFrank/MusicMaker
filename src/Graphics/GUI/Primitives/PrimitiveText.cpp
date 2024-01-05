@@ -88,3 +88,28 @@ RenderObject& PrimitiveText::getHoverObject()
 
 	return *GUIUtilities::getEmptyRenderObject();
 }
+
+float PrimitiveText::getTextWidth(std::string widthText) {
+	if (widthText.empty()) {
+		widthText = textString;
+	}
+
+	float width = 0;
+	sf::Uint32 previousChar = 0;
+
+	for (size_t i = 0; i < widthText.size(); ++i) {
+		sf::Uint32 currentChar = widthText[i];
+
+		// Add kerning with the previous character
+		if (i > 0) {
+			width += text.getFont()->getKerning(previousChar, currentChar, text.getCharacterSize());
+		}
+
+		// Add the advance of the current character
+		width += text.getFont()->getGlyph(currentChar, text.getCharacterSize(), false).advance;
+
+		previousChar = currentChar;
+	}
+
+	return width;
+}

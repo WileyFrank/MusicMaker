@@ -14,16 +14,21 @@ private:
 
     int fontSize, textDisplayStart = 0;
     int startIndex, displayLength;
+    float textY, cursorY;
     float margin;
 
     int cursorIndex = 0; //the cursor index refers to the index where chars will add, 0 is the start
     float cursorPosition = -1;
 
+    int selectionStart, selectionEnd;
+
     std::string textString;
 
     sf::RectangleShape box;
+    sf::RectangleShape selectionHighlight;
     sf::RectangleShape cursor;
     PrimitiveText text;
+    PrimitiveText selectedText;
 
     std::chrono::steady_clock::time_point blinkTimeStart;
     float blinkPeriod = 500.0f;
@@ -33,9 +38,14 @@ private:
     void initializeTextBox()
     {
         box = sf::RectangleShape(sf::Vector2f(width, height));
+        selectionHighlight = sf::RectangleShape(sf::Vector2f((float)fontSize, height - (fontSize * 1.125f)));
+
         box.setPosition(sf::Vector2f(x, y));
         text.setText(textString);
-        text.setPosition(sf::Vector2f(x, y + height - (fontSize * 1.25f)));
+        text.setPosition(sf::Vector2f(x, textY));
+
+        cursorY = y + height - (fontSize * 1.250f);
+        textY = y + height - (fontSize * 1.375f);
 
         setInactive();
     }
@@ -46,28 +56,28 @@ private:
         //If the cursor is greater than what is displayed, place cursor at end of box and text accordingly
         if (cursorIndex > startIndex + displayLength)
         {
-            cursorPosition = width - margin / 2;
+            cursorPosition = width - margin / 2 ;
             startIndex = 0;
             displayLength = cursorIndex;
             text.setText(textString.substr(startIndex, displayLength));
-            if (text.getHoverArea().second.x > width - margin)
+            if (text.getTextWidth() > width - margin)
             {
-                while (text.getHoverArea().second.x > width - margin && startIndex < cursorIndex)
+                while (text.getTextWidth() > width - margin && startIndex < cursorIndex)
                 {
                     startIndex++;
                     displayLength--;
                     text.setText(textString.substr(startIndex, displayLength));
                 }
                 text.setAlign(ALIGN_RIGHT);
-                text.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.25f)));
-                cursor.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.125f)));
+                text.setPosition(sf::Vector2f(x + cursorPosition, textY));
+                cursor.setPosition(sf::Vector2f(x + cursorPosition, cursorY));
             }
             else
             {
-                cursorPosition = text.getHoverArea().second.x + margin / 2;
+                cursorPosition = text.getTextWidth() + margin / 2;
                 text.setAlign(ALIGN_LEFT);
-                text.setPosition(sf::Vector2f(x + margin / 2, y + height - (fontSize * 1.25f)));
-                cursor.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.125f)));
+                text.setPosition(sf::Vector2f(x + margin / 2, textY));
+                cursor.setPosition(sf::Vector2f(x + cursorPosition, cursorY));
             }
         }
         //If the cursor is leass than what is displayed, place cursors at start of box and text accordingly
@@ -78,14 +88,14 @@ private:
             text.setText(textString.substr(startIndex, displayLength));
 
             //remove chars from the end until the width is larger than the box
-            while (text.getHoverArea().second.x > width - margin && displayLength > 0)
+            while (text.getTextWidth() > width - margin && displayLength > 0)
             {
                 displayLength--;
                 text.setText(textString.substr(startIndex, displayLength));
             }
             text.setAlign(ALIGN_LEFT);
-            text.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.25f)));
-            cursor.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.125f)));
+            text.setPosition(sf::Vector2f(x + cursorPosition, textY));
+            cursor.setPosition(sf::Vector2f(x + cursorPosition, cursorY));
         }
         //the cursor is in the bounds of the box
         //this includes when the last charachter is deleted
@@ -104,18 +114,18 @@ private:
                     text.setText(textString);
                     startIndex = 0;
                     displayLength = cursorIndex;
-                    if (text.getHoverArea().second.x >= width - margin)
+                    if (text.getTextWidth() >= width - margin)
                     {
                         cursorPosition = width - margin / 2;
-                        while (text.getHoverArea().second.x > width - margin && startIndex < cursorIndex)
+                        while (text.getTextWidth() > width - margin && startIndex < cursorIndex)
                         {
                             startIndex++;
                             displayLength--;
                             text.setText(textString.substr(startIndex, displayLength));
                         }
                         text.setAlign(ALIGN_RIGHT);
-                        text.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.25f)));
-                        cursor.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.125f)));
+                        text.setPosition(sf::Vector2f(x + cursorPosition, textY));
+                        cursor.setPosition(sf::Vector2f(x + cursorPosition, cursorY));
                         return;
                     }
                 }
@@ -128,13 +138,13 @@ private:
             text.setPosition(text.getHoverArea().first);
             text.setAlign(ALIGN_LEFT);*/
 
-            text.setPosition(sf::Vector2f(x + margin / 2, y + height - (fontSize * 1.25f)));
+            text.setPosition(sf::Vector2f(x + margin / 2, textY));
             text.setAlign(ALIGN_LEFT);
 
             text.setText(textString.substr(startIndex, (size_t)(cursorIndex - startIndex)));
 
-            float widthToCursor = text.getHoverArea().second.x;
-            cursor.setPosition(sf::Vector2f(x + margin / 2 + widthToCursor, y + height - (fontSize * 1.125f)));
+            float widthToCursor = text.getTextWidth();
+            cursor.setPosition(sf::Vector2f(x + margin / 2 + widthToCursor, cursorY));
             
             text.setText(textString.substr(startIndex, displayLength));
 
@@ -151,6 +161,47 @@ private:
             }
 
         }
+
+
+        // Highlighting selected
+        if (selectionStart == selectionEnd)
+        {
+            selectionStart = -1;
+            selectionEnd = -1;
+        }
+
+        if (selectionStart != -1)
+        {
+            int selectionMin = std::min(selectionStart, selectionEnd);
+            int selectionMax = std::max(selectionStart, selectionEnd);
+
+            
+            selectionMin = std::max(selectionMin, startIndex);
+            selectionMax = std::min(selectionMax, startIndex + displayLength);
+
+            text.setText(textString.substr(startIndex, (size_t)(selectionMin - startIndex)));
+            float preWidth = text.getTextWidth();
+            text.setText(textString.substr(startIndex, (size_t)displayLength));
+            preWidth += text.getHoverArea().first.x;
+
+            selectedText.setText(textString.substr(selectionMin, (size_t)(selectionMax - selectionMin)));
+
+            float selectionWidth = std::max(cursor.getPosition().x - preWidth, selectedText.getTextWidth());
+
+            selectionHighlight.setPosition(sf::Vector2f(preWidth, cursorY));
+            selectionHighlight.setSize(sf::Vector2f(selectionWidth, (float)fontSize * 1.25f));
+
+            selectedText.setPosition(sf::Vector2f(preWidth, textY));
+
+            selectionHighlight.setFillColor(activeTextColor);
+            selectedText.setColor(activeBackgroundColor);
+        }
+        else
+        {
+            selectionHighlight.setFillColor(sf::Color::Transparent);
+            selectedText.setColor(sf::Color::Transparent);
+        }
+
 
     }
     void updateCursor()
@@ -253,17 +304,35 @@ private:
         }
     }
 
+    void getCursorIndex(int mouseX)
+    {
+        //The minimum position for the cursor to be in to appear after a letter
+        float cursorMinX = this->x + margin / 2;
+        float difference = -1.0f;
+        cursorIndex = startIndex;
+
+        while (mouseX > cursorMinX && cursorIndex < textString.size())
+        {
+            difference = std::abs(cursorMinX - mouseX);
+            cursorIndex++;
+            cursorMinX = this->x + margin / 2 + text.getTextWidth(textString.substr(startIndex, (size_t)(cursorIndex - startIndex)));
+        }
+
+        if (difference < std::abs(cursorMinX - mouseX) && difference != -1)
+        {
+            cursorIndex--;
+        }
+    }
+
     void setActive() override
     {
         active = true;
         box.setFillColor(activeBackgroundColor);
         box.setOutlineColor(activeTextColor);
-        box.setOutlineThickness(3);
         text.setColor(activeTextColor);
 
         blinkTimeStart = std::chrono::steady_clock::now();
     }
-
     void setInactive() override
     {
         active = false;
@@ -272,6 +341,10 @@ private:
         box.setOutlineColor(textColor);
         text.setColor(textColor);
         cursor.setFillColor(sf::Color::Transparent);
+        selectionHighlight.setFillColor(sf::Color::Transparent);
+        selectionHighlight.setOutlineThickness(0);
+
+
         truncateTextStart();
     }
 public:
@@ -281,7 +354,9 @@ public:
         :fontSize(size), textString(textString),
         backgroundColor(backgroundColor), textColor(textColor),
         activeBackgroundColor(activeBackgroundColor), activeTextColor(activeTextColor),
-        text(x, y, size, textString), margin(height / 2), cursor(sf::Vector2f((float)size / 12, (float)size))
+        text(x, y, size, textString), margin(height / 2), cursor(sf::Vector2f((float)size / 12, (float)size)),
+        selectedText(x, y, size, ""),
+        selectionStart(-1), selectionEnd(-1)
 
     {
         this->x = x;
@@ -306,6 +381,7 @@ public:
     {
         this->window = window;
         this->text.setWindow(window);
+        this->selectedText.setWindow(window);
     }
 
     void render() override
@@ -334,6 +410,8 @@ public:
         updateCursor();
         draw();
         window->draw(cursor);
+        window->draw(selectionHighlight);
+        selectedText.draw();
     }
 
     std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() override {
@@ -354,7 +432,32 @@ public:
 
     void onClick() override
     {
+        /*sf::Cursor cursor;
+        cursor.loadFromSystem(sf::Cursor::Text);
+
+        window->setMouseCursor(cursor);*/
+
+        auto mouse = sf::Mouse::getPosition(*window);
         std::cout << "Textbox click\n";
+        std::cout << "x: " << mouse.x << "\t\ty: " << mouse.y << "\n";
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
+        {
+            if (selectionStart == -1)
+                selectionStart = cursorIndex;
+
+            getCursorIndex(mouse.x);
+            selectionEnd = cursorIndex;
+        }
+        else
+        {
+            getCursorIndex(mouse.x);
+            selectionStart = -1;
+            selectionEnd = -1;
+        }
+
+        updateTextBox();
+
         setActive();
     }
     void keyboardInput(sf::Uint32 input) override
@@ -363,30 +466,53 @@ public:
             // remove a character
             if (textString.size() > 0)
             {
+                if (selectionStart != selectionEnd && selectionStart != -1)
+                {
+                    textString = textString.substr(0, std::min(selectionStart, selectionEnd)) + textString.substr(std::max(selectionStart, selectionEnd), textString.size() - std::max(selectionStart, selectionEnd));
+                    cursorIndex = std::min(selectionStart, selectionEnd);
 
-
-                textString = textString.substr(0, textString.size() - 1);
-                cursorIndex = std::max(0, cursorIndex - 1);
-
+                    selectionStart = -1;
+                    selectionEnd = -1;
+                }
+                else if (cursorIndex > 0)
+                {
+                    textString = textString.substr(0, cursorIndex - 1) + textString.substr(cursorIndex, textString.size() - cursorIndex);
+                    cursorIndex = std::max(0, cursorIndex - 1);
+                }
             }
         }
         else if (input < 32) //Control modified keys
         {
+            switch (input)
+            {
+            case 1: //ctrl A
+                selectionStart = 0;
+                selectionEnd = (int)textString.size();
+                cursorIndex = (int)textString.size() + 1;
+                break;
+            default:
+                break;
+            }
             //TODO ctrl
         }
         else
         {
             char newChar = static_cast<char>(input);
 
+            if (selectionStart != selectionEnd && selectionStart != -1)
+            {
+                textString = textString.substr(0, std::min(selectionStart, selectionEnd)) + textString.substr(std::max(selectionStart, selectionEnd), textString.size() - std::max(selectionStart, selectionEnd));
+                cursorIndex = std::min(selectionStart, selectionEnd);
 
-            textString += newChar;
+                selectionStart = -1;
+                selectionEnd = -1;
+            }
+
+            textString = textString.substr(0, cursorIndex) + newChar + textString.substr(cursorIndex, textString.size() - cursorIndex);
             cursorIndex++;
         }
-
         updateTextBox();
-
         std::cout << textString << std::endl;
-
     }
     void arrowKeyInput(sf::Keyboard::Key key) override 
     {
@@ -397,10 +523,78 @@ public:
         case sf::Keyboard::Down:
             break;
         case sf::Keyboard::Left:
-            cursorIndex = std::max(cursorIndex - 1, 0);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift))
+            {
+                if (selectionStart == -1)
+                {
+                    selectionStart = cursorIndex;
+                    cursorIndex = std::max(cursorIndex - 1, 0);
+                    selectionEnd = cursorIndex;
+                }
+                else
+                {
+                    cursorIndex = std::max(cursorIndex - 1, 0);
+                    selectionEnd = cursorIndex;
+                }
+                std::cout << "Start: " << selectionStart << "\t\tEnd:" << selectionEnd << std::endl;
+            }
+            else
+            {
+                if (selectionStart != -1)
+                {
+                    cursorIndex = std::min(selectionStart, selectionEnd);
+
+                    selectionStart = -1;
+                    selectionEnd = -1;
+                }
+                else
+                {
+                    cursorIndex = std::max(cursorIndex - 1, 0);
+                }
+            }
             break;
         case sf::Keyboard::Right:
-            cursorIndex = std::min(cursorIndex + 1, (int)textString.size());
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift))
+            {
+                if (selectionStart == -1)
+                {
+                    selectionStart = cursorIndex;
+                    cursorIndex = std::min(cursorIndex + 1, (int)textString.size());
+                    selectionEnd = cursorIndex;
+                }
+                else
+                {
+                    cursorIndex = std::min(cursorIndex + 1, (int)textString.size());
+                    selectionEnd = cursorIndex;
+                }
+
+                std::cout << "Start: " << selectionStart << "\t\tEnd:" << selectionEnd << std::endl;
+            }
+            else
+            {
+                if (selectionStart != -1)
+                {
+                    cursorIndex = std::max(selectionStart, selectionEnd);
+
+                    selectionStart = -1;
+                    selectionEnd = -1;
+                }
+                else
+                {
+                    cursorIndex = std::min(cursorIndex + 1, (int)textString.size());
+                }
+            }
+            break;
+        case sf::Keyboard::Delete:
+            if (cursorIndex < textString.size())
+            textString = textString.substr(0, cursorIndex) + textString.substr(cursorIndex + 1, textString.size() - (cursorIndex + 1));
+            std::cout << textString << std::endl;
+            break;
+        case::sf::Keyboard::Home:
+            cursorIndex = 0;
+            break;
+        case::sf::Keyboard::End:
+            cursorIndex = (int)textString.size();
             break;
         default:
             break;
