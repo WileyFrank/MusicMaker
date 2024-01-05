@@ -52,6 +52,7 @@ public:
 
 	virtual void onClick() {}
 	virtual void keyboardInput(sf::Uint32 input) {}
+	virtual void arrowKeyInput(sf::Keyboard::Key key) {}
 	
 	
 };

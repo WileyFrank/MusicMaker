@@ -41,6 +41,8 @@ private:
     }
     void updateTextBox()
     {
+        blinkTimeStart = std::chrono::steady_clock::now();
+
         //If the cursor is greater than what is displayed, place cursor at end of box and text accordingly
         if (cursorIndex > startIndex + displayLength)
         {
@@ -158,11 +160,11 @@ private:
 
         if ((int)(milliseconds / blinkPeriod) % 2 == 0)
         {
-            cursor.setFillColor(sf::Color::Transparent);
+            cursor.setFillColor(textColor);
         }
         else
         {
-            cursor.setFillColor(textColor);
+            cursor.setFillColor(sf::Color::Transparent);
         }
 
     }
@@ -279,7 +281,7 @@ public:
         :fontSize(size), textString(textString),
         backgroundColor(backgroundColor), textColor(textColor),
         activeBackgroundColor(activeBackgroundColor), activeTextColor(activeTextColor),
-        text(x, y, size, textString), margin(height / 2), cursor(sf::Vector2f((float)size / 8, (float)size))
+        text(x, y, size, textString), margin(height / 2), cursor(sf::Vector2f((float)size / 12, (float)size))
 
     {
         this->x = x;
@@ -361,6 +363,8 @@ public:
             // remove a character
             if (textString.size() > 0)
             {
+
+
                 textString = textString.substr(0, textString.size() - 1);
                 cursorIndex = std::max(0, cursorIndex - 1);
 
@@ -372,7 +376,10 @@ public:
         }
         else
         {
-            textString += static_cast<char>(input);
+            char newChar = static_cast<char>(input);
+
+
+            textString += newChar;
             cursorIndex++;
         }
 
@@ -380,6 +387,27 @@ public:
 
         std::cout << textString << std::endl;
 
+    }
+    void arrowKeyInput(sf::Keyboard::Key key) override 
+    {
+        switch (key)
+        {
+        case sf::Keyboard::Up:
+            break;
+        case sf::Keyboard::Down:
+            break;
+        case sf::Keyboard::Left:
+            cursorIndex = std::max(cursorIndex - 1, 0);
+            break;
+        case sf::Keyboard::Right:
+            cursorIndex = std::min(cursorIndex + 1, (int)textString.size());
+            break;
+        default:
+            break;
+        }
+
+        blinkTimeStart = std::chrono::steady_clock::now();
+        updateTextBox();
     }
 };
 

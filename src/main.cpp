@@ -396,6 +396,22 @@ int main() {
                     }
                 }
             }
+
+            if (e.type == sf::Event::KeyPressed) {
+                
+                switch (e.key.code)
+                {
+                case sf::Keyboard::Up:
+                case sf::Keyboard::Down:
+                case sf::Keyboard::Left:
+                case sf::Keyboard::Right:
+                    if (activeObject != nullptr)
+                        activeObject->arrowKeyInput(e.key.code);
+                    break;
+                default:
+                    break;
+                }
+            }
         }
         //sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
 
