@@ -28,7 +28,23 @@ public:
 	void update() override;
 	void draw() override;
 	std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() override {
-		return std::make_pair(sf::Vector2f(text.getPosition().x, text.getPosition().y), sf::Vector2f(text.getLocalBounds().width, text.getLocalBounds().height));
+
+		float xPos = x;
+
+		switch (align)
+		{
+		case ALIGN_LEFT:
+			xPos = x;
+			break;
+		case ALIGN_CENTER:
+			xPos = x - text.getLocalBounds().width / 2;
+			break;
+		case ALIGN_RIGHT:
+			xPos = x - text.getLocalBounds().width;
+			break;
+		}
+
+		return std::make_pair(sf::Vector2f(xPos, text.getPosition().y), sf::Vector2f(text.getLocalBounds().width, text.getLocalBounds().height));
 	}
 	RenderObject& getHoverObject();
 

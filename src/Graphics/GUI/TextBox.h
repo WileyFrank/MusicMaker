@@ -41,20 +41,115 @@ private:
     }
     void updateTextBox()
     {
-        if (cursorPosition < 0)
-        {
-            //sets start to 0 and length to max in width
-            truncateTextStart();
-
-            cursorPosition = text.getHoverArea().second.x;
-        }
-
-        if (cursorPosition > width - margin)
+        //If the cursor is greater than what is displayed, place cursor at end of box and text accordingly
+        if (cursorIndex > startIndex + displayLength)
         {
             cursorPosition = width - margin / 2;
-            text.setAlign(ALIGN_RIGHT);
+            startIndex = 0;
+            displayLength = cursorIndex;
+            text.setText(textString.substr(startIndex, displayLength));
+            if (text.getHoverArea().second.x > width - margin)
+            {
+                while (text.getHoverArea().second.x > width - margin && startIndex < cursorIndex)
+                {
+                    startIndex++;
+                    displayLength--;
+                    text.setText(textString.substr(startIndex, displayLength));
+                }
+                text.setAlign(ALIGN_RIGHT);
+                text.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.25f)));
+                cursor.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.125f)));
+            }
+            else
+            {
+                cursorPosition = text.getHoverArea().second.x + margin / 2;
+                text.setAlign(ALIGN_LEFT);
+                text.setPosition(sf::Vector2f(x + margin / 2, y + height - (fontSize * 1.25f)));
+                cursor.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.125f)));
+            }
+        }
+        //If the cursor is leass than what is displayed, place cursors at start of box and text accordingly
+        else if (cursorIndex < startIndex)
+        {
+            cursorPosition = margin / 2;
+            startIndex = cursorIndex;
+            text.setText(textString.substr(startIndex, displayLength));
+
+            //remove chars from the end until the width is larger than the box
+            while (text.getHoverArea().second.x > width - margin && displayLength > 0)
+            {
+                displayLength--;
+                text.setText(textString.substr(startIndex, displayLength));
+            }
+            text.setAlign(ALIGN_LEFT);
+            text.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.25f)));
+            cursor.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.125f)));
+        }
+        //the cursor is in the bounds of the box
+        //this includes when the last charachter is deleted
+        else 
+        {
+            
+
+            //On backspace
+            if (displayLength > textString.size() - startIndex)
+            {
+                displayLength = (int)textString.size() - startIndex;
+
+                if (cursorIndex == textString.size())
+                {
+                    // if the cursor is at the end deleting from a string in which not all is visible
+                    text.setText(textString);
+                    startIndex = 0;
+                    displayLength = cursorIndex;
+                    if (text.getHoverArea().second.x >= width - margin)
+                    {
+                        cursorPosition = width - margin / 2;
+                        while (text.getHoverArea().second.x > width - margin && startIndex < cursorIndex)
+                        {
+                            startIndex++;
+                            displayLength--;
+                            text.setText(textString.substr(startIndex, displayLength));
+                        }
+                        text.setAlign(ALIGN_RIGHT);
+                        text.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.25f)));
+                        cursor.setPosition(sf::Vector2f(x + cursorPosition, y + height - (fontSize * 1.125f)));
+                        return;
+                    }
+                }
+            }
+            
+            
+            //This is to ensure that the text doesn't jitter between cursor positions
+            //Using this is more cosmetic, but can lead to slight discrepancies in text positioning
+            /*float textX = text.getHoverArea().first.x;
+            text.setPosition(text.getHoverArea().first);
+            text.setAlign(ALIGN_LEFT);*/
+
+            text.setPosition(sf::Vector2f(x + margin / 2, y + height - (fontSize * 1.25f)));
+            text.setAlign(ALIGN_LEFT);
+
+            text.setText(textString.substr(startIndex, (size_t)(cursorIndex - startIndex)));
+
+            float widthToCursor = text.getHoverArea().second.x;
+            cursor.setPosition(sf::Vector2f(x + margin / 2 + widthToCursor, y + height - (fontSize * 1.125f)));
+            
+            text.setText(textString.substr(startIndex, displayLength));
+
+            while (text.getHoverArea().second.x < width - margin && displayLength < textString.size() - startIndex)
+            {
+                displayLength++;
+                text.setText(textString.substr(startIndex, displayLength));
+            }
+
+            while (text.getHoverArea().second.x > width - margin && displayLength > 0)
+            {
+                displayLength--;
+                text.setText(textString.substr(startIndex, displayLength));
+            }
 
         }
+
     }
     void updateCursor()
     {
@@ -69,16 +164,6 @@ private:
         {
             cursor.setFillColor(textColor);
         }
-
-        float widthToCursor = 0.0f;
-        if (cursorIndex - startIndex > 0)
-        {
-            text.setText(textString.substr(startIndex, (cursorIndex - startIndex)));
-            widthToCursor = text.getHoverArea().second.x;
-            text.setText(textString.substr(startIndex, displayLength));
-        }
-
-        cursor.setPosition(sf::Vector2f(x + widthToCursor, y + height - (fontSize * 1.125f)));
 
     }
 
@@ -292,9 +377,6 @@ public:
         }
 
         updateTextBox();
-
-        text.setText(textString);
-        truncateTextCursor();
 
         std::cout << textString << std::endl;
 
