@@ -1,6 +1,7 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include "../ResourceManager.h"
+#include <sstream>
 
 enum RenderObjectType {
 	EmptyRenderObject = 0,
@@ -31,17 +32,22 @@ public:
 	
 	RenderObjectType getType() { return type; }
 	void setWindow(sf::RenderWindow* window) { this->window = window; }
-	
+	 
 
 	virtual void render() = 0;
 	virtual void draw() = 0;
 	virtual void activeDraw() {};
+	virtual void hoverDraw() {};
 	
 	virtual void update() = 0;
 
+	virtual void setHoverstate() {};
+	virtual void setUnhover() {};
 
 	virtual void setActive() {}
 	virtual void setInactive() {}
+
+	bool getActive() { return active; }
 
 	//returns the x, y width, and height of area
 	
@@ -49,7 +55,6 @@ public:
 		return std::make_pair(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(0.0f, 0.0f));
 	}
 	virtual RenderObject& getHoverObject() = 0;
-
 	virtual void onClick() {}
 	virtual void keyboardInput(sf::Uint32 input) {}
 	virtual void arrowKeyInput(sf::Keyboard::Key key) {}

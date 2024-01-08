@@ -17,6 +17,7 @@
 #include "Graphics/GUI/RectangleButton.h"
 #include "Graphics/GUI/GUIPanel.h"
 #include "Graphics/GUI/TextBox.h"
+#include "Graphics/GUI/FloatSlider.h"
 #include "Graphics/GUI/Primitives/Rectangle.h"
 #include "Graphics/GUI/Primitives/PrimitiveText.h"
 
@@ -313,27 +314,45 @@ int main() {
     fpsText.setColor(sf::Color(60, 60, 180));
     fpsText.setWindow(&window);
 
-    TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 300, 30, 20, "", sf::Color(11,0,44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(149, 139, 239));
+    TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 150, 20, 14, "", sf::Color(11,0,44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
     textBox->setWindow(&window);
 
     renderObjects.push_back(textBox);
 
-    textBox = new TextBox<std::string>(100, 150, 400, 30, 20, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(149, 139, 239));
-    textBox->setWindow(&window);
+    auto floatBox = new TextBox<float>(100, 130, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+    floatBox->setWindow(&window);
 
-    renderObjects.push_back(textBox); 
+    renderObjects.push_back(floatBox);
 
-    textBox = new TextBox<std::string>(100, 200, 500, 30, 20, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(149, 139, 239));
-    textBox->setWindow(&window);
+    floatBox->setValue(420.69f);
 
-    renderObjects.push_back(textBox); 
+    auto intBox = new TextBox<int>(100, 160, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+    intBox->setWindow(&window);
 
-    textBox = new TextBox<std::string>(100, 250, 600, 30, 20, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(149, 139, 239));
+    renderObjects.push_back(intBox);
+
+    intBox->setValue(5);
+
+    textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
     textBox->setWindow(&window);
 
     renderObjects.push_back(textBox);
+
+    textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+    textBox->setWindow(&window);
+
+
+    renderObjects.push_back(textBox);
+
+    textBox->setValue("This is the string now");
+
+    FloatSlider* floatSlider = new FloatSlider(100, 220, 150, 20, sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216));
+    floatSlider->setWindow(&window);
+
+    renderObjects.push_back(floatSlider);
 
     RenderObject* hoverObject = nullptr;
+    RenderObject* previousHoverObject = nullptr;
     RenderObject* activeObject = nullptr;
 
     std::string inputString;
@@ -375,6 +394,16 @@ int main() {
             }
         }
 
+        if (hoverObject != previousHoverObject && previousHoverObject != nullptr)
+        {
+            if (activeObject != previousHoverObject)
+            {
+                previousHoverObject->setUnhover();
+            }
+        }
+        previousHoverObject = hoverObject;
+
+
         while (window.pollEvent(e))
         {
             if (e.type == sf::Event::Closed)
@@ -390,7 +419,7 @@ int main() {
                     int mouseX = e.mouseButton.x;
                     int mouseY = e.mouseButton.y;
 
-                    if (activeObject != nullptr && hoverObject == nullptr)
+                    if (activeObject != nullptr && hoverObject != activeObject)
                     {
                         activeObject->setInactive();
                         activeObject = nullptr;
@@ -399,9 +428,14 @@ int main() {
                     {
                         hoverObject->onClick();
                         activeObject = hoverObject;
+                        activeObject->setActive();
                     }
                 }
             }
+
+
+            
+
             if (e.type == sf::Event::TextEntered) {
                 if (e.text.unicode <= 128) { // Basic ASCII filter
                     if (activeObject != nullptr)
@@ -443,9 +477,21 @@ int main() {
         for (auto& obj : renderObjects) {
             obj->render();
         }
+        if (hoverObject != nullptr)
+        {
+            hoverObject->hoverDraw();
+        }
         if (activeObject != nullptr)
         {
-            activeObject->activeDraw();
+            if (!activeObject->getActive())
+            {
+                activeObject->setInactive();
+                activeObject = nullptr;
+            }
+            else
+            {
+                activeObject->activeDraw();
+            }
         }
 
         // Update the window

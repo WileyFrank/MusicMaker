@@ -1,5 +1,6 @@
 #pragma once
 #include <mutex>
+#include <iomanip>
 #include "NullRenderObject.h"
 
 
@@ -53,6 +54,12 @@ public:
             }
         }
         return false;
+    }
+
+    static std::string floatToString(float value, int n = 2) {
+        std::ostringstream out;
+        out << std::fixed << std::setprecision(n) << value;
+        return out.str();
     }
 
     //Shape specific

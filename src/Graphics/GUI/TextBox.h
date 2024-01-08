@@ -21,7 +21,10 @@ private:
 
     int selectionStart, selectionEnd;
 
+    bool updateSelection = true;
+
     std::string textString;
+    std::string oldString;
 
     sf::RectangleShape box;
     sf::RectangleShape selectionHighlight;
@@ -34,17 +37,38 @@ private:
 
     sf::Color backgroundColor, textColor, activeBackgroundColor, activeTextColor;
 
+
+    template<typename T>
+    T getDefaultValue() {
+        return T();  // Default constructible types
+    }
+    template<>
+    int getDefaultValue<int>() {
+        return 0;
+    }
+    template<>
+    float getDefaultValue<float>() {
+        return 0.0f;
+    }
+    template<>
+    std::string getDefaultValue<std::string>() {
+        return "";
+    }
+
     void initializeTextBox()
     {
+        textY = y + height - (fontSize * 1.375f);
+        cursorY = y + (height - fontSize) / 2;
+
         box = sf::RectangleShape(sf::Vector2f(width, height));
         selectionHighlight = sf::RectangleShape(sf::Vector2f((float)fontSize, height - (fontSize * 1.125f)));
 
         box.setPosition(sf::Vector2f(x, y));
         text.setText(textString);
-        text.setPosition(sf::Vector2f(x, textY));
+        text.setPosition(sf::Vector2f(x + margin/2, textY));
 
-        cursorY = y + height - (fontSize * 1.250f);
-        textY = y + height - (fontSize * 1.375f);
+        value = getDefaultValue<T>();
+          
 
         setInactive();
     }
@@ -217,20 +241,29 @@ private:
             cursor.setFillColor(sf::Color::Transparent);
         }
 
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && (int)milliseconds % 20 == 0)
         {
-            auto mouse = sf::Mouse::getPosition(*window);
-            getCursorIndex(mouse.x);
-            selectionEnd = cursorIndex;
-            if (selectionStart == -1)
+            if (updateSelection)
             {
-                selectionStart = cursorIndex;
-            }
-            else
-            {
-                updateTextBox();
+                updateSelection = false;
+                auto mouse = sf::Mouse::getPosition(*window);
+                getCursorIndex(mouse.x);
+                selectionEnd = cursorIndex;
+                if (selectionStart == -1)
+                {
+                    selectionStart = cursorIndex;
+                }
+                else
+                {
+                    updateTextBox();
+                }
             }
         }
+        else
+        {
+            updateSelection = true;
+        }
+
     }
 
     void truncateTextIndex(int index)
@@ -341,28 +374,7 @@ private:
         }
     }
 
-    void setActive() override
-    {
-        active = true;
-        box.setFillColor(activeBackgroundColor);
-        box.setOutlineColor(activeTextColor);
-        text.setColor(activeTextColor);
 
-        blinkTimeStart = std::chrono::steady_clock::now();
-    }
-    void setInactive() override
-    {
-        active = false;
-        box.setFillColor(backgroundColor);
-        box.setOutlineThickness(2);
-        box.setOutlineColor(textColor);
-        text.setColor(textColor);
-        cursor.setFillColor(sf::Color::Transparent);
-        selectionHighlight.setFillColor(sf::Color::Transparent);
-        selectionHighlight.setOutlineThickness(0);
-
-        truncateTextStart();
-    }
 public:
     TextBox(float x, float y, float width, float height, int size, std::string textString = "",
         sf::Color backgroundColor = sf::Color(200, 200, 200), sf::Color textColor = sf::Color(50, 50, 50),
@@ -383,14 +395,90 @@ public:
         initializeTextBox();
         this->type = GUIObject;
     }
-    
-    bool ValidateInput()
-    {
-        // Check if the input string can be converted to type T
-        T value;
+
+    template<typename T>
+    bool validateInput() {
+        T newValue;
+        bool success;
         std::istringstream iss(textString);
-        iss >> value;
-        return !(iss.fail() || !iss.eof());
+
+        iss >> newValue;
+        success = !iss.fail() && (iss.eof() || iss.peek() == std::istringstream::traits_type::eof());
+        if (success) {
+            value = newValue;
+        }
+        return success;
+    }
+    template<>
+    bool validateInput<int>() {
+        int newValue;
+        bool success;
+        std::istringstream iss(textString);
+
+        // First, extract as float to handle potential fractional part
+        float floatValue;
+        iss >> floatValue;
+
+        // Check if the extraction from the stream was successful
+        success = !iss.fail() && (iss.eof() || iss.peek() == std::istringstream::traits_type::eof());
+
+        if (success) {
+            // Round down using static_cast to int
+            newValue = static_cast<int>(std::floor(floatValue));
+
+            // Store the rounded value
+            value = newValue;
+        }
+
+        return success;
+    }
+    template<>
+    bool validateInput<float>() {
+        bool success;
+        std::istringstream iss(textString);
+
+        // First, extract as float to handle potential fractional part
+        float floatValue;
+        iss >> floatValue;
+
+        // Check if the extraction from the stream was successful
+        success = !iss.fail() && (iss.eof() || iss.peek() == std::istringstream::traits_type::eof());
+
+        if (success) {
+            
+            value = floatValue;
+        }
+
+        return success;
+    }
+    template<>
+    bool validateInput<std::string>() {
+        bool success;
+        std::istringstream iss(textString);
+
+        // First, extract as float to handle potential fractional part
+        std::string newValue;
+
+        std::getline(iss, newValue);
+
+        // Check if the extraction from the stream was successful
+        success = !iss.fail() && (iss.eof() || iss.peek() == std::istringstream::traits_type::eof());
+
+        if (success) {
+
+            value = newValue;
+        }
+
+        return success;
+    }
+
+
+    
+    std::string valueToString() 
+    {
+        std::ostringstream oss;
+        oss << value;
+        return oss.str();
     }
 
     void setWindow(sf::RenderWindow* window)
@@ -417,6 +505,12 @@ public:
         window->draw(box);
         text.draw();
     }
+    void hoverDraw() override 
+    {
+        setHoverstate();
+
+        draw();
+    }
     void activeDraw() override 
     {
         if (!active)
@@ -428,6 +522,47 @@ public:
         window->draw(cursor);
         window->draw(selectionHighlight);
         selectedText.draw();
+    }
+
+
+    void setHoverstate() override
+    {
+        this->hover = true;
+        box.setFillColor(activeBackgroundColor);
+    }
+    void setUnhover() override
+    {
+        this->hover = false;
+        box.setFillColor(backgroundColor);
+    }
+
+    void setActive() override
+    {
+        active = true;
+        box.setFillColor(activeBackgroundColor);
+        box.setOutlineColor(activeTextColor);
+        text.setColor(activeTextColor);
+
+        blinkTimeStart = std::chrono::steady_clock::now();
+    }
+    void setInactive() override
+    {
+        active = false;
+        box.setFillColor(backgroundColor);
+        box.setOutlineThickness(1);
+        box.setOutlineColor(textColor);
+        text.setColor(textColor);
+        cursor.setFillColor(sf::Color::Transparent);
+        selectionHighlight.setFillColor(sf::Color::Transparent);
+        selectionHighlight.setOutlineThickness(0);
+
+        validateInput<T>();
+
+        textString = valueToString();
+
+        truncateTextStart();
+
+
     }
 
     std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() override {
@@ -524,6 +659,8 @@ public:
                 selectionEnd = -1;
             }
 
+            
+
             textString = textString.substr(0, cursorIndex) + newChar + textString.substr(cursorIndex, textString.size() - cursorIndex);
             cursorIndex++;
         }
@@ -603,7 +740,7 @@ public:
             break;
         case sf::Keyboard::Delete:
             if (cursorIndex < textString.size())
-            textString = textString.substr(0, cursorIndex) + textString.substr(cursorIndex + 1, textString.size() - (cursorIndex + 1));
+            textString = textString.substr(0, (size_t)cursorIndex) + textString.substr(cursorIndex + 1, textString.size() - (cursorIndex + 1));
             //std::cout << textString << std::endl;
             break;
         case::sf::Keyboard::Home:
@@ -619,5 +756,34 @@ public:
         blinkTimeStart = std::chrono::steady_clock::now();
         updateTextBox();
     }
+
+    void setValue(T newValue) {
+        value = newValue;
+    }
+
 };
 
+template<>
+void TextBox<int>::setValue(int newValue)
+{
+    this->value = newValue;
+    this->textString = valueToString();
+
+    updateTextBox();
+}
+template<>
+void TextBox<float>::setValue(float newValue)
+{
+    this->value = newValue;
+    this->textString = valueToString();
+
+    updateTextBox();
+}
+
+template<>
+void TextBox<std::string>::setValue(std::string newValue)
+{
+    this->textString = newValue;
+    this->validateInput<std::string>();
+    this->updateTextBox();
+}

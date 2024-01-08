@@ -26,7 +26,6 @@ PrimitiveText::PrimitiveText()
 {
 	this->x = 100;
 	this->y = 100;
-
 }
 
 PrimitiveText::PrimitiveText(std::string text)

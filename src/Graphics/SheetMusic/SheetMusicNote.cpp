@@ -407,10 +407,11 @@ void SheetMusicNote::loadNote()
 				std::cout << "Note Texture unable to load\n";
 				return;
 			}
-			noteScale = 0.875f;
+			noteScale = 0.75f;
 			this->C4Position = 0.375f;
 			notePointVertical = 30.0f / 256.0f;
 			notePointHorizontal = 0.25;
+
 			break;
 		case ThirtySecond:
 			texture = ResourceManager::getTexture("resources/images/sheet_music/rests/thirtysecond.png");
