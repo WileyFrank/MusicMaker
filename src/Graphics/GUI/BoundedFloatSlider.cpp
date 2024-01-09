@@ -150,7 +150,6 @@ void BoundedFloatSlider::setHoverstate()
 void BoundedFloatSlider::setUnhover()
 {
     outBox.setFillColor(backgroundColor);
-
 }
 
 void BoundedFloatSlider::onClick()

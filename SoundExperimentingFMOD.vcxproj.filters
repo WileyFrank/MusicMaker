@@ -96,6 +96,9 @@
     <ClCompile Include="src\Graphics\GUI\BoundedFloatSlider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\GUI\FloatSlider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\HeaderFiles\Sound.h">
@@ -177,6 +180,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\GUI\BoundedFloatSlider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\GUI\FloatSlider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

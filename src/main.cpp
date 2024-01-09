@@ -18,6 +18,7 @@
 #include "Graphics/GUI/GUIPanel.h"
 #include "Graphics/GUI/TextBox.h"
 #include "Graphics/GUI/BoundedFloatSlider.h"
+#include "Graphics/GUI/FloatSlider.h"
 #include "Graphics/GUI/Primitives/Rectangle.h"
 #include "Graphics/GUI/Primitives/PrimitiveText.h"
 
@@ -341,13 +342,18 @@ int main() {
     textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
     textBox->setWindow(&window);
 
-
     renderObjects.push_back(textBox);
 
     textBox->setValue("This is the string now");
 
-    BoundedFloatSlider* floatSlider = new BoundedFloatSlider(100, 220, 150, 20, 
+    BoundedFloatSlider* boundedFloatSlider = new BoundedFloatSlider(100, 220, 150, 20, 
         sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216), sf::Color(94, 150, 255));
+    boundedFloatSlider->setWindow(&window);
+
+    renderObjects.push_back(boundedFloatSlider);
+
+    FloatSlider* floatSlider = new FloatSlider(100, 250, 150, 20,
+        sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
     floatSlider->setWindow(&window);
 
     renderObjects.push_back(floatSlider);
