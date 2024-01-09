@@ -3,7 +3,7 @@
 #include "Primitives/PrimitiveText.h"
 
 
-class FloatSlider :
+class BoundedFloatSlider :
     public RenderObject
 {
 private:
@@ -17,7 +17,7 @@ private:
 
 public:
     //default will be between 0 and 1
-    FloatSlider(float x, float y, float width, float height, sf::Color backgroundColor,
+    BoundedFloatSlider(float x, float y, float width, float height, sf::Color backgroundColor,
         sf::Color outlineColor, sf::Color fillColor, sf::Color textColor,
         sf::Color activeBackgroundColor, sf::Color activeFillColor);
 

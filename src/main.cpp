@@ -17,7 +17,7 @@
 #include "Graphics/GUI/RectangleButton.h"
 #include "Graphics/GUI/GUIPanel.h"
 #include "Graphics/GUI/TextBox.h"
-#include "Graphics/GUI/FloatSlider.h"
+#include "Graphics/GUI/BoundedFloatSlider.h"
 #include "Graphics/GUI/Primitives/Rectangle.h"
 #include "Graphics/GUI/Primitives/PrimitiveText.h"
 
@@ -346,7 +346,7 @@ int main() {
 
     textBox->setValue("This is the string now");
 
-    FloatSlider* floatSlider = new FloatSlider(100, 220, 150, 20, sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216));
+    BoundedFloatSlider* floatSlider = new BoundedFloatSlider(100, 220, 150, 20, sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216));
     floatSlider->setWindow(&window);
 
     renderObjects.push_back(floatSlider);

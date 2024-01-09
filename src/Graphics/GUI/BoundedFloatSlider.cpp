@@ -1,6 +1,6 @@
-#include "FloatSlider.h"
+#include "BoundedFloatSlider.h"
 
-FloatSlider::FloatSlider(float x, float y, float width, float height, sf::Color backgroundColor, sf::Color outlineColor, sf::Color fillColor, sf::Color textColor, sf::Color activeBackgroundColor, sf::Color activeFillColor)
+BoundedFloatSlider::BoundedFloatSlider(float x, float y, float width, float height, sf::Color backgroundColor, sf::Color outlineColor, sf::Color fillColor, sf::Color textColor, sf::Color activeBackgroundColor, sf::Color activeFillColor)
     :backgroundColor(backgroundColor), outlineColor(outlineColor), fillColor(fillColor),
     textColor(textColor), activeFillColor(activeFillColor), activeBackgroundColor(activeBackgroundColor),
     outBox(sf::Vector2f(width, height)), fillBox(sf::Vector2f(0.0f, height - (2 * 2))),
@@ -31,13 +31,13 @@ FloatSlider::FloatSlider(float x, float y, float width, float height, sf::Color 
     fillBox.setFillColor(fillColor);
 }
 
-void FloatSlider::render()
+void BoundedFloatSlider::render()
 {
     update();
     draw();
 }
 
-void FloatSlider::update()
+void BoundedFloatSlider::update()
 {
     if (active)
     {
@@ -55,21 +55,21 @@ void FloatSlider::update()
     text.setText(textString);
 }
 
-void FloatSlider::draw()
+void BoundedFloatSlider::draw()
 {
     window->draw(outBox);
     window->draw(fillBox);
     text.draw();
 }
 
-void FloatSlider::hoverDraw()
+void BoundedFloatSlider::hoverDraw()
 {
     //outBox.setOutlineColor(fillColor);
     outBox.setFillColor(activeBackgroundColor);
     draw();
 }
 
-void FloatSlider::activeDraw()
+void BoundedFloatSlider::activeDraw()
 {
     auto mouse = sf::Mouse::getPosition(*window);
     int xDifference = mouse.x - clickX;
@@ -85,14 +85,14 @@ void FloatSlider::activeDraw()
     draw();
 }
 
-void FloatSlider::setActive()
+void BoundedFloatSlider::setActive()
 {
     active = true;
     outBox.setFillColor(activeBackgroundColor);
     fillBox.setFillColor(activeFillColor);
 }
 
-void FloatSlider::setInactive()
+void BoundedFloatSlider::setInactive()
 {
     active = false;
     outBox.setFillColor(backgroundColor);
@@ -101,18 +101,18 @@ void FloatSlider::setInactive()
 
 }
 
-void FloatSlider::setHoverstate()
+void BoundedFloatSlider::setHoverstate()
 {
     outBox.setFillColor(activeBackgroundColor);
 }
 
-void FloatSlider::setUnhover()
+void BoundedFloatSlider::setUnhover()
 {
     outBox.setFillColor(backgroundColor);
 
 }
 
-void FloatSlider::onClick()
+void BoundedFloatSlider::onClick()
 {
     auto mouse = sf::Mouse::getPosition(*window);
     clickX = mouse.x;

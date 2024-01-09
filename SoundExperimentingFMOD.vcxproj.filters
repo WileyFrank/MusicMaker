@@ -93,7 +93,7 @@
     <ClCompile Include="src\Graphics\GUI\Primitives\PrimitiveRoundRectangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\GUI\FloatSlider.cpp">
+    <ClCompile Include="src\Graphics\GUI\BoundedFloatSlider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -176,7 +176,7 @@
     <ClInclude Include="src\Graphics\GUI\TextBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\GUI\FloatSlider.h">
+    <ClInclude Include="src\Graphics\GUI\BoundedFloatSlider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

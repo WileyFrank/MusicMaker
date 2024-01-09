@@ -142,7 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Graphics\GUI\FloatSlider.cpp" />
+    <ClCompile Include="src\Graphics\GUI\BoundedFloatSlider.cpp" />
     <ClCompile Include="src\Graphics\GUI\Primitives\PrimitiveRoundRectangle.cpp" />
     <ClCompile Include="src\Graphics\ResourceManager.cpp" />
     <ClCompile Include="src\Graphics\GUI\Primitives\PrimitiveText.cpp" />
@@ -171,7 +171,7 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Graphics\GUI\FloatSlider.h" />
+    <ClInclude Include="src\Graphics\GUI\BoundedFloatSlider.h" />
     <ClInclude Include="src\Graphics\GUI\Primitives\PrimitiveRoundRectangle.h" />
     <ClInclude Include="src\Graphics\ResourceManager.h" />
     <ClInclude Include="src\Graphics\GUI\Primitives\PrimitiveText.h" />
