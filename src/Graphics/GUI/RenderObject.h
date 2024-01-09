@@ -19,7 +19,7 @@ protected:
 	float x, y, width, height;
 
 	sf::RenderWindow* window;
-	bool hover = false, unhover = false, active = false;
+	bool hover = false, unhover = false, active = false, activeOverride = false;
 
 	RenderObjectType type;
 
@@ -48,6 +48,7 @@ public:
 	virtual void setInactive() {}
 
 	bool getActive() { return active; }
+	bool getActiveOverride() { return activeOverride; }
 
 	//returns the x, y width, and height of area
 	
@@ -55,6 +56,7 @@ public:
 		return std::make_pair(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(0.0f, 0.0f));
 	}
 	virtual RenderObject& getHoverObject() = 0;
+	virtual RenderObject& getActiveObject() { return *this; }
 	virtual void onClick() {}
 	virtual void keyboardInput(sf::Uint32 input) {}
 	virtual void arrowKeyInput(sf::Keyboard::Key key) {}

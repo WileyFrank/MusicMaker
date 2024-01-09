@@ -376,6 +376,8 @@ private:
 
 
 public:
+
+
     TextBox(float x, float y, float width, float height, int size, std::string textString = "",
         sf::Color backgroundColor = sf::Color(200, 200, 200), sf::Color textColor = sf::Color(50, 50, 50),
         sf::Color activeBackgroundColor = sf::Color(255, 255, 255), sf::Color activeTextColor = sf::Color(0, 0, 0))
@@ -472,7 +474,11 @@ public:
         return success;
     }
 
-
+    void selectAll()
+    {
+        selectionStart = 0;
+        selectionEnd = textString.size();
+    }
     
     std::string valueToString() 
     {
@@ -636,6 +642,7 @@ public:
         {
             switch (input)
             {
+            //sending keyboardInput(1) is the same as ctrl A
             case 1: //ctrl A
                 selectionStart = 0;
                 selectionEnd = (int)textString.size();
@@ -760,11 +767,12 @@ public:
     void setValue(T newValue) {
         value = newValue;
     }
+    T getValue() { return value; }
 
 };
 
 template<>
-void TextBox<int>::setValue(int newValue)
+inline void TextBox<int>::setValue(int newValue)
 {
     this->value = newValue;
     this->textString = valueToString();
@@ -772,16 +780,15 @@ void TextBox<int>::setValue(int newValue)
     updateTextBox();
 }
 template<>
-void TextBox<float>::setValue(float newValue)
+inline void TextBox<float>::setValue(float newValue)
 {
     this->value = newValue;
     this->textString = valueToString();
 
     updateTextBox();
 }
-
 template<>
-void TextBox<std::string>::setValue(std::string newValue)
+inline void TextBox<std::string>::setValue(std::string newValue)
 {
     this->textString = newValue;
     this->validateInput<std::string>();

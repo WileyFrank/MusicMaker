@@ -1,10 +1,10 @@
 #include "BoundedFloatSlider.h"
 
-BoundedFloatSlider::BoundedFloatSlider(float x, float y, float width, float height, sf::Color backgroundColor, sf::Color outlineColor, sf::Color fillColor, sf::Color textColor, sf::Color activeBackgroundColor, sf::Color activeFillColor)
+BoundedFloatSlider::BoundedFloatSlider(float x, float y, float width, float height, sf::Color backgroundColor, sf::Color outlineColor, sf::Color fillColor, sf::Color textColor, sf::Color activeBackgroundColor, sf::Color activeFillColor, sf::Color activeTextColor)
     :backgroundColor(backgroundColor), outlineColor(outlineColor), fillColor(fillColor),
     textColor(textColor), activeFillColor(activeFillColor), activeBackgroundColor(activeBackgroundColor),
     outBox(sf::Vector2f(width, height)), fillBox(sf::Vector2f(0.0f, height - (2 * 2))),
-    text(x + width / 2, y, (int)(height * .75f), "0.00")
+    text(x + width / 2, y, (int)(height * .75f), "0.00"), inputTextBox(x, y, width, height, (int)(height * 0.75f), "", backgroundColor, fillColor, activeBackgroundColor, activeTextColor)
 {
     this->type = GUIObject;
 
@@ -39,11 +39,31 @@ void BoundedFloatSlider::render()
 
 void BoundedFloatSlider::update()
 {
-    if (active)
+    if (textBoxOpen)
+    {
+        active = inputTextBox.getActive();
+    }
+    else if (active)
     {
         if (!sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
-            setInactive();
+            if (mouseMoved)
+            {
+                setInactive();
+                textBoxOpen = false;
+                activeOverride = true;
+            }
+            else
+            {
+                std::cout << "Click";
+                textBoxOpen = true;
+                activeOverride = true;
+                inputTextBox.onClick();
+                inputTextBox.setActive();
+                inputTextBox.setValue(value);
+                //select all
+                inputTextBox.keyboardInput(1);
+            }
         }
     }
 
@@ -71,18 +91,30 @@ void BoundedFloatSlider::hoverDraw()
 
 void BoundedFloatSlider::activeDraw()
 {
-    auto mouse = sf::Mouse::getPosition(*window);
-    int xDifference = mouse.x - clickX;
+    if (textBoxOpen)
+    {
+        inputTextBox.activeDraw();
+    }
+    else
+    {
+        auto mouse = sf::Mouse::getPosition(*window);
+        int xDifference = mouse.x - clickX;
 
-    float factor = xDifference / width;
+        if (xDifference != 0)
+            mouseMoved = true;
+        else
+            mouseMoved = false;
 
-    value = std::min(std::max(clickValue + factor * (maxValue - minValue), minValue), maxValue);
+        float factor = xDifference / width;
 
+        value = std::min(std::max(clickValue + factor * (maxValue - minValue), minValue), maxValue);
+
+        draw();
+    }
     if (!this->active)
     {
         setActive();
     }
-    draw();
 }
 
 void BoundedFloatSlider::setActive()
@@ -95,6 +127,15 @@ void BoundedFloatSlider::setActive()
 void BoundedFloatSlider::setInactive()
 {
     active = false;
+    if (textBoxOpen)
+    {
+        textBoxOpen = false;
+        activeOverride = false;
+        inputTextBox.setInactive();
+
+        auto textValue = inputTextBox.getValue();
+        setValue(textValue);
+    }
     outBox.setFillColor(backgroundColor);
     fillBox.setFillColor(fillColor);
     text.setColor(textColor);
@@ -114,8 +155,20 @@ void BoundedFloatSlider::setUnhover()
 
 void BoundedFloatSlider::onClick()
 {
-    auto mouse = sf::Mouse::getPosition(*window);
-    clickX = mouse.x;
-    clickValue = value;
-    setActive();
+    if (textBoxOpen)
+    {
+        inputTextBox.onClick();
+    }
+    else
+    {
+        auto mouse = sf::Mouse::getPosition(*window);
+        clickX = mouse.x;
+        clickValue = value;
+        setActive();
+    }
+}
+
+void BoundedFloatSlider::setValue(float newValue)
+{
+    this->value = std::max(std::min(newValue, maxValue), minValue);
 }

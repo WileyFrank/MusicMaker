@@ -346,7 +346,8 @@ int main() {
 
     textBox->setValue("This is the string now");
 
-    BoundedFloatSlider* floatSlider = new BoundedFloatSlider(100, 220, 150, 20, sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216));
+    BoundedFloatSlider* floatSlider = new BoundedFloatSlider(100, 220, 150, 20, 
+        sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216), sf::Color(94, 150, 255));
     floatSlider->setWindow(&window);
 
     renderObjects.push_back(floatSlider);
@@ -483,6 +484,10 @@ int main() {
         }
         if (activeObject != nullptr)
         {
+            /*if (activeObject->getActiveOverride())
+            {
+                activeObject = &(activeObject->getHoverObject());
+            }*/
             if (!activeObject->getActive())
             {
                 activeObject->setInactive();
