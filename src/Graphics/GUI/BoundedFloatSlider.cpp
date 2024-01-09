@@ -1,11 +1,15 @@
 #include "BoundedFloatSlider.h"
 
 BoundedFloatSlider::BoundedFloatSlider(float x, float y, float width, float height, sf::Color backgroundColor, sf::Color outlineColor, sf::Color fillColor, sf::Color textColor, sf::Color activeBackgroundColor, sf::Color activeFillColor, sf::Color activeTextColor)
-    :backgroundColor(backgroundColor), outlineColor(outlineColor), fillColor(fillColor),
-    textColor(textColor), activeFillColor(activeFillColor), activeBackgroundColor(activeBackgroundColor),
-    outBox(sf::Vector2f(width, height)), fillBox(sf::Vector2f(0.0f, height - (2 * 2))),
-    text(x + width / 2, y, (int)(height * .75f), "0.00"), inputTextBox(x, y, width, height, (int)(height * 0.75f), "", backgroundColor, fillColor, activeBackgroundColor, activeTextColor)
+    :fillColor(fillColor), activeFillColor(activeFillColor),
+    FloatSlider(x, y, width, height, backgroundColor, outlineColor, textColor, activeBackgroundColor, activeTextColor),
+    inputTextBox(x, y, width, height, (int)(height * 0.75f), "", backgroundColor, fillColor, activeBackgroundColor, activeTextColor)
 {
+    this->backgroundColor = backgroundColor;
+    this->outlineColor = outlineColor;
+    this->textColor = textColor;
+    this->activeBackgroundColor = activeBackgroundColor;
+
     this->type = GUIObject;
 
     this->x = x;
@@ -82,12 +86,12 @@ void BoundedFloatSlider::draw()
     text.draw();
 }
 
-void BoundedFloatSlider::hoverDraw()
-{
-    //outBox.setOutlineColor(fillColor);
-    outBox.setFillColor(activeBackgroundColor);
-    draw();
-}
+//void BoundedFloatSlider::hoverDraw()
+//{
+//    //outBox.setOutlineColor(fillColor);
+//    outBox.setFillColor(activeBackgroundColor);
+//    draw();
+//}
 
 void BoundedFloatSlider::activeDraw()
 {
@@ -142,30 +146,30 @@ void BoundedFloatSlider::setInactive()
 
 }
 
-void BoundedFloatSlider::setHoverstate()
-{
-    outBox.setFillColor(activeBackgroundColor);
-}
+//void BoundedFloatSlider::setHoverstate()
+//{
+//    outBox.setFillColor(activeBackgroundColor);
+//}
 
-void BoundedFloatSlider::setUnhover()
-{
-    outBox.setFillColor(backgroundColor);
-}
+//void BoundedFloatSlider::setUnhover()
+//{
+//    outBox.setFillColor(backgroundColor);
+//}
 
-void BoundedFloatSlider::onClick()
-{
-    if (textBoxOpen)
-    {
-        inputTextBox.onClick();
-    }
-    else
-    {
-        auto mouse = sf::Mouse::getPosition(*window);
-        clickX = mouse.x;
-        clickValue = value;
-        setActive();
-    }
-}
+//void BoundedFloatSlider::onClick()
+//{
+//    if (textBoxOpen)
+//    {
+//        inputTextBox.onClick();
+//    }
+//    else
+//    {
+//        auto mouse = sf::Mouse::getPosition(*window);
+//        clickX = mouse.x;
+//        clickValue = value;
+//        setActive();
+//    }
+//}
 
 void BoundedFloatSlider::setValue(float newValue)
 {

@@ -1,22 +1,17 @@
 #pragma once
 #include "TextBox.h"
-#include "RenderObject.h"
+#include "FloatSlider.h"
 #include "Primitives/PrimitiveText.h"
 
 
 class BoundedFloatSlider :
-    public RenderObject
+    public FloatSlider
 {
 private:
-    sf::Color backgroundColor, outlineColor, fillColor, textColor, activeFillColor, activeBackgroundColor, activeTextColor;
-    float minValue, maxValue, value, clickValue;
+    sf::Color fillColor, activeFillColor;
+    float minValue, maxValue;
 
-    int clickX;
-
-    bool mouseMoved = false , textBoxOpen = false;
-
-    sf::RectangleShape outBox, fillBox;
-    PrimitiveText text;
+    sf::RectangleShape fillBox;
 
     TextBox<float> inputTextBox;
 
@@ -26,38 +21,44 @@ public:
         sf::Color outlineColor, sf::Color fillColor, sf::Color textColor,
         sf::Color activeBackgroundColor, sf::Color activeFillColor, sf::Color activeTextColor);
 
+    void setValue(float newValue);
+    
     void render() override;
     void update() override;
     void draw() override;
-    void hoverDraw() override;
     void activeDraw() override;
 
-    void setHoverstate() override;
-    void setUnhover() override;
     void setActive() override;
     void setInactive() override;
 
-    void keyboardInput(sf::Uint32 input) override
+    //unchanged
+
+
+    //void hoverDraw() override;
+    //void setHoverstate() override;
+    //void setUnhover() override;
+
+    /*void keyboardInput(sf::Uint32 input) override
     {
         if (textBoxOpen)
         {
             inputTextBox.keyboardInput(input);
         }
-    }
-    void arrowKeyInput(sf::Keyboard::Key key) override
+    }*/
+    /*void arrowKeyInput(sf::Keyboard::Key key) override
     {
         if (textBoxOpen)
         {
             inputTextBox.arrowKeyInput(key);
         }
-    }
+    }*/
 
-    void onClick() override;
+    /*void onClick() override;*/
 
-    virtual std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() {
+    /*virtual std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() {
         return std::make_pair(sf::Vector2f(x, y), sf::Vector2f(width, height));
-    }
-    RenderObject& getHoverObject()
+    }*/
+    /*RenderObject& getHoverObject()
     {
         sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
         auto hoverArea = this->getHoverArea();
@@ -68,24 +69,22 @@ public:
         }
 
         return *GUIUtilities::getEmptyRenderObject();
-    }
-    RenderObject& getActiveObject() override
+    }*/
+    /*RenderObject& getActiveObject() override
     {
         if (textBoxOpen)
         {
             inputTextBox.getActiveObject();
         }
         return *this;
-    }
+    }*/
 
-    void setWindow(sf::RenderWindow* window)
+    /*void setWindow(sf::RenderWindow* window)
     {
         this->window = window;
         text.setWindow(window);
         inputTextBox.setWindow(window);
-    }
-
-    void setValue(float newValue);
+    }*/
 };
 
 //draw, setInactive

@@ -6,7 +6,7 @@
 class FloatSlider :
     public RenderObject
 {
-private:
+protected:
     sf::Color backgroundColor, outlineColor, textColor, activeBackgroundColor, activeTextColor;
     float value, clickValue;
     float widthValue;
@@ -22,6 +22,8 @@ private:
     TextBox<float> inputTextBox;
 
 public:
+    //FloatSlider();
+
     //default will be between 0 and 1
     FloatSlider(float x, float y, float width, float height, 
         sf::Color backgroundColor, sf::Color outlineColor, sf::Color textColor,

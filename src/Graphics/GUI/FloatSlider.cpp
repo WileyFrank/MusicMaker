@@ -1,5 +1,11 @@
 #include "FloatSlider.h"
 
+//FloatSlider::FloatSlider()
+//    :inputTextBox(0, 0, 0, 0,0,"")
+//{
+//
+//}
+
 FloatSlider::FloatSlider(float x, float y, float width, float height, sf::Color backgroundColor, sf::Color outlineColor, sf::Color textColor, sf::Color activeBackgroundColor, sf::Color activeTextColor)
     :backgroundColor(backgroundColor), outlineColor(outlineColor),
     textColor(textColor), activeBackgroundColor(activeBackgroundColor),
@@ -25,7 +31,7 @@ FloatSlider::FloatSlider(float x, float y, float width, float height, sf::Color 
     outBox.setOutlineColor(outlineColor);
     outBox.setOutlineThickness(1);
 
-    widthValue = 0.1;
+    widthValue = 0.1f;
 }
 
 void FloatSlider::onClick()

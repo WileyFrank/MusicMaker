@@ -384,7 +384,7 @@ int main() {
             //std::cout << "Average of 100 frames: " << averageDuration << " microseconds\n";
             microsecondCount = 0;
             auto fps = 1000000.0f / averageDuration;
-            std::string fpsString = "FPS: " + std::to_string((int)fps);
+            std::string fpsString = "FPS: " + std::to_string((int)-fps);
             fpsText.setText(fpsString);
         }
 
@@ -409,7 +409,6 @@ int main() {
             }
         }
         previousHoverObject = hoverObject;
-
 
         while (window.pollEvent(e))
         {
@@ -440,9 +439,6 @@ int main() {
                 }
             }
 
-
-            
-
             if (e.type == sf::Event::TextEntered) {
                 if (e.text.unicode <= 128) { // Basic ASCII filter
                     if (activeObject != nullptr)
@@ -471,10 +467,6 @@ int main() {
                 }
             }
         }
-        //sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
-
-        //std::cout << "x: " << mousePosition.x << "\t\ty: " << mousePosition.y << "\n";
-        //rect.setPosition(sf::Vector2f((float)mousePosition.x, (float)mousePosition.y));
 
         // Clear screen
         window.clear(sf::Color(0,3,25));
