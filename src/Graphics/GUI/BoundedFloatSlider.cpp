@@ -2,8 +2,7 @@
 
 BoundedFloatSlider::BoundedFloatSlider(float x, float y, float width, float height, sf::Color backgroundColor, sf::Color outlineColor, sf::Color fillColor, sf::Color textColor, sf::Color activeBackgroundColor, sf::Color activeFillColor, sf::Color activeTextColor)
     :fillColor(fillColor), activeFillColor(activeFillColor),
-    FloatSlider(x, y, width, height, backgroundColor, outlineColor, textColor, activeBackgroundColor, activeTextColor),
-    inputTextBox(x, y, width, height, (int)(height * 0.75f), "", backgroundColor, fillColor, activeBackgroundColor, activeTextColor)
+    FloatSlider(x, y, width, height, backgroundColor, outlineColor, textColor, activeBackgroundColor, activeTextColor)
 {
     this->backgroundColor = backgroundColor;
     this->outlineColor = outlineColor;
@@ -86,13 +85,6 @@ void BoundedFloatSlider::draw()
     text.draw();
 }
 
-//void BoundedFloatSlider::hoverDraw()
-//{
-//    //outBox.setOutlineColor(fillColor);
-//    outBox.setFillColor(activeBackgroundColor);
-//    draw();
-//}
-
 void BoundedFloatSlider::activeDraw()
 {
     if (textBoxOpen)
@@ -101,7 +93,7 @@ void BoundedFloatSlider::activeDraw()
     }
     else
     {
-        auto mouse = sf::Mouse::getPosition(*window);
+        auto mouse = sf::Mouse::getPosition(*this->window);
         int xDifference = mouse.x - clickX;
 
         if (xDifference != 0)
@@ -145,31 +137,6 @@ void BoundedFloatSlider::setInactive()
     text.setColor(textColor);
 
 }
-
-//void BoundedFloatSlider::setHoverstate()
-//{
-//    outBox.setFillColor(activeBackgroundColor);
-//}
-
-//void BoundedFloatSlider::setUnhover()
-//{
-//    outBox.setFillColor(backgroundColor);
-//}
-
-//void BoundedFloatSlider::onClick()
-//{
-//    if (textBoxOpen)
-//    {
-//        inputTextBox.onClick();
-//    }
-//    else
-//    {
-//        auto mouse = sf::Mouse::getPosition(*window);
-//        clickX = mouse.x;
-//        clickValue = value;
-//        setActive();
-//    }
-//}
 
 void BoundedFloatSlider::setValue(float newValue)
 {

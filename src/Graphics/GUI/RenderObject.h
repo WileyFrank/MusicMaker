@@ -31,7 +31,7 @@ public:
 	virtual void setHover(bool hover) { this->hover = hover; }
 	
 	RenderObjectType getType() { return type; }
-	void setWindow(sf::RenderWindow* window) { this->window = window; }
+	virtual void setWindow(sf::RenderWindow* window) { this->window = window; }
 	 
 
 	virtual void render() = 0;

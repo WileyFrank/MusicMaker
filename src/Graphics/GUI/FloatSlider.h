@@ -30,15 +30,15 @@ public:
         sf::Color activeBackgroundColor, sf::Color activeTextColor);
 
 
-    void setValue(float newValue) { this->value = newValue; }
+    virtual void setValue(float newValue) { this->value = newValue; }
 
 
-    void update() override;
-    void draw() override;
+    virtual void update() override;
+    virtual void draw() override;
 
-    void activeDraw() override;
-    void setActive() override;
-    void setInactive() override;
+    virtual void activeDraw() override;
+    virtual void setActive() override;
+    virtual void setInactive() override;
 
 
     //unchanged
@@ -91,7 +91,7 @@ public:
         return *this;
     }
 
-    void setWindow(sf::RenderWindow* window)
+    virtual void setWindow(sf::RenderWindow* window) override
     {
         this->window = window;
         text.setWindow(window);
