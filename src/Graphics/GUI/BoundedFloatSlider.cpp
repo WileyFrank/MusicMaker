@@ -4,12 +4,12 @@ BoundedFloatSlider::BoundedFloatSlider(float x, float y, float width, float heig
     :fillColor(fillColor), activeFillColor(activeFillColor),
     FloatSlider(x, y, width, height, backgroundColor, outlineColor, textColor, activeBackgroundColor, activeTextColor)
 {
+    this->type = GUIObject;
+
     this->backgroundColor = backgroundColor;
     this->outlineColor = outlineColor;
     this->textColor = textColor;
     this->activeBackgroundColor = activeBackgroundColor;
-
-    this->type = GUIObject;
 
     this->x = x;
     this->y = y;
@@ -58,7 +58,6 @@ void BoundedFloatSlider::update()
             }
             else
             {
-                std::cout << "Click";
                 textBoxOpen = true;
                 activeOverride = true;
                 inputTextBox.onClick();

@@ -57,7 +57,8 @@ public:
 
     void setSystem(FMOD::System* system);
 
-    void addSound(std::string path);
-    void addSound(const std::string& path, double duration, double fadeIn, double fadeOut);
-    void addSound(const std::string& path, double duration, double fadeIn, double fadeOut, double maxVolume);
+    Sound& addSound(std::string path);
+    Sound& addSound(FMOD::Sound* sound, double duration, double fadeIn, double fadeOut);
+    Sound& addSound(const std::string& path, double duration, double fadeIn, double fadeOut);
+    Sound& addSound(const std::string& path, double duration, double fadeIn, double fadeOut, double maxVolume);
 };

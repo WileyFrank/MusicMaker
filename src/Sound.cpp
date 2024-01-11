@@ -3,9 +3,8 @@
 Sound::Sound(FMOD::System* sys, const std::string& filePath) : 
     system(sys), path(filePath), donePlaying(false)
 {
-    sound = NULL;
-    channel = NULL;
-    channel->setVolume((float)volume);
+    sound = nullptr;
+    channel = nullptr;
 
     duration = -1;
     fadeIn = -1;
@@ -13,8 +12,28 @@ Sound::Sound(FMOD::System* sys, const std::string& filePath) :
 
     volume = 1.0;
 
+    FMOD_VECTOR initialPosition = { 0.0f, 1.0f, 0.0f }; // Example: 10 units to the left
+    position = initialPosition;
+
     loadSound();
 
+}
+
+Sound::Sound(FMOD::System* sys, FMOD::Sound* sound, double duration, double fadeIn, double fadeOut)
+    : system(sys), sound(sound), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(1.0)
+{
+    channel = nullptr;
+
+    if (fadeIn > 0)
+    {
+        volume = 0.0;
+    }
+    else
+    {
+        volume = 1.0;
+    }
+    FMOD_VECTOR initialPosition = { 0.0f, 1.0f, 0.0f }; // Example: 10 units to the left
+    position = initialPosition;
 }
 
 Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, double fadeIn, double fadeOut)
@@ -33,7 +52,8 @@ Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, do
     {
         volume = 1.0;
     }
-
+    FMOD_VECTOR initialPosition = { 0.0f, 1.0f, 0.0f }; // Example: 10 units to the left
+    position = initialPosition;
 
     loadSound();
 
@@ -51,7 +71,8 @@ Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, do
     {
         volume = maxVolume;
     }
-
+    FMOD_VECTOR initialPosition = { 0.0f, 1.0f, 0.0f }; // Example: 10 units to the left
+    position = initialPosition;
     loadSound();
 
 }
@@ -71,6 +92,11 @@ Sound::Sound()
 
 void Sound::Update()
 {
+    if (channel == nullptr) {
+        donePlaying = true;
+        return;
+    }
+
     if (donePlaying)
     {
         channel->setVolume(0);
@@ -88,14 +114,14 @@ void Sound::Update()
     auto playDuration = std::chrono::duration<double>(elapsedDuration).count();
 
 
-    std::cout << "Note:\n";
-    std::cout << "Play Duration: " << playDuration;
+    /*std::cout << "Note:\n";
+    std::cout << "Play Duration: " << playDuration;*/
 
     bool playing;
     channel->isPlaying(&playing);
 
     //If the sound has been playing for longer than the duration provided.
-    if (duration != -1 && playDuration >= duration && playing)
+    if (playing && duration != -1 && playDuration >= duration)
     {
         Stop();
         return;
@@ -128,22 +154,29 @@ void Sound::Update()
     startVolume *= maxVolume;
 
     volume = startVolume;
+    channel->setVolume(volume);
 
-    channel->setVolume((float)(volume));
+    FMOD_RESULT result = channel->set3DAttributes(&position, NULL);
+    if (result != FMOD_OK) {
+        std::cerr << "Error setting channel 3D attributes: " << result << std::endl;
+    }
 
-    std::cout << "\t\tVolume: " << volume << "\n";
+    //std::cout << "\t\tVolume: " << volume << "\n";
 }
 
 void Sound::Play()
 {
     playing = true;
 
-    result = system->playSound(sound, 0, false, &channel);
+    result = system->playSound(sound, nullptr, true, &channel);
     if (result != FMOD_OK) {
         printf("Error playing sound: (%d)\n", result);
         sound->release();  // Release the sound object
         return;
     }
+    result = channel->setVolume(0);
+    result = channel->set3DAttributes(&position, nullptr);
+    channel->setPaused(false);
 
     startTime = std::chrono::steady_clock::now();
 }
@@ -161,23 +194,40 @@ void Sound::Stop()
 
 void Sound::loadSound()
 {
-    sound = NULL;
     channel = NULL;
-    channel->setVolume((float)volume);
 
-
-
-    result = system->createSound(path.c_str(), FMOD_DEFAULT, 0, &sound);
+    result = system->createSound(path.c_str(), FMOD_3D, nullptr, &sound);
     if (result != FMOD_OK) {
         printf("Error loading sound: (%d)\n", result);
         return;
     }
+    
+    setPosition(position);
+
 }
 
 void Sound::setVolume(float volume)
 {
-    this->volume = volume;
+    this->maxVolume = volume;
     channel->setVolume((float)(volume));
+}
+
+void Sound::setPosition(FMOD_VECTOR pos)
+{
+    this->position = pos; 
+    channel->set3DAttributes(&position, nullptr);
+    float panLevel = 0.75f; // Adjust this value between 0.0 (full mono) and 1.0 (full 3D) as needed
+
+    // After initializing and playing the sound
+    float minDistance = 0.5f; // Minimum distance at which the sound is at its loudest
+    float maxDistance = 1000.0f; // Maximum distance at which the sound stops attenuating
+
+    result = channel->set3DMinMaxDistance(minDistance, maxDistance);
+    /*FMOD_VECTOR vec = { 0.0f, 1.0f, 0.0f };
+    result = channel->set3DConeOrientation(&vec);
+    if (result != FMOD_OK) {
+        std::cerr << "Error setting 3D min/max distance: " << result << std::endl;
+    }*/
 }
 
 void Sound::Mute()

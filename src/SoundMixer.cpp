@@ -76,13 +76,15 @@ void SoundMixer::Update()
 
 	updateCount++;
 
-	if (updateCount % 20 == 0)
+	if (updateCount % 1 == 0)
 	{
 		updateCount = 0;
 		cleanupBuffer();
 	}
-
-	
+	if (system != nullptr)
+	{
+		system->update();
+	}
 	return;
 }
 
@@ -91,7 +93,7 @@ void SoundMixer::setSystem(FMOD::System* system)
 	this->system = system;
 }
 
-void SoundMixer::addSound(std::string path)
+Sound& SoundMixer::addSound(std::string path)
 {
 	Sound* newSound = new Sound(system, path);
 	{
@@ -99,9 +101,23 @@ void SoundMixer::addSound(std::string path)
 		soundBuffer.push_back(newSound);
 	}
 	newSound->Play();
+
+	return *newSound;
 }
 
-void SoundMixer::addSound(const std::string& path, double duration, double fadeIn, double fadeOut)
+Sound& SoundMixer::addSound(FMOD::Sound* sound, double duration, double fadeIn, double fadeOut)
+{
+	Sound* newSound = new Sound(system, sound, duration, fadeIn, fadeOut);
+	newSound->Play();
+
+	std::lock_guard<std::mutex> lock(bufferMutex);
+	soundBuffer.push_back(newSound);
+	this->soundBuffer = soundBuffer;
+
+	return *newSound;
+}
+
+Sound& SoundMixer::addSound(const std::string& path, double duration, double fadeIn, double fadeOut)
 {
 	Sound* newSound = new Sound(system, path, duration, fadeIn, fadeOut);
 	newSound->Play();
@@ -109,16 +125,18 @@ void SoundMixer::addSound(const std::string& path, double duration, double fadeI
 	std::lock_guard<std::mutex> lock(bufferMutex);
 	soundBuffer.push_back(newSound);
 	this->soundBuffer = soundBuffer;
+
+	return *newSound;
 }
 
 
-void SoundMixer::addSound(const std::string& path, double duration, double fadeIn, double fadeOut, double maxVolume)
+Sound& SoundMixer::addSound(const std::string& path, double duration, double fadeIn, double fadeOut, double maxVolume)
 {
 	Sound* newSound = new Sound(system, path, duration, fadeIn, fadeOut, maxVolume);
 	newSound->Play();
 	
 	std::lock_guard<std::mutex> lock(bufferMutex);
-	soundBuffer.push_back(newSound);
-	this->soundBuffer = soundBuffer;
+	this->soundBuffer.push_back(newSound);
+	return *newSound;
 }
 

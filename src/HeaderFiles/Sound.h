@@ -28,9 +28,12 @@ protected:
 	//Volume and mute
 	bool isMuted = false;
 	double volume; // 0.0 - 1.0
+	double masterVolume; // 0.0 - 1.0
 
 	bool playing;
 	bool donePlaying;
+
+	FMOD_VECTOR position;
 
 
 public:
@@ -38,6 +41,7 @@ public:
 	Sound();
 
 	Sound(FMOD::System* sys, const std::string& filePath);
+	Sound(FMOD::System* sys, FMOD::Sound* sound, double duration, double fadeIn, double fadeOut);
 	Sound(FMOD::System* sys, const std::string& filePath, double duration, double fadeIn, double fadeOut);
 	Sound(FMOD::System* sys, const std::string& filePath, double duration, double fadeIn, double fadeOut, double maxVolume);
 
@@ -53,6 +57,7 @@ public:
 
 	//Volume
 	void setVolume(float volume);
+	void setPosition(FMOD_VECTOR pos);
 
 	//Muting
 	void Mute();

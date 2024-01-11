@@ -1,9 +1,15 @@
 #pragma once
 #include "SFML/Graphics.hpp"
+#include <fmod.hpp>
 #include <iostream>
 #include <vector>
 #include <cmath>
 #include <mutex>
+
+enum Instrument {
+	PianoInstrument,
+	ToneInstrument
+};
 
 enum ChordType {
 	MAJOR = 0,
@@ -25,9 +31,6 @@ enum ChordType {
 	ADD13,
 	UNRECOGNIZEDCHORD
 };
-
-
-
 
 //if the pitch is 1 - 12 it is the actual pitch, adding or subtracting 12 is used to store sharp and flat
 enum PitchEnum {
@@ -140,7 +143,31 @@ enum Clef { TrebleClef = 0, BassClef };
 
 class MusicUtilities
 {
+private: 
+	static std::map<std::string, FMOD::Sound*> soundCache;
 public:
+
+	// |-|-|-|-|-|-|-|-|-|-| NOTE SOUND FILES |-|-|-|-|-|-|-|-|-|-|-|-|
+	static FMOD::Sound* getSound(const std::string& path, FMOD::System* system) {
+		// Check if the sound is already loaded
+		auto it = soundCache.find(path);
+		if (it != soundCache.end()) {
+			// Return the cached sound
+			return it->second;
+		}
+
+		// Sound not in cache, load it
+		FMOD::Sound* sound;
+		FMOD_RESULT result = system->createSound(path.c_str(), FMOD_DEFAULT, nullptr, &sound);
+		if (result != FMOD_OK) {
+			// Handle error
+			return nullptr;
+		}
+
+		// Store the sound in the cache
+		soundCache[path] = sound;
+		return sound;
+	}
 
 	// |-|-|-|-|-|-|-|-|-|-| SCALES AND CHORDS |-|-|-|-|-|-|-|-|-|-|-|-|
 

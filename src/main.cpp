@@ -17,8 +17,10 @@
 #include "Graphics/GUI/RectangleButton.h"
 #include "Graphics/GUI/GUIPanel.h"
 #include "Graphics/GUI/TextBox.h"
-#include "Graphics/GUI/BoundedFloatSlider.h"
 #include "Graphics/GUI/FloatSlider.h"
+#include "Graphics/GUI/BoundedFloatSlider.h"
+#include "Graphics/GUI/CircleRingSelect.h"
+#include "Graphics/GUI/ToggleBox.h"
 #include "Graphics/GUI/Primitives/Rectangle.h"
 #include "Graphics/GUI/Primitives/PrimitiveText.h"
 
@@ -27,28 +29,60 @@
 #include "Graphics/SheetMusic/SheetMusicClef.h"
 #include "Graphics/SheetMusic/SheetMusicMeasure.h"
 
-
+void checkFmodResult(FMOD_RESULT result) {
+    if (result != FMOD_OK) {
+        std::cerr << "FMOD error: " << result << std::endl;
+        exit(-1);
+    }
+}
 
 int main() {
+    FMOD_RESULT result;
     FMOD::System* system = NULL;
-    FMOD::System_Create(&system);
-    system->init(513, FMOD_INIT_NORMAL, 0);
+    result = FMOD::System_Create(&system);
+    checkFmodResult(result);
+    result = system->init(512, FMOD_INIT_NORMAL, nullptr);
+    checkFmodResult(result);
 
+    FMOD::Sound* sound = MusicUtilities::getSound("Sounds/Piano/c3.wav", system);
     FMOD_VECTOR listenerPos = { 0.0f, 0.0f, 0.0f };
     FMOD_VECTOR forward = { 0.0f, 1.0f, 0.0f };
     FMOD_VECTOR up = { 0.0f, 0.0f, 1.0f };
+    FMOD_VECTOR velocity = { 0.0f, 0.0f, 0.0f };
 
-    system->set3DListenerAttributes(0, &listenerPos, NULL, &forward, &up);
+    result = system->set3DListenerAttributes(0, &listenerPos, &velocity, &forward, &up);
+    checkFmodResult(result);
+
+    result = system->createSound("Sounds/Piano/c3.wav", FMOD_3D, nullptr, &sound);
+    checkFmodResult(result);
+
+    FMOD_VECTOR soundPosition = { 10.0f, 0.0f, 0.0f }; // 10 units to the left
+
+    //result = system->playSound(sound, nullptr, true, &channel);
+    //checkFmodResult(result);
+    //result = channel->set3DAttributes(&soundPosition, nullptr);
+    //checkFmodResult(result);
+    //result = channel->setPaused(false);
+    //checkFmodResult(result);
+
+    //// Main loop (simulate for a short period to allow sound to play)
+    //for (int i = 0; i < 100; ++i) {
+    //    system->update();
+    //    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    //}
+
+    //result = sound->release();
+    //checkFmodResult(result);
 
     SoundMixer& mixer = SoundMixer::getInstance();
 
     mixer.start();
     mixer.setSystem(system);
-    
-    //Cmaj I IV V I
-    {
 
-        /*
+    //Cmaj I IV V I
+    /* {
+
+        
         //Cmaj7
         mixer.addSound("Sounds/Piano/piano-c3.wav", 0.8, 0, 0.35);
         mixer.addSound("Sounds/Piano/piano-e3.wav", 0.8, 0, 0.35);
@@ -97,13 +131,13 @@ int main() {
         mixer.addSound("Sounds/Piano/piano-c4.wav", 0.8, 0, 0.35);
         std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
-        */
-    }
+        
+    }*/
     float bpm = 1;
     int delayMillis = (int)((bpm / 60) * 1000);
     //A more Complex Pattern
-    {
-        /*std::this_thread::sleep_for(std::chrono::milliseconds(delayMillis / 8));
+    /*{
+        std::this_thread::sleep_for(std::chrono::milliseconds(delayMillis / 8));
 
         
         mixer.addSound("Sounds/Piano/piano-a3.wav", (double)delayMillis / 800, 0, 0.35, 1.0);
@@ -208,12 +242,34 @@ int main() {
         mixer.addSound("Sounds/Piano/piano-g4.wav", 3, 0, 0.35);
 
         mixer.addSound("Sounds/Piano/piano-c5.wav", 3, 0, 0.35, 0.5);
-        std::this_thread::sleep_for(std::chrono::milliseconds(delayMillis * 2));*/
-    }
+        std::this_thread::sleep_for(std::chrono::milliseconds(delayMillis * 2));
+    }*/
+    FMOD_VECTOR vec = { 0.0f,1.0f,0.0f };
+    FMOD_VECTOR vec2 = { 0.0f,1.0f,0.0f };
 
-    system->close();
-    system->release();
+    //CMaj C G swap
+    {
+        auto& newSound = mixer.addSound(sound, 4, 0, 0.75);
+        newSound.setVolume(.5);
 
+        auto& newSound2 = mixer.addSound("Sounds/Piano/g3.wav", 4, 0, 0.75);
+        newSound2.setVolume(.025);
+
+        auto& newSound3 = mixer.addSound("Sounds/Piano/e3.wav", 4, 0, 0.75, 0.025);
+        newSound3.setVolume(.025);
+        //newSound.setPosition(vec);
+
+        for (float i = -3; i < 3; i += 0.05f)
+        {
+            vec = { i * i * i,1.0f,0.0f };
+            vec2 = { -i * -i * -i,1.0f,0.0f };
+            newSound.setPosition(vec);
+            newSound2.setPosition(vec2);
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    }   
 
     sf::RenderWindow window(sf::VideoMode(1200, 800), "Sheet Music Generator");
     sf::Event e;
@@ -349,6 +405,7 @@ int main() {
     BoundedFloatSlider* boundedFloatSlider = new BoundedFloatSlider(100, 220, 150, 20, 
         sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216), sf::Color(94, 150, 255));
     boundedFloatSlider->setWindow(&window);
+    boundedFloatSlider->setBounds(0, 360);
 
     renderObjects.push_back(boundedFloatSlider);
 
@@ -358,12 +415,42 @@ int main() {
 
     renderObjects.push_back(floatSlider);
 
+    CircleRingSelect* circleSelection = new CircleRingSelect(400, 200, 50, 10, 
+        sf::Color(11, 0, 44), sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+    circleSelection->setWindow(&window);
+    circleSelection->setSlider(boundedFloatSlider);
+
+    renderObjects.push_back(circleSelection);
+
+
+    ToggleBox* toggle = new ToggleBox(500, 150, 20, 20, 
+        sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+    toggle->setWindow(&window);
+
+    renderObjects.push_back(toggle);
+
     RenderObject* hoverObject = nullptr;
     RenderObject* previousHoverObject = nullptr;
     RenderObject* activeObject = nullptr;
 
     std::string inputString;
 
+    auto startTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+
+    int lastNote = 0;
+
+    std::map<int, FMOD::Sound*> soundMap;
+
+    soundMap[0] = MusicUtilities::getSound("Sounds/Piano/c3.wav", system);
+    soundMap[1] = MusicUtilities::getSound("Sounds/Piano/d3.wav", system);
+    soundMap[2] = MusicUtilities::getSound("Sounds/Piano/e3.wav", system);
+    soundMap[3] = MusicUtilities::getSound("Sounds/Piano/f3.wav", system);
+    soundMap[4] = MusicUtilities::getSound("Sounds/Piano/g3.wav", system);
+    soundMap[5] = MusicUtilities::getSound("Sounds/Piano/a3.wav", system);
+    soundMap[6] = MusicUtilities::getSound("Sounds/Piano/b3.wav", system);
+    soundMap[7] = MusicUtilities::getSound("Sounds/Piano/c4.wav", system);
+    
     while (window.isOpen())
     {
         //Frame data
@@ -421,6 +508,8 @@ int main() {
             }
             if (e.type == sf::Event::MouseButtonPressed) {
                 if (e.mouseButton.button == sf::Mouse::Left) {
+                    auto& newSound = mixer.addSound(soundMap[0], 4, 0, 0.75);
+                    newSound.setVolume(0.25f);
                     // Handle left mouse button pressed
                     int mouseX = e.mouseButton.x;
                     int mouseY = e.mouseButton.y;
@@ -496,6 +585,24 @@ int main() {
                 activeObject->activeDraw();
             }
         }
+
+
+        //Sound shit
+        if (toggle->getState())
+        {
+            currentTime = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime);
+
+            int playNote = (duration.count() / 1000) % 8;
+            if (playNote != lastNote)
+            {
+                lastNote = playNote;
+                std::cout << playNote << std::endl;
+                
+            }
+
+        }
+
 
         // Update the window
         window.display();

@@ -25,6 +25,10 @@ protected:
 
 public:
 	virtual ~RenderObject() {};
+	RenderObject() {}
+
+	RenderObject(float x, float y, float width, float height)
+		:x(x), y(y), width(width), height(height) {}
 
 	//getters and setters
 	bool getHover() { return hover; }
@@ -34,7 +38,7 @@ public:
 	virtual void setWindow(sf::RenderWindow* window) { this->window = window; }
 	 
 
-	virtual void render() = 0;
+	virtual void render();
 	virtual void draw() = 0;
 	virtual void activeDraw() {};
 	virtual void hoverDraw() {};

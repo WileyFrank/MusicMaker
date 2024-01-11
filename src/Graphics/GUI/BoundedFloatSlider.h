@@ -8,6 +8,8 @@ class BoundedFloatSlider :
     public FloatSlider
 {
 private:
+
+
     sf::Color fillColor, activeFillColor;
     float minValue, maxValue;
 
@@ -20,6 +22,10 @@ public:
         sf::Color activeBackgroundColor, sf::Color activeFillColor, sf::Color activeTextColor);
 
     void setValue(float newValue);
+    void setBounds(float min, float max)
+    {
+        this->minValue = min; this->maxValue = max;
+    }
     
     void render() override;
     void update() override;

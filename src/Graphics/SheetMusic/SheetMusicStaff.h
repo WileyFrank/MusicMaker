@@ -37,6 +37,13 @@
 *	  one of the above methods to add a note at a provided beat
 */
 
+// |-|-|-|-|-|-|-|-|-|-|-|-| Audio |-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+/*
+* Audio will be handled by the mixer,
+* which is to be passed in using setMixer()
+*
+*/
+
 class SheetMusicStaff : public SheetMusicElement
 {
 private:

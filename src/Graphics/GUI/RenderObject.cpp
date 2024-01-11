@@ -2,3 +2,8 @@
 
 #include <iostream>
 
+void RenderObject::render()
+{
+	update();
+	draw();
+}

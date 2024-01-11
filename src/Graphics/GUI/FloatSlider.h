@@ -31,6 +31,7 @@ public:
 
 
     virtual void setValue(float newValue) { this->value = newValue; }
+    float getValue() { return value; }
 
 
     virtual void update() override;

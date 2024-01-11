@@ -98,7 +98,6 @@ void FloatSlider::update()
             }
             else
             {
-                std::cout << "Click";
                 textBoxOpen = true;
                 activeOverride = true;
                 inputTextBox.onClick();
