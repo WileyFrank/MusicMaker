@@ -508,8 +508,7 @@ int main() {
             }
             if (e.type == sf::Event::MouseButtonPressed) {
                 if (e.mouseButton.button == sf::Mouse::Left) {
-                    auto& newSound = mixer.addSound(soundMap[0], 4, 0, 0.75);
-                    newSound.setVolume(0.25f);
+                    
                     // Handle left mouse button pressed
                     int mouseX = e.mouseButton.x;
                     int mouseY = e.mouseButton.y;
@@ -598,7 +597,8 @@ int main() {
             {
                 lastNote = playNote;
                 std::cout << playNote << std::endl;
-                
+                auto& newSound = mixer.addSound(soundMap[0], 1, 0.0625, 0.25);
+                newSound.setVolume(0.25f);
             }
 
         }

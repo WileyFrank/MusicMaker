@@ -158,7 +158,7 @@ public:
 
 		// Sound not in cache, load it
 		FMOD::Sound* sound;
-		FMOD_RESULT result = system->createSound(path.c_str(), FMOD_DEFAULT, nullptr, &sound);
+		FMOD_RESULT result = system->createSound(path.c_str(), FMOD_3D, nullptr, &sound);
 		if (result != FMOD_OK) {
 			// Handle error
 			return nullptr;

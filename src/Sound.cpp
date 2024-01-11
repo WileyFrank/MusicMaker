@@ -40,9 +40,7 @@ Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, do
     : system(sys), path(filePath), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(1.0)
 {
 
-    sound = NULL;
-    channel = NULL;
-    channel->setVolume((float)volume);
+    channel = nullptr;
 
     if (fadeIn > 0)
     {
@@ -92,19 +90,13 @@ Sound::Sound()
 
 void Sound::Update()
 {
-    if (channel == nullptr) {
-        donePlaying = true;
+    if (startTime == std::chrono::steady_clock::time_point{} || !playing || channel == nullptr) {
         return;
     }
 
     if (donePlaying)
     {
         channel->setVolume(0);
-        return;
-    }
-    if (startTime == std::chrono::steady_clock::time_point{})
-    {
-        //if sound has not initialized yet
         return;
     }
 
@@ -154,11 +146,15 @@ void Sound::Update()
     startVolume *= maxVolume;
 
     volume = startVolume;
-    channel->setVolume(volume);
 
-    FMOD_RESULT result = channel->set3DAttributes(&position, NULL);
-    if (result != FMOD_OK) {
-        std::cerr << "Error setting channel 3D attributes: " << result << std::endl;
+    if (channel)
+    {
+        channel->setVolume(volume);
+
+        FMOD_RESULT result = channel->set3DAttributes(&position, NULL);
+        if (result != FMOD_OK) {
+            std::cerr << "Error setting channel 3D attributes: " << result << std::endl;
+        }
     }
 
     //std::cout << "\t\tVolume: " << volume << "\n";
@@ -171,12 +167,20 @@ void Sound::Play()
     result = system->playSound(sound, nullptr, true, &channel);
     if (result != FMOD_OK) {
         printf("Error playing sound: (%d)\n", result);
-        sound->release();  // Release the sound object
+        // Release the sound object only if it's a non-recoverable error
+        // sound->release(); 
         return;
     }
-    result = channel->setVolume(0);
-    result = channel->set3DAttributes(&position, nullptr);
-    channel->setPaused(false);
+
+    // Verify channel is valid before setting properties
+    if (channel) {
+        result = channel->setVolume((float)volume);
+        result = channel->set3DAttributes(&position, nullptr);
+
+        channel->setPaused(false);
+    } else {
+        // Handle the case where channel is still null
+    }
 
     startTime = std::chrono::steady_clock::now();
 }
@@ -185,6 +189,7 @@ void Sound::Stop()
 {
     playing = false;
     donePlaying = true;
+    stopped = true;
 
     // Stop the sound
     channel->stop();
