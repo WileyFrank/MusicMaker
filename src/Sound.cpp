@@ -1,7 +1,7 @@
 #include "HeaderFiles/Sound.h"
 
 Sound::Sound(FMOD::System* sys, const std::string& filePath) : 
-    system(sys), path(filePath), donePlaying(false)
+    system(sys), path(filePath), donePlaying(false), releaseOnStop(true)
 {
     sound = nullptr;
     channel = nullptr;
@@ -20,7 +20,7 @@ Sound::Sound(FMOD::System* sys, const std::string& filePath) :
 }
 
 Sound::Sound(FMOD::System* sys, FMOD::Sound* sound, double duration, double fadeIn, double fadeOut)
-    : system(sys), sound(sound), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(1.0)
+    : system(sys), sound(sound), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(1.0), releaseOnStop(false)
 {
     channel = nullptr;
 
@@ -37,7 +37,7 @@ Sound::Sound(FMOD::System* sys, FMOD::Sound* sound, double duration, double fade
 }
 
 Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, double fadeIn, double fadeOut)
-    : system(sys), path(filePath), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(1.0)
+    : system(sys), path(filePath), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(1.0), releaseOnStop(true)
 {
 
     channel = nullptr;
@@ -59,7 +59,7 @@ Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, do
 
 
 Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, double fadeIn, double fadeOut, double maxVolume)
-    : system(sys), path(filePath), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(maxVolume)
+    : system(sys), path(filePath), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(maxVolume), releaseOnStop(true)
 {
     if (fadeIn > 0)
     {
@@ -108,8 +108,7 @@ void Sound::Update()
 
     /*std::cout << "Note:\n";
     std::cout << "Play Duration: " << playDuration;*/
-
-    bool playing;
+    
     channel->isPlaying(&playing);
 
     //If the sound has been playing for longer than the duration provided.
@@ -149,12 +148,19 @@ void Sound::Update()
 
     if (channel)
     {
-        channel->setVolume(volume);
+        channel->setVolume((float)volume);
 
-        FMOD_RESULT result = channel->set3DAttributes(&position, NULL);
-        if (result != FMOD_OK) {
-            std::cerr << "Error setting channel 3D attributes: " << result << std::endl;
+        bool playing;
+        channel->isPlaying(&playing);
+
+        if (channel && playing) {
+            FMOD_RESULT result = channel->set3DAttributes(&position, NULL);
+            if (result != FMOD_OK) {
+                std::cerr << "Error setting channel 3D attributes: " << result << std::endl;
+            }
         }
+
+        
     }
 
     //std::cout << "\t\tVolume: " << volume << "\n";
@@ -194,7 +200,9 @@ void Sound::Stop()
     // Stop the sound
     channel->stop();
 
-    sound->release();
+    //If the FMOD::Sound belongs to the cache rather this Sound
+    if (releaseOnStop)
+       sound->release();
 }
 
 void Sound::loadSound()
@@ -219,20 +227,23 @@ void Sound::setVolume(float volume)
 
 void Sound::setPosition(FMOD_VECTOR pos)
 {
-    this->position = pos; 
-    channel->set3DAttributes(&position, nullptr);
-    float panLevel = 0.75f; // Adjust this value between 0.0 (full mono) and 1.0 (full 3D) as needed
+    if (playing)
+    {
+        this->position = pos; 
+        channel->set3DAttributes(&position, nullptr);
+        float panLevel = 0.75f; // Adjust this value between 0.0 (full mono) and 1.0 (full 3D) as needed
 
-    // After initializing and playing the sound
-    float minDistance = 0.5f; // Minimum distance at which the sound is at its loudest
-    float maxDistance = 1000.0f; // Maximum distance at which the sound stops attenuating
+        // After initializing and playing the sound
+        float minDistance = 0.5f; // Minimum distance at which the sound is at its loudest
+        float maxDistance = 1000.0f; // Maximum distance at which the sound stops attenuating
 
-    result = channel->set3DMinMaxDistance(minDistance, maxDistance);
-    /*FMOD_VECTOR vec = { 0.0f, 1.0f, 0.0f };
-    result = channel->set3DConeOrientation(&vec);
-    if (result != FMOD_OK) {
-        std::cerr << "Error setting 3D min/max distance: " << result << std::endl;
-    }*/
+        result = channel->set3DMinMaxDistance(minDistance, maxDistance);
+        /*FMOD_VECTOR vec = { 0.0f, 1.0f, 0.0f };
+        result = channel->set3DConeOrientation(&vec);
+        if (result != FMOD_OK) {
+            std::cerr << "Error setting 3D min/max distance: " << result << std::endl;
+        }*/
+    }
 }
 
 void Sound::Mute()

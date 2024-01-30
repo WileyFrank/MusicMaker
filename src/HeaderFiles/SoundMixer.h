@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <thread>
-#include "HeaderFiles/Sound.h"
+#include "Sound.h"
 #include <mutex>
 
 
@@ -30,7 +30,6 @@ private:
 
     SoundMixer(const SoundMixer&) = delete;
     SoundMixer& operator=(const SoundMixer&) = delete;
-
 
 
 public:
@@ -61,4 +60,6 @@ public:
     Sound& addSound(FMOD::Sound* sound, double duration, double fadeIn, double fadeOut);
     Sound& addSound(const std::string& path, double duration, double fadeIn, double fadeOut);
     Sound& addSound(const std::string& path, double duration, double fadeIn, double fadeOut, double maxVolume);
+
+    void setPosition(FMOD_VECTOR vec);
 };

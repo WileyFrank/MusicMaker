@@ -145,11 +145,14 @@ class MusicUtilities
 {
 private: 
 	static std::map<std::string, FMOD::Sound*> soundCache;
+	static std::mutex soundCacheLock;
 public:
 
 	// |-|-|-|-|-|-|-|-|-|-| NOTE SOUND FILES |-|-|-|-|-|-|-|-|-|-|-|-|
 	static FMOD::Sound* getSound(const std::string& path, FMOD::System* system) {
 		// Check if the sound is already loaded
+		std::lock_guard<std::mutex> lock(soundCacheLock);
+
 		auto it = soundCache.find(path);
 		if (it != soundCache.end()) {
 			// Return the cached sound
@@ -161,12 +164,20 @@ public:
 		FMOD_RESULT result = system->createSound(path.c_str(), FMOD_3D, nullptr, &sound);
 		if (result != FMOD_OK) {
 			// Handle error
+			std::cout << "Error creating sound (Music Utilities):  " << path << std::endl;
 			return nullptr;
 		}
 
 		// Store the sound in the cache
 		soundCache[path] = sound;
 		return sound;
+	}
+
+	static void releaseAllCachedSounds() {
+		for (auto& entry : soundCache) {
+			entry.second->release();
+		}
+		soundCache.clear();
 	}
 
 	// |-|-|-|-|-|-|-|-|-|-| SCALES AND CHORDS |-|-|-|-|-|-|-|-|-|-|-|-|

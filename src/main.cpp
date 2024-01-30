@@ -24,6 +24,8 @@
 #include "Graphics/GUI/Primitives/Rectangle.h"
 #include "Graphics/GUI/Primitives/PrimitiveText.h"
 
+#include "Graphics/GameObjects/PlayerObject.h"
+
 #include "Graphics/SheetMusic/SheetMusicElement.h"
 #include "Graphics/SheetMusic/SheetMusicStaff.h"
 #include "Graphics/SheetMusic/SheetMusicClef.h"
@@ -248,15 +250,15 @@ int main() {
     FMOD_VECTOR vec2 = { 0.0f,1.0f,0.0f };
 
     //CMaj C G swap
-    {
+    /* {
         auto& newSound = mixer.addSound(sound, 4, 0, 0.75);
-        newSound.setVolume(.5);
+        newSound.setVolume(.5f);
 
-        auto& newSound2 = mixer.addSound("Sounds/Piano/g3.wav", 4, 0, 0.75);
-        newSound2.setVolume(.025);
+        auto& newSound2 = mixer.addSound("Sounds/Piano/g3.wav", 4, 0, 0.75f);
+        newSound2.setVolume(.025f);
 
-        auto& newSound3 = mixer.addSound("Sounds/Piano/e3.wav", 4, 0, 0.75, 0.025);
-        newSound3.setVolume(.025);
+        auto& newSound3 = mixer.addSound("Sounds/Piano/e3.wav", 4, 0, 0.75f, 0.025f);
+        newSound3.setVolume(.025f);
         //newSound.setPosition(vec);
 
         for (float i = -3; i < 3; i += 0.05f)
@@ -269,165 +271,180 @@ int main() {
         }
 
         //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    }   
+    }   */
 
-    sf::RenderWindow window(sf::VideoMode(1200, 800), "Sheet Music Generator");
+    sf::RenderWindow guiWindow(sf::VideoMode(1200, 800), "Sheet Music Generator");
+    sf::RenderWindow gameWindow(sf::VideoMode(1200, 800), "Game Window");
     sf::Event e;
 
     //adding objects
     std::vector<RenderObject*> renderObjects;
 
-    auto button =  new PrimitiveText(100.0f,300.0f,24,"This is a test", "resources/fonts/Century 751 Bold.otf", ALIGN_LEFT);
-    button->setColor(sf::Color(20, 20, 60));
-    renderObjects.push_back(button);
+    //GUI Window Objects
+    {
+
+        auto button = new PrimitiveText(100.0f, 300.0f, 24, "This is a test", "resources/fonts/Century 751 Bold.otf", ALIGN_LEFT);
+        button->setColor(sf::Color(20, 20, 60));
+        renderObjects.push_back(button);
 
 
-    for (auto& obj : renderObjects) {
-        obj->setWindow(&window);
+        for (auto& obj : renderObjects) {
+            obj->setWindow(&guiWindow);
+        }
+
+        Pitch note = { NoteC, 3 };
+
+        // chords are vectors of notes
+        auto chordTest = MusicUtilities::getNotes(note, MAJOR);
+        auto chordTest2 = MusicUtilities::getNotes(note, MINOR);
+
+        sf::Texture texture;
+        if (!texture.loadFromFile("resources/images/test.png")) {
+            // Handle error
+            return EXIT_FAILURE;
+        }
+
+        std::vector<std::unique_ptr<sf::Drawable>> drawables;
+
+
+        sf::Sprite sprite;
+        sprite.setTexture(texture);
+        sprite.setPosition(100, 100);
+        sprite.setColor(sf::Color(255, 0, 0, 255));
+
+        float sHeight = 200;
+        float newScale = sHeight / sprite.getLocalBounds().height;
+
+        sprite.setScale(newScale, newScale);
+
+
+        std::vector<std::unique_ptr<SheetMusicElement>> sheetMusicObjects;
+
+        //Creation of the staff
+        auto staff = new SheetMusicStaff((float)100, (float)400, (float)1000, (float)60,
+            TrebleClef, MusicUtilities::getKey(NoteFs, MAJOR));
+
+        staff->setColor(sf::Color(94, 94, 255));
+        staff->setClefColor(sf::Color(150, 150, 255));
+        staff->setNoteColor(sf::Color(94, 150, 255));
+        staff->setNoteHoverColor(sf::Color(55, 220, 255));
+        staff->setHoverColor(sf::Color(255, 200, 255));
+        staff->setWindow(&guiWindow);
+
+        sf::RectangleShape rect(sf::Vector2f(100, 100));
+        rect.setFillColor(sf::Color(255, 0, 0));
+
+
+        rect.setOrigin(sf::Vector2f(25, 25));
+
+
+        Note E3Note = Note({ Pitch({NoteE, 5 }), Quarter });
+        Note C3Note = Note({ Pitch({NoteC, 5 }), Quarter });
+        Note G3Note = Note({ Pitch({NoteG, 5 }), Quarter });
+        Note F5Note = Note({ Pitch({NoteB, 5 }), Quarter });
+        Note D3Note = Note({ Pitch({NoteD, 5}), Sixteenth });
+
+        float currentBeat = 1.0f;
+
+        auto key = MusicUtilities::getKey(NoteEf, MAJOR);
+        auto distance = MusicUtilities::getNotesFromMiddleC(Pitch({ NoteD,  3 }));
+        distance = MusicUtilities::getNotesFromMiddleC(Pitch({ NoteFs,  8 }));
+
+        //Adding Notes
+        currentBeat = 0.0f;
+
+        staff->addNote(C3Note, currentBeat);
+        staff->addNote(E3Note, currentBeat);
+        staff->addNote(G3Note, currentBeat);
+        currentBeat = staff->addNote(F5Note, currentBeat);
+        staff->addNote(D3Note, currentBeat);
+        staff->addNote(D3Note, 8.0f);
+        staff->addNote(D3Note, 8.5f);
+        staff->addNote(D3Note, 12.5f);
+        staff->addNote(D3Note, 13.0f);
+
+        staff->colorUpdate();
+        renderObjects.push_back(staff);
+
+        auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
+
+        TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        textBox->setWindow(&guiWindow);
+
+        renderObjects.push_back(textBox);
+
+        auto floatBox = new TextBox<float>(100, 130, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        floatBox->setWindow(&guiWindow);
+
+        renderObjects.push_back(floatBox);
+
+        floatBox->setValue(420.69f);
+
+        auto intBox = new TextBox<int>(100, 160, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        intBox->setWindow(&guiWindow);
+
+        renderObjects.push_back(intBox);
+
+        intBox->setValue(5);
+
+        textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        textBox->setWindow(&guiWindow);
+
+        renderObjects.push_back(textBox);
+
+        textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        textBox->setWindow(&guiWindow);
+
+        renderObjects.push_back(textBox);
+
+        textBox->setValue("This is the string now");
+
+        BoundedFloatSlider* boundedFloatSlider = new BoundedFloatSlider(100, 220, 150, 20,
+            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216), sf::Color(94, 150, 255));
+        boundedFloatSlider->setWindow(&guiWindow);
+        boundedFloatSlider->setBounds(0, 360);
+
+        renderObjects.push_back(boundedFloatSlider);
+
+        FloatSlider* floatSlider = new FloatSlider(100, 250, 150, 20,
+            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        floatSlider->setWindow(&guiWindow);
+
+        floatSlider->setValue(5.0f);
+        float slideVal = floatSlider->getValue();
+
+        renderObjects.push_back(floatSlider);
+
+        CircleRingSelect* circleSelection = new CircleRingSelect(400, 200, 50, 10,
+            sf::Color(11, 0, 44), sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        circleSelection->setWindow(&guiWindow);
+        circleSelection->setSlider(boundedFloatSlider);
+
+        renderObjects.push_back(circleSelection);
+
+
+        ToggleBox* toggle = new ToggleBox(500, 150, 20, 20,
+            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        toggle->setWindow(&guiWindow);
+
+        renderObjects.push_back(toggle);
     }
 
-    Pitch note = { NoteC, 3 };
 
-    // chords are vectors of notes
-    auto chordTest = MusicUtilities::getNotes(note, MAJOR);
-    auto chordTest2 = MusicUtilities::getNotes(note, MINOR);
+    PlayerObject* player = new PlayerObject(100, 100, 256, 256, "resources/game_files/spritesheetAlpha.png", "resources/game_files/spritesheetGlare.png");
+    player->setWindow(&gameWindow);
+    renderObjects.push_back(player);
 
-    sf::Texture texture;
-    if (!texture.loadFromFile("resources/images/test.png")) {
-        // Handle error
-        return EXIT_FAILURE;
-    }
+    player->setFrame(10);
 
-    std::vector<std::unique_ptr<sf::Drawable>> drawables;
-
-
-    sf::Sprite sprite;
-    sprite.setTexture(texture);
-    sprite.setPosition(100, 100);
-    sprite.setColor(sf::Color(255, 0, 0, 255));
-    
-    float sHeight = 200;
-    float newScale = sHeight / sprite.getLocalBounds().height;
-
-    sprite.setScale(newScale, newScale);
-
-
-    std::vector<std::unique_ptr<SheetMusicElement>> sheetMusicObjects;
-
-    //Creation of the staff
-    auto staff = new SheetMusicStaff((float)100, (float)400, (float)1000, (float)60, 
-        TrebleClef, MusicUtilities::getKey(NoteFs, MAJOR));
-
-    staff->setColor(sf::Color(94, 94, 255));
-    staff->setClefColor(sf::Color(150, 150, 255));
-    staff->setNoteColor(sf::Color(94, 150, 255));
-    staff->setNoteHoverColor(sf::Color(55, 220, 255));
-    staff->setHoverColor(sf::Color(255, 200, 255));
-    staff->setWindow(&window);
-
-    sf::RectangleShape rect(sf::Vector2f(100, 100));
-    rect.setFillColor(sf::Color(255, 0, 0));
-    
-
-    rect.setOrigin(sf::Vector2f(25, 25));
-    
-
-    Note E3Note = Note({ Pitch({NoteE, 5 }), Quarter });
-    Note C3Note = Note({ Pitch({NoteC, 5 }), Quarter });
-    Note G3Note = Note({ Pitch({NoteG, 5 }), Quarter });
-    Note F5Note = Note({ Pitch({NoteB, 5 }), Quarter });
-    Note D3Note = Note({ Pitch({NoteD, 5}), Sixteenth });
-
-    float currentBeat = 1.0f;
-
-    auto key = MusicUtilities::getKey(NoteEf, MAJOR);
-    auto distance = MusicUtilities::getNotesFromMiddleC(Pitch({ NoteD,  3 }));
-    distance = MusicUtilities::getNotesFromMiddleC(Pitch({ NoteFs,  8 }));
-
-    //Adding Notes
-    currentBeat = 0.0f;
-    
-    staff->addNote(C3Note, currentBeat);
-    staff->addNote(E3Note, currentBeat);
-    staff->addNote(G3Note, currentBeat);
-    currentBeat = staff->addNote(F5Note, currentBeat);
-    staff->addNote(D3Note, currentBeat);
-    staff->addNote(D3Note, 8.0f);
-    staff->addNote(D3Note, 8.5f);
-    staff->addNote(D3Note, 12.5f);
-    staff->addNote(D3Note, 13.0f);
-
-    staff->colorUpdate();
-    renderObjects.push_back(staff);
-
-    auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
+    PrimitiveText fpsText((float)guiWindow.getSize().x - 20, (float)guiWindow.getSize().y - 30, 24, "FPS: 0", "resources/fonts/Century 751 Bold.otf", ALIGN_RIGHT);
+    fpsText.setColor(sf::Color(60, 60, 180));
+    fpsText.setWindow(&gameWindow);
 
     auto currentFrame = std::chrono::high_resolution_clock::now();
     auto previousFrame = std::chrono::high_resolution_clock::now();
     int temp_i = 0;
     auto microsecondCount = 0.0f;
-
-    PrimitiveText fpsText((float)window.getSize().x - 20, (float)window.getSize().y - 30, 24, "FPS: 0", "resources/fonts/Century 751 Bold.otf", ALIGN_RIGHT);
-    fpsText.setColor(sf::Color(60, 60, 180));
-    fpsText.setWindow(&window);
-
-    TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 150, 20, 14, "", sf::Color(11,0,44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-    textBox->setWindow(&window);
-
-    renderObjects.push_back(textBox);
-
-    auto floatBox = new TextBox<float>(100, 130, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-    floatBox->setWindow(&window);
-
-    renderObjects.push_back(floatBox);
-
-    floatBox->setValue(420.69f);
-
-    auto intBox = new TextBox<int>(100, 160, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-    intBox->setWindow(&window);
-
-    renderObjects.push_back(intBox);
-
-    intBox->setValue(5);
-
-    textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-    textBox->setWindow(&window);
-
-    renderObjects.push_back(textBox);
-
-    textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-    textBox->setWindow(&window);
-
-    renderObjects.push_back(textBox);
-
-    textBox->setValue("This is the string now");
-
-    BoundedFloatSlider* boundedFloatSlider = new BoundedFloatSlider(100, 220, 150, 20, 
-        sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216), sf::Color(94, 150, 255));
-    boundedFloatSlider->setWindow(&window);
-    boundedFloatSlider->setBounds(0, 360);
-
-    renderObjects.push_back(boundedFloatSlider);
-
-    FloatSlider* floatSlider = new FloatSlider(100, 250, 150, 20,
-        sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-    floatSlider->setWindow(&window);
-
-    renderObjects.push_back(floatSlider);
-
-    CircleRingSelect* circleSelection = new CircleRingSelect(400, 200, 50, 10, 
-        sf::Color(11, 0, 44), sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-    circleSelection->setWindow(&window);
-    circleSelection->setSlider(boundedFloatSlider);
-
-    renderObjects.push_back(circleSelection);
-
-
-    ToggleBox* toggle = new ToggleBox(500, 150, 20, 20, 
-        sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-    toggle->setWindow(&window);
-
-    renderObjects.push_back(toggle);
 
     RenderObject* hoverObject = nullptr;
     RenderObject* previousHoverObject = nullptr;
@@ -438,9 +455,13 @@ int main() {
     auto startTime = std::chrono::high_resolution_clock::now();
     auto currentTime = std::chrono::high_resolution_clock::now();
 
+    float positionAngle = 0.0f;
+    float positionDistance = 0.0f;
     int lastNote = 0;
 
     std::map<int, FMOD::Sound*> soundMap;
+    int FPS60Frame = 0;
+    int frameDuration = 0;
 
     soundMap[0] = MusicUtilities::getSound("Sounds/Piano/c3.wav", system);
     soundMap[1] = MusicUtilities::getSound("Sounds/Piano/d3.wav", system);
@@ -451,7 +472,10 @@ int main() {
     soundMap[6] = MusicUtilities::getSound("Sounds/Piano/b3.wav", system);
     soundMap[7] = MusicUtilities::getSound("Sounds/Piano/c4.wav", system);
     
-    while (window.isOpen())
+    guiWindow.close();
+
+
+    while (guiWindow.isOpen() || gameWindow.isOpen())
     {
         //Frame data
         
@@ -462,6 +486,18 @@ int main() {
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(currentFrame - previousFrame);
 
         previousFrame = std::chrono::high_resolution_clock::now();
+
+        frameDuration += (int)duration.count();
+
+        //player->update((float)duration.count() / 1000000.0f);
+
+        if (frameDuration > 1000000.0f / 60.0f)
+        {
+            FPS60Frame += (int) frameDuration / (1000000 / 60);
+            //FPS60Frame ++ ;
+            frameDuration -= 1000000.0f / 60.0f;
+            player->setFrame(FPS60Frame);
+        }
 
         microsecondCount += duration.count();
 
@@ -497,14 +533,13 @@ int main() {
         }
         previousHoverObject = hoverObject;
 
-        while (window.pollEvent(e))
+        while (guiWindow.pollEvent(e))
         {
             if (e.type == sf::Event::Closed)
             {
                 //stop the mixer thread 
                 // WILL RESULT IN ERROR IF LEFT RUNNNING
-                mixer.stop();
-                window.close();
+                guiWindow.close();
             }
             if (e.type == sf::Event::MouseButtonPressed) {
                 if (e.mouseButton.button == sf::Mouse::Left) {
@@ -556,8 +591,22 @@ int main() {
             }
         }
 
+        while (gameWindow.pollEvent(e))
+        {
+            if (e.type == sf::Event::Closed)
+            {
+                gameWindow.close();
+            }
+
+            if (e.type == sf::Event::KeyPressed) {
+                player->arrowKeyInput(e.key.code);
+            
+            }
+
+        }
         // Clear screen
-        window.clear(sf::Color(0,3,25));
+        guiWindow.clear(sf::Color(0,3,25));
+        gameWindow.clear(sf::Color(0, 3, 25));
 
         fpsText.draw();
 
@@ -587,8 +636,19 @@ int main() {
 
 
         //Sound shit
-        if (toggle->getState())
+        /*if (toggle->getState())
         {
+            if (positionAngle != circleSelection->getAngle() || positionDistance != floatSlider->getValue())
+            {
+                positionAngle = circleSelection->getAngle();
+                positionDistance = floatSlider->getValue();
+
+                vec = { -std::cos(positionAngle) * positionDistance, -std::sin(positionAngle) * positionDistance, 0 };
+                
+                mixer.setPosition(vec);
+
+            }
+
             currentTime = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime);
 
@@ -597,16 +657,28 @@ int main() {
             {
                 lastNote = playNote;
                 std::cout << playNote << std::endl;
-                auto& newSound = mixer.addSound(soundMap[0], 1, 0.0625, 0.25);
+                auto& newSound = mixer.addSound(soundMap[playNote], 1, 0.0625, 0.25);
                 newSound.setVolume(0.25f);
+                
+                vec = { -std::cos(positionAngle) * positionDistance, -std::sin(positionAngle) * positionDistance, 0 };
+
+                newSound.setPosition(vec);
             }
 
-        }
+        }*/
+
+
 
 
         // Update the window
-        window.display();
+        guiWindow.display();
+        gameWindow.display();
     }
+
+    mixer.stop();
+
+
+    MusicUtilities::releaseAllCachedSounds();
 
     return 0;
 }

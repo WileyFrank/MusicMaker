@@ -33,6 +33,7 @@ protected:
 	bool playing;
 	bool donePlaying;
 	bool stopped;
+	bool releaseOnStop;
 
 	FMOD_VECTOR position;
 

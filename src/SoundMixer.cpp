@@ -140,3 +140,11 @@ Sound& SoundMixer::addSound(const std::string& path, double duration, double fad
 	return *newSound;
 }
 
+void SoundMixer::setPosition(FMOD_VECTOR vec)
+{
+	for (Sound* sound : soundVector)
+	{
+		sound->setPosition(vec);
+	}
+}
+
