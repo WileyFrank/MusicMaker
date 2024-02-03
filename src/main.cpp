@@ -431,7 +431,7 @@ int main() {
     }
 
 
-    PlayerObject* player = new PlayerObject(100, 100, 256, 256, "resources/game_files/spritesheetAlpha.png", "resources/game_files/spritesheetGlare.png");
+    PlayerObject* player = new PlayerObject(500, 100, 256, 256, "resources/game_files/spritesheetAlpha.png", "resources/game_files/spritesheetGlare.png");
     player->setWindow(&gameWindow);
     renderObjects.push_back(player);
 
@@ -491,11 +491,19 @@ int main() {
 
         //player->update((float)duration.count() / 1000000.0f);
 
-        if (frameDuration > 1000000.0f / 60.0f)
+        if (frameDuration > 1000000 / 60)
         {
+            //called at 60fps
             FPS60Frame += (int) frameDuration / (1000000 / 60);
+
+            if (FPS60Frame % 30 == 0)
+            {
+                auto& sound = mixer.addSound("resources/game_files/Sounds/footstep.wav");
+                sound.setVolume(0.10);
+            }
+
             //FPS60Frame ++ ;
-            frameDuration -= 1000000.0f / 60.0f;
+            frameDuration -= 1000000 / 60;
             player->setFrame(FPS60Frame);
         }
 

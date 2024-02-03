@@ -13,10 +13,6 @@ class PlayerObject :
 private:
     SoundMixer* soundMixer;
     
-    sf::Texture* playerTexture;
-    sf::Texture* lightTexture;
-    sf::Sprite playerSprite;
-    sf::Sprite lightSprite;
 
     SpriteSheet playerSheet, lightSheet;
 
@@ -33,8 +29,9 @@ private:
     //move speed in in pixels per second
     float deltaTime;
 
-    float runSpeed;
+    float runSpeed, currentSpeed, playerVelocity;
     int frames, currentFrame, previousFrame, fps, fps60, secondCount;
+    int frameOffset;
 
     //sprite sheet variables
     int spriteWidth, spriteHeight;
@@ -53,12 +50,10 @@ private:
     //Sprite modification
     void updateSprites();
 
-    void setSpriteFrame();
-    void mirrorSpriteHorizontal();
 public:
     PlayerObject(float x, float y, float width, float height, std::string playerTexturePath, std::string lightTexturePath);
 
-    void setFrame(int frame) { currentFrame = (int)((float)frame / (60.0 / fps)) % frames; fps60 = frame; }
+    void setFrame(int frame);
     void render() override;
     void update() override;
 
