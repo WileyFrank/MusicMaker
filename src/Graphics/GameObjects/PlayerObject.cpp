@@ -226,7 +226,6 @@ void PlayerObject::update()
 
 void PlayerObject::draw()
 {
-
 	playerSheet.draw(*window);
 	lightSheet.draw(*window);
 }

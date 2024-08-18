@@ -153,6 +153,7 @@
     <ClCompile Include="src\Graphics\GUI\NullRenderObject.cpp" />
     <ClCompile Include="src\Graphics\GUI\GUIPanel.cpp" />
     <ClCompile Include="src\Graphics\GUI\GUIUtilities.cpp" />
+    <ClCompile Include="src\Helper\MusicPatternsRefernce.cpp" />
     <ClCompile Include="src\Music\SheetMusicUtilities.cpp" />
     <ClCompile Include="src\Graphics\SheetMusic\SheetMusicTimeSignature.cpp" />
     <ClCompile Include="src\Graphics\SheetMusic\SheetMusicKeySignature.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="src\Graphics\GUI\NullRenderObject.h" />
     <ClInclude Include="src\Graphics\GUI\GUIPanel.h" />
     <ClInclude Include="src\Graphics\GUI\GUIUtilities.h" />
+    <ClInclude Include="src\Helper\RenderUtilities.h" />
     <ClInclude Include="src\Music\SheetMusicUtilities.h" />
     <ClInclude Include="src\Graphics\SheetMusic\SheetMusicTimeSignature.h" />
     <ClInclude Include="src\Graphics\SheetMusic\SheetMusicKeySignature.h" />

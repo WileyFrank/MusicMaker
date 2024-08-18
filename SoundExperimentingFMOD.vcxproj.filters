@@ -108,6 +108,9 @@
     <ClCompile Include="src\Graphics\GameObjects\PlayerObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Helper\MusicPatternsRefernce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\HeaderFiles\Sound.h">
@@ -204,6 +207,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\GameObjects\AnimationUtilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helper\RenderUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
