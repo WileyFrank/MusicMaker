@@ -34,9 +34,9 @@ public:
                     }
                     if (hoverObject != nullptr)
                     {
-                        hoverObject->onClick();
                         activeObject = hoverObject;
                         activeObject->setActive();
+                        hoverObject->onClick();
                     }
                 }
             }
@@ -234,6 +234,16 @@ public:
         toggle->setWindow(guiWindow);
 
         renderObjects.push_back(toggle);
+
+        std::vector<std::string> options;
+        options.push_back("This");
+        options.push_back("That");
+
+        auto dropdown = new DropdownMenu<std::string>(600, 150, 150, 20, 14, 5, options,
+            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        dropdown->setWindow(guiWindow);
+
+        renderObjects.push_back(dropdown);
     }
 
     static void setActiveHover(std::vector<RenderObject*>& renderObjects, RenderObject*& hoverObject, RenderObject*& previousHoverObject, RenderObject*& activeObject)

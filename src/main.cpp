@@ -21,6 +21,7 @@
 #include "Graphics/GUI/BoundedFloatSlider.h"
 #include "Graphics/GUI/CircleRingSelect.h"
 #include "Graphics/GUI/ToggleBox.h"
+#include "Graphics/GUI/DropdownMenu.h"
 #include "Graphics/GUI/Primitives/Rectangle.h"
 #include "Graphics/GUI/Primitives/PrimitiveText.h"
 
@@ -68,9 +69,8 @@ int main() {
     FMOD_VECTOR vec = { 0.0f,1.0f,0.0f };
     FMOD_VECTOR vec2 = { 0.0f,1.0f,0.0f };
 
-    sf::RenderWindow guiWindow(sf::VideoMode(1200, 800), "Sheet Music Generator");
     sf::RenderWindow gameWindow(sf::VideoMode(1200, 800), "Game Window");
-    sf::Event e;
+    sf::RenderWindow guiWindow(sf::VideoMode(1200, 800), "Sheet Music Generator");
 
     //adding objects
     std::vector<RenderObject*> renderObjects;
@@ -122,6 +122,7 @@ int main() {
     soundMap[6] = MusicUtilities::getSound("Sounds/Piano/b3.wav", system);
     soundMap[7] = MusicUtilities::getSound("Sounds/Piano/c4.wav", system);
 
+    gameWindow.close();
     while (guiWindow.isOpen() || gameWindow.isOpen())
     {
         //Frame data
@@ -139,11 +140,11 @@ int main() {
             FPS60Frame += (int) frameDuration / (1000000 / 60);
 
             //Footsteps TODO: Separate into beat controlled sound player
-            if (FPS60Frame % 15 == 0)
+            /*if (FPS60Frame % 30 == 0)
             {
-                /*auto& sound = mixer.addSound("resources/game_files/Sounds/footstep.wav");
-                sound.setVolume(0.10);*/
-            }
+                auto& sound = mixer.addSound("resources/game_files/Sounds/footstep.wav");
+                sound.setVolume(0.10);
+            }*/
 
             //FPS60Frame ++ ;
             frameDuration -= 1000000 / 60;
@@ -183,7 +184,7 @@ int main() {
 
         // Update the window
         guiWindow.display();
-        gameWindow.display();
+        //gameWindow.display();
     }
 
     mixer.stop();

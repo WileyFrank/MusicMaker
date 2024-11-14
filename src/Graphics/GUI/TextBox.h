@@ -514,7 +514,6 @@ public:
     void hoverDraw() override 
     {
         setHoverstate();
-
         draw();
     }
     void activeDraw() override 

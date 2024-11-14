@@ -212,5 +212,8 @@
     <ClInclude Include="src\Helper\RenderUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\GUI\DropdownMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

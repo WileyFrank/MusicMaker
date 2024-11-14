@@ -22,7 +22,7 @@ void PrimitiveText::reloadText()
 
 PrimitiveText::PrimitiveText()
 	:textString("Init"), fontString("resources/fonts/Century 751 Bold.otf"),
-	font(*ResourceManager::getFont(fontString)), text(fontString, font)
+	font(*ResourceManager::getFont(fontString)), text(fontString, font), align(ALIGN_LEFT)
 {
 	this->x = 100;
 	this->y = 100;
@@ -30,7 +30,7 @@ PrimitiveText::PrimitiveText()
 
 PrimitiveText::PrimitiveText(std::string text)
 	:textString(text), fontString("resources/fonts/Century 751 Bold.otf"),
-	font(*ResourceManager::getFont(fontString)), text(textString, font)
+	font(*ResourceManager::getFont(fontString)), text(textString, font), align(ALIGN_LEFT)
 {
 	this->x = 100;
 	this->y = 100;
