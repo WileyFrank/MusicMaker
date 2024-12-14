@@ -72,6 +72,8 @@ public:
 	void setAccidental(Accidental accidental);
 
 	void setNoteCount(int count) { this->noteCount = count; }
+
+	void moveX(float deltaX);
 	void setX(float x) { noteX = x; }
 
 	float getAccidentalWidth() { return accidentalWidth; }

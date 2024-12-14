@@ -75,6 +75,7 @@ public:
 	//getters and setters
 	float getWidth();
 
+	void moveX(float deltaX);
 	void setStaffColor(sf::Color color);
 	void setNoteColor(sf::Color color);
 	void setHoverColor(sf::Color color);

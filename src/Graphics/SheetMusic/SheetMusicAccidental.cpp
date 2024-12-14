@@ -96,3 +96,9 @@ void SheetMusicAccidental::setPosition(float x, float y)
 	this->y = y;
 	sprite.setPosition(sf::Vector2f(x, y * staffHeight + staffY));
 }
+
+void SheetMusicAccidental::setX(float x)
+{
+	this->x = x;
+	sprite.setPosition(sf::Vector2f(x, y * staffHeight + staffY));
+}

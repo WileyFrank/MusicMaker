@@ -127,7 +127,7 @@ public:
         std::vector<std::unique_ptr<SheetMusicElement>> sheetMusicObjects;
 
         //Creation of the staff
-        auto staff = new SheetMusicStaff((float)100, (float)400, (float)1000, (float)60,
+        auto staff = new SheetMusicStaff((float)100, (float)400, (float)1000, (float)30,
             TrebleClef, MusicUtilities::getKey(NoteFs, MAJOR));
 
         staff->setColor(sf::Color(94, 94, 255));
@@ -168,8 +168,9 @@ public:
         staff->addNote(D3Note, 8.5f);
         staff->addNote(D3Note, 12.5f);
         staff->addNote(D3Note, 13.0f);
+        staff->addNote(D3Note, 17.0f);
+        staff->addNote(D3Note, 14.0f);
 
-        staff->colorUpdate();
         renderObjects.push_back(staff);
 
         auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
@@ -238,6 +239,9 @@ public:
         std::vector<std::string> options;
         options.push_back("This");
         options.push_back("That");
+        options.push_back("This One");
+        options.push_back("That One");
+        options.push_back("This One Too");
 
         auto dropdown = new DropdownMenu<std::string>(600, 150, 150, 20, 14, 5, options,
             sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));

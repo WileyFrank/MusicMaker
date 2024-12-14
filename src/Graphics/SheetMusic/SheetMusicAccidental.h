@@ -37,6 +37,7 @@ public:
 	float getWidth() { return sprite.getLocalBounds().width * sprite.getScale().x; }
 
 	void setPosition(float x, float y);
+	void setX(float x);
 	void setColor(sf::Color color) { this->color = color; sprite.setColor(color); }
 	void setHoverColor(sf::Color color) { this->hoverColor = hoverColor; }
 };

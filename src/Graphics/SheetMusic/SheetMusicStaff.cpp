@@ -104,6 +104,7 @@ SheetMusicMeasure* SheetMusicStaff::addMeasure()
 	newMeasure->setStaffColor(staffColor);
 	newMeasure->setWindow(this->window);
 	measures.push_back(newMeasure);
+	colorUpdate();
 
 	return newMeasure;
 }
@@ -112,7 +113,7 @@ float SheetMusicStaff::addNote(Note note, float beat)
 {
 	int measure = (int)beat / timeSignature.denominator;
 	if (measures.size() <= measure)
-	{
+	{	
 		SheetMusicMeasure* newMeasure = this->addMeasure();
 		while (measures.size() <= measure)
 		{
@@ -125,11 +126,26 @@ float SheetMusicStaff::addNote(Note note, float beat)
 	}
 
 	float placement = fmod(beat, (float)timeSignature.denominator);
+	float measureWidth = measures[measure]->getWidth();
 	measures[measure]->clearRests();
 	measures[measure]->addNote(note,placement);
 	measures[measure]->addRests();
 	measures[measure]->reload();
-
+	//If affecting a measure with more measures after it, update the later ones
+	if (measure != measures.size() - 1)
+	{
+		float difference = measures[measure]->getWidth() - measureWidth;
+		if (difference)
+		{
+			for (int i = measure + 1; i < measures.size(); i++)
+			{
+				measures[i]->moveX(difference);
+				int j = i - 1;
+				bars[j]->setPosition(bars[j]->getPosition().x + difference, bars[j]->getPosition().y);
+			}
+		}
+	}
+	colorUpdate();
 	return beat + MusicUtilities::getBeats(timeSignature, note.value);;
 }
 
@@ -332,6 +348,8 @@ void SheetMusicStaff::setNoteHoverColor(sf::Color color)
 void SheetMusicStaff::GenerateStaffLines()
 {
 	int lineWidth = (int)height/40;
+	if (lineWidth < 1) lineWidth = 1;
+
 	float spaceWidth = this->height - lineWidth * 5;
 
 	float newY;
@@ -363,6 +381,8 @@ float SheetMusicStaff::getStaffPosition(Pitch note)
 void SheetMusicStaff::addBar(float xPosition)
 {
 	int lineWidth = (int)height / 20;
+	if (lineWidth < 1) lineWidth = 1;
+
 
 	sf::RectangleShape* newShape = new sf::RectangleShape(sf::Vector2f((float)lineWidth, this->height));
 	newShape->setPosition(xPosition + this->x, this->y);

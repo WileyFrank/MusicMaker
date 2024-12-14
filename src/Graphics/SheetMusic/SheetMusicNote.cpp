@@ -2,7 +2,7 @@
 
 SheetMusicNote::SheetMusicNote()
 	:staffX(100), staffY(100), staffHeight(100), clef(TrebleClef), C4Position(1.25f), accidental(Natural),
-	notePointVertical(0), notePointHorizontal(0), halfStep(100.0f / 8), note(Note()), noteX(0)
+	notePointVertical(0), notePointHorizontal(0), halfStep(100.0f / 8), note(Note()), noteX(0), noteCount(0), texture(nullptr)
 {
 	this->window = nullptr;
 }
@@ -187,6 +187,14 @@ void SheetMusicNote::setAccidental(Accidental accidental)
 	this->accidental = accidental;
 }
 
+void SheetMusicNote::moveX(float deltaX)
+{
+	this->noteX += deltaX;
+	sprite.setPosition((int)(sprite.getPosition().x + deltaX), sprite.getPosition().y);
+	this->staffX += deltaX;
+	this->SMAccidental.setX(staffX);
+}
+
 void SheetMusicNote::hoverUpdate()
 {
 	if (!unhover)
@@ -264,7 +272,7 @@ void SheetMusicNote::setAccidentalWidth(float accidentalWidth)
 
 	float x = sprite.getPosition().x - oldAccidentalWidth + accidentalWidth;
 
-	sprite.setPosition(sf::Vector2f(x, sprite.getPosition().y));
+	sprite.setPosition(sf::Vector2f((int)x, (int)sprite.getPosition().y));
 
 	for (auto& rectangle : extraLines)
 	{
@@ -442,7 +450,7 @@ void SheetMusicNote::loadNote()
 		this->positionY = staffY + (C4Position * staffHeight) - distance;
 
 
-		this->sprite.setPosition(sf::Vector2f(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x, staffY + (C4Position * staffHeight) - distance));
+		this->sprite.setPosition(sf::Vector2f((int)(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x), (int)(staffY + (C4Position * staffHeight) - distance)));
 
 		return;
 
@@ -541,8 +549,8 @@ void SheetMusicNote::loadNote()
 
 	this->positionY = staffY + (C4Position * staffHeight) - distance;
 
+	this->sprite.setPosition(sf::Vector2f((int)(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x), (int)(staffY + (C4Position * staffHeight) - distance)));
 
-	this->sprite.setPosition(sf::Vector2f(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x, staffY + (C4Position * staffHeight) - distance));
 
 	distance = (float)MusicUtilities::getNotesFromMiddleC(note.pitch, true);
 

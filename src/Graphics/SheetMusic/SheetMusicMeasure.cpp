@@ -624,6 +624,16 @@ float SheetMusicMeasure::getWidth()
 	return width;
 }
 
+void SheetMusicMeasure::moveX(float deltaX)
+{
+	for (auto& pair : sheetNotes) {
+		for (auto& sheetNote : pair.second)
+		{
+			sheetNote->moveX(deltaX);
+		}
+	}
+}
+
 void SheetMusicMeasure::setStaffColor(sf::Color color)
 {
 
