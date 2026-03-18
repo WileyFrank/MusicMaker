@@ -122,7 +122,7 @@ int main() {
     soundMap[6] = MusicUtilities::getSound("Sounds/Piano/b3.wav", system);
     soundMap[7] = MusicUtilities::getSound("Sounds/Piano/c4.wav", system);
 
-    gameWindow.close();
+    //gameWindow.close();
     while (guiWindow.isOpen() || gameWindow.isOpen())
     {
         //Frame data
@@ -142,8 +142,8 @@ int main() {
             //Footsteps TODO: Separate into beat controlled sound player
             /*if (FPS60Frame % 30 == 0)
             {
-                auto& sound = mixer.addSound("resources/game_files/Sounds/footstep.wav");
-                sound.setVolume(0.10);
+                auto handle = mixer.playSound("resources/game_files/Sounds/footstep.wav");
+                mixer.setSoundVolume(handle, 0.10f);
             }*/
 
             //FPS60Frame ++ ;
@@ -184,7 +184,7 @@ int main() {
 
         // Update the window
         guiWindow.display();
-        //gameWindow.display();
+        gameWindow.display();
     }
 
     mixer.stop();

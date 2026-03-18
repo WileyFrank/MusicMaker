@@ -11,6 +11,8 @@ Sound::Sound(FMOD::System* sys, const std::string& filePath) :
     fadeOut = -1;
 
     volume = 1.0;
+    maxVolume = 1.0;
+    playing = false;
 
     FMOD_VECTOR initialPosition = { 0.0f, 1.0f, 0.0f }; // Example: 10 units to the left
     position = initialPosition;
@@ -20,8 +22,10 @@ Sound::Sound(FMOD::System* sys, const std::string& filePath) :
 }
 
 Sound::Sound(FMOD::System* sys, FMOD::Sound* sound, double duration, double fadeIn, double fadeOut)
-    : system(sys), sound(sound), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(1.0), releaseOnStop(false)
+    : system(sys), sound(sound), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), maxVolume(1.0), releaseOnStop(false)
 {
+    donePlaying = false;
+    playing = false;
     channel = nullptr;
 
     if (fadeIn > 0)
@@ -37,9 +41,10 @@ Sound::Sound(FMOD::System* sys, FMOD::Sound* sound, double duration, double fade
 }
 
 Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, double fadeIn, double fadeOut)
-    : system(sys), path(filePath), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(1.0), releaseOnStop(true)
+    : system(sys), path(filePath), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), maxVolume(1.0), releaseOnStop(true)
 {
-
+    donePlaying = false;
+    playing = false;
     channel = nullptr;
 
     if (fadeIn > 0)
@@ -59,8 +64,11 @@ Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, do
 
 
 Sound::Sound(FMOD::System* sys, const std::string& filePath, double duration, double fadeIn, double fadeOut, double maxVolume)
-    : system(sys), path(filePath), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), donePlaying(false), maxVolume(maxVolume), releaseOnStop(true)
+    : system(sys), path(filePath), duration(duration), fadeIn(fadeIn), fadeOut(fadeOut), maxVolume(maxVolume), releaseOnStop(true)
 {
+    donePlaying = false;
+    playing = false;
+    channel = nullptr;
     if (fadeIn > 0)
     {
         volume = 0.0;
@@ -83,84 +91,91 @@ Sound::~Sound()
     }
 }
 
-Sound::Sound()
-{
-    return;
-}
-
 void Sound::Update()
 {
-    if (startTime == std::chrono::steady_clock::time_point{} || !playing || channel == nullptr) {
-        return;
-    }
-
-    if (donePlaying)
+    bool shouldStop = false;
     {
-        channel->setVolume(0);
-        return;
+        std::lock_guard<std::mutex> lock(stateMutex);
+
+        if (startTime == std::chrono::steady_clock::time_point{} || !playing || channel == nullptr) {
+            return;
+        }
+
+        if (donePlaying)
+        {
+            channel->setVolume(0);
+            return;
+        }
+
+        auto currentTime = std::chrono::steady_clock::now();
+        auto elapsedDuration = currentTime - startTime;
+
+        auto playDuration = std::chrono::duration<double>(elapsedDuration).count();
+
+
+        /*std::cout << "Note:\n";
+        std::cout << "Play Duration: " << playDuration;*/
+        
+        channel->isPlaying(&playing);
+
+        // If the sound has been playing for longer than duration, defer Stop()
+        // until after we release this mutex to avoid recursive lock deadlock.
+        if (playing && duration != -1 && playDuration >= duration)
+        {
+            shouldStop = true;
+        }
+
+        if (!shouldStop)
+        {
+            if (isMuted)
+            {
+                volume = 0.0;
+                channel->setVolume((float)volume);
+                return;
+            }
+    
+            double startVolume = 1.0;
+            //updating volume for fade in & fade out
+            if (fadeIn != -1) 
+            {
+                if (playDuration <= fadeIn )
+                {
+                    startVolume = (playDuration / fadeIn);
+                }
+            }
+            if (fadeOut != -1)
+            {
+                if (playDuration >= duration - fadeOut)
+                {
+                    startVolume = ((duration - playDuration) / fadeOut) ;
+                }
+            }
+
+            startVolume *= maxVolume;
+
+            volume = startVolume;
+
+            if (channel)
+            {
+                channel->setVolume((float)volume);
+
+                bool playing;
+                channel->isPlaying(&playing);
+
+                if (channel && playing) {
+                    FMOD_RESULT result = channel->set3DAttributes(&position, NULL);
+                    if (result != FMOD_OK) {
+                        std::cerr << "Error setting channel 3D attributes: " << result << std::endl;
+                    }
+                }
+            }   
+        }
     }
 
-    auto currentTime = std::chrono::steady_clock::now();
-    auto elapsedDuration = currentTime - startTime;
-
-    auto playDuration = std::chrono::duration<double>(elapsedDuration).count();
-
-
-    /*std::cout << "Note:\n";
-    std::cout << "Play Duration: " << playDuration;*/
-    
-    channel->isPlaying(&playing);
-
-    //If the sound has been playing for longer than the duration provided.
-    if (playing && duration != -1 && playDuration >= duration)
+    if (shouldStop)
     {
         Stop();
         return;
-    }
-
-    if (isMuted)
-    {
-        volume = 0.0;
-        channel->setVolume((float)volume);
-        return;
-    }
-    
-    double startVolume = 1.0;
-    //updating volume for fade in & fade out
-    if (fadeIn != -1) 
-    {
-        if (playDuration <= fadeIn )
-        {
-            startVolume = (playDuration / fadeIn);
-        }
-    }
-    if (fadeOut != -1)
-    {
-        if (playDuration >= duration - fadeOut)
-        {
-            startVolume = ((duration - playDuration) / fadeOut) ;
-        }
-    }
-
-    startVolume *= maxVolume;
-
-    volume = startVolume;
-
-    if (channel)
-    {
-        channel->setVolume((float)volume);
-
-        bool playing;
-        channel->isPlaying(&playing);
-
-        if (channel && playing) {
-            FMOD_RESULT result = channel->set3DAttributes(&position, NULL);
-            if (result != FMOD_OK) {
-                std::cerr << "Error setting channel 3D attributes: " << result << std::endl;
-            }
-        }
-
-        
     }
 
     //std::cout << "\t\tVolume: " << volume << "\n";
@@ -168,11 +183,24 @@ void Sound::Update()
 
 void Sound::Play()
 {
+    std::lock_guard<std::mutex> lock(stateMutex);
+
+    if (playbackStarted) {
+        return;
+    }
+
+    // Consume deferred play request and configure startup volume.
+    playRequested = false;
     playing = true;
+    playbackStarted = true;
+    volume = (fadeIn > 0) ? 0.0 : maxVolume;
 
     result = system->playSound(sound, nullptr, true, &channel);
     if (result != FMOD_OK) {
         printf("Error playing sound: (%d)\n", result);
+        playing = false;
+        playbackStarted = false;
+        donePlaying = true;
         // Release the sound object only if it's a non-recoverable error
         // sound->release(); 
         return;
@@ -182,6 +210,9 @@ void Sound::Play()
     if (channel) {
         result = channel->setVolume((float)volume);
         result = channel->set3DAttributes(&position, nullptr);
+        float minDistance = 0.5f;
+        float maxDistance = 1000.0f;
+        result = channel->set3DMinMaxDistance(minDistance, maxDistance);
 
         channel->setPaused(false);
     } else {
@@ -193,12 +224,16 @@ void Sound::Play()
 
 void Sound::Stop()
 {
+    std::lock_guard<std::mutex> lock(stateMutex);
+
     playing = false;
     donePlaying = true;
-    stopped = true;
 
     // Stop the sound
-    channel->stop();
+    if (channel != nullptr)
+    {
+        channel->stop();
+    }
 
     //If the FMOD::Sound belongs to the cache rather this Sound
     if (releaseOnStop)
@@ -221,39 +256,34 @@ void Sound::loadSound()
 
 void Sound::setVolume(float volume)
 {
+    std::lock_guard<std::mutex> lock(stateMutex);
+
     this->maxVolume = volume;
-    channel->setVolume((float)(volume));
+    // State-only setter: mixer thread applies this to FMOD channel in Update().
+    if (fadeIn <= 0.0)
+    {
+        this->volume = volume;
+    }
 }
 
 void Sound::setPosition(FMOD_VECTOR pos)
 {
-    if (playing)
-    {
-        this->position = pos; 
-        channel->set3DAttributes(&position, nullptr);
-        float panLevel = 0.75f; // Adjust this value between 0.0 (full mono) and 1.0 (full 3D) as needed
+    std::lock_guard<std::mutex> lock(stateMutex);
 
-        // After initializing and playing the sound
-        float minDistance = 0.5f; // Minimum distance at which the sound is at its loudest
-        float maxDistance = 1000.0f; // Maximum distance at which the sound stops attenuating
-
-        result = channel->set3DMinMaxDistance(minDistance, maxDistance);
-        /*FMOD_VECTOR vec = { 0.0f, 1.0f, 0.0f };
-        result = channel->set3DConeOrientation(&vec);
-        if (result != FMOD_OK) {
-            std::cerr << "Error setting 3D min/max distance: " << result << std::endl;
-        }*/
-    }
+    // State-only setter: mixer thread applies this to FMOD channel in Update().
+    this->position = pos;
 }
 
 void Sound::Mute()
 {
+    std::lock_guard<std::mutex> lock(stateMutex);
     isMuted = true;
 }
 
 
 void Sound::Unmute()
 {
+    std::lock_guard<std::mutex> lock(stateMutex);
     isMuted = false;
 }
 

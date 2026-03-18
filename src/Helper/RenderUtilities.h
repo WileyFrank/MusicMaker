@@ -281,11 +281,6 @@ public:
         {
             positionAngle = circleSelection->getAngle();
             positionDistance = floatSlider->getValue();
-
-            vec = { -std::cos(positionAngle) * positionDistance, -std::sin(positionAngle) * positionDistance, 0 };
-
-            mixer.setPosition(vec);
-
         }
 
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -296,12 +291,12 @@ public:
         {
             lastNote = playNote;
             std::cout << playNote << std::endl;
-            auto& newSound = mixer.addSound(soundMap[playNote], 1, 0.0625, 0.25);
-            newSound.setVolume(0.25f);
+            auto handle = mixer.playSound(soundMap[playNote], 1, 0.0625, 0.25);
+            mixer.setSoundVolume(handle, 0.25f);
 
             vec = { -std::cos(positionAngle) * positionDistance, -std::sin(positionAngle) * positionDistance, 0 };
 
-            newSound.setPosition(vec);
+            mixer.setSoundPosition(handle, vec);
         }
     }
 

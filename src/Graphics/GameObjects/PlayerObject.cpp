@@ -206,8 +206,8 @@ void PlayerObject::update()
 				if (playerSheet.getAnimationState() == ANIMATION_NORMAL)
 				{
 					std::cout << "step\n";
-					auto& sound = soundMixer->addSound("resources/game_files/Sounds/footstep.wav");
-					sound.setVolume(1.0f);
+                    auto handle = soundMixer->playSound("resources/game_files/Sounds/footstep.wav");
+                    soundMixer->setSoundVolume(handle, 1.0f);
 				}
 			}
 			break;
