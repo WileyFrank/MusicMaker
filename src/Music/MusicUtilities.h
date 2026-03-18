@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <mutex>
+#include <chrono>
 
 enum Instrument {
 	PianoInstrument,

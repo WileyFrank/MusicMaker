@@ -110,8 +110,6 @@ public:
             return;
         }
 
-        std::vector<std::unique_ptr<sf::Drawable>> drawables;
-
 
         sf::Sprite sprite;
         sprite.setTexture(texture);
