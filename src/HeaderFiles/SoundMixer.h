@@ -2,16 +2,23 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
+#include <unordered_map>
 #include <thread>
+#include <atomic>
 #include "Sound.h"
 #include <mutex>
 
 
 class SoundMixer {
+public:
+    using SoundHandle = std::uint64_t;
+
 private:
     std::vector<Sound*> soundVector;     // Active sounds
-    std::vector<Sound*> pendingChanges;   // Pending additions or deletions
     std::vector<Sound*> soundBuffer;   // Buffer
+    std::unordered_map<SoundHandle, Sound*> handleToSound;
+    std::unordered_map<Sound*, SoundHandle> soundToHandle;
 
     std::mutex bufferMutex;
 
@@ -21,8 +28,7 @@ private:
     //mixer running - active and able to play sounds, different to playing - actively playing sound
     //atomic is for thread safety
     std::atomic<bool> running;
-
-    int updateCount;
+    std::atomic<SoundHandle> nextHandle;
 
 
     // Private Constructor
@@ -39,7 +45,6 @@ public:
     void stop();
 
     void mixerThreadFunction();
-    void processPendingChanges();
     void cleanupBuffer();
 
 
@@ -56,10 +61,14 @@ public:
 
     void setSystem(FMOD::System* system);
 
-    Sound& addSound(std::string path);
-    Sound& addSound(FMOD::Sound* sound, double duration, double fadeIn, double fadeOut);
-    Sound& addSound(const std::string& path, double duration, double fadeIn, double fadeOut);
-    Sound& addSound(const std::string& path, double duration, double fadeIn, double fadeOut, double maxVolume);
+    // Stable-handle API (preferred)
+    SoundHandle playSound(std::string path);
+    SoundHandle playSound(FMOD::Sound* sound, double duration, double fadeIn, double fadeOut);
+    SoundHandle playSound(const std::string& path, double duration, double fadeIn, double fadeOut);
+    SoundHandle playSound(const std::string& path, double duration, double fadeIn, double fadeOut, double maxVolume);
+    bool setSoundVolume(SoundHandle handle, float volume);
+    bool setSoundPosition(SoundHandle handle, FMOD_VECTOR vec);
+    bool stopSound(SoundHandle handle);
+    bool isSoundActive(SoundHandle handle);
 
-    void setPosition(FMOD_VECTOR vec);
 };

@@ -1,3 +1,10 @@
+// NOTE:
+// This file is reference-only (commented snippets).
+// `addSound(...)` was removed from SoundMixer; use `playSound(...)` and handles:
+//   auto h = mixer.playSound(...);
+//   mixer.setSoundVolume(h, ...);
+//   mixer.setSoundPosition(h, ...);
+//
 //Cmaj I IV V I
 /* {
 
@@ -167,22 +174,22 @@ int delayMillis = (int)((bpm / 60) * 1000);
 
 //CMaj C G swap
 /* {
-    auto& newSound = mixer.addSound(sound, 4, 0, 0.75);
-    newSound.setVolume(.5f);
+    auto newSound = mixer.playSound(sound, 4, 0, 0.75);
+    mixer.setSoundVolume(newSound, .5f);
 
-    auto& newSound2 = mixer.addSound("Sounds/Piano/g3.wav", 4, 0, 0.75f);
-    newSound2.setVolume(.5f);
+    auto newSound2 = mixer.playSound("Sounds/Piano/g3.wav", 4, 0, 0.75f);
+    mixer.setSoundVolume(newSound2, .5f);
 
-    auto& newSound3 = mixer.addSound("Sounds/Piano/e3.wav", 4, 0, 0.75f, 0.025f);
-    newSound3.setVolume(.025f);
-    //newSound.setPosition(vec);
+    auto newSound3 = mixer.playSound("Sounds/Piano/e3.wav", 4, 0, 0.75f, 0.025f);
+    mixer.setSoundVolume(newSound3, .025f);
+    //mixer.setSoundPosition(newSound, vec);
 
     for (float i = -3; i < 3; i += 0.05f)
     {
         vec = { i * i * i,1.0f,0.0f };
         vec2 = { -i * -i * -i,1.0f,0.0f };
-        newSound.setPosition(vec);
-        newSound2.setPosition(vec2);
+        mixer.setSoundPosition(newSound, vec);
+        mixer.setSoundPosition(newSound2, vec2);
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
