@@ -12,6 +12,23 @@ enum Instrument {
 	ToneInstrument
 };
 
+enum ChordFunction {
+	CF_TONIC = 0,
+	CF_PREDOMINANT,
+	CF_DOMINANT
+};
+
+enum ChordDegree {
+	NONE = 0,
+	TONIC = 1,
+	SUPERTONIC = 2,
+	MEDIANT = 3,
+	SUBDOMINANT = 4,
+	DOMINANT = 5,
+	SUBMEDIANT = 6,
+	LEADING_TONE = 7
+};
+
 enum ChordType {
 	MAJOR = 0,
 	MINOR,
@@ -253,9 +270,6 @@ public:
 		int noteCount;
 		std::vector<int> semitonePattern;
 
-
-
-
 		switch (type)
 		{
 		case MAJOR: //I III V
@@ -350,6 +364,92 @@ public:
 	static float getBeats(TimeSignature timeSignature, NoteValue value)
 	{
 		return ((float)timeSignature.denominator / (float)(int)value);
+	}
+
+	// |-|-|-|-|-|-|-|-|-|-| KEY/DIATONIC HELPERS |-|-|-|-|-|-|-|-|-|-|-|-|
+	static bool isPitchDiatonic(Pitch pitch, const KeySignature& key)
+	{
+		if (pitch.note == NoteRest)
+		{
+			return true;
+		}
+
+		PitchEnum natural = getNatural(pitch.note);
+		Accidental pitchAccidental = getAccidental(pitch.note, natural);
+		auto it = key.key.find(natural);
+
+		if (it == key.key.end())
+		{
+			return false;
+		}
+
+		return pitchAccidental == it->second;
+	}
+
+	static bool isDiatonic(const std::vector<Pitch>& pitches, const KeySignature& key)
+	{
+		for (const Pitch& pitch : pitches)
+		{
+			if (!isPitchDiatonic(pitch, key))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	static ChordDegree getDegreeFromPitch(Pitch pitch, const KeySignature& key)
+	{
+		if (!isPitchDiatonic(pitch, key))
+		{
+			return NONE;
+		}
+
+		std::vector<int> degreePitchClasses;
+		degreePitchClasses.reserve(7);
+
+		PitchEnum degreeNatural = getNatural(key.root);
+		for (int i = 0; i < 7; i++)
+		{
+			auto keyIt = key.key.find(degreeNatural);
+			if (keyIt == key.key.end())
+			{
+				return NONE;
+			}
+
+			int degreePitchClass = negativeMod((int)degreeNatural + (int)keyIt->second, 12);
+			degreePitchClasses.push_back(degreePitchClass);
+			degreeNatural = getNextNatural(degreeNatural);
+		}
+
+		int targetPitchClass = negativeMod((int)pitch.note, 12);
+		for (int i = 0; i < (int)degreePitchClasses.size(); i++)
+		{
+			if (degreePitchClasses[i] == targetPitchClass)
+			{
+				return (ChordDegree)(i + 1);
+			}
+		}
+
+		return NONE;
+	}
+
+	static ChordDegree getChordDegree(const std::vector<Pitch>& pitches, const KeySignature& key)
+	{
+		if (pitches.empty() || !isDiatonic(pitches, key))
+		{
+			return NONE;
+		}
+
+		Chord chord = findChord(pitches);
+		if (chord.getType() != UNRECOGNIZEDCHORD)
+		{
+			return getDegreeFromPitch(chord.getRoot(), key);
+		}
+
+		auto ordered = orderPitchAscending(pitches);
+		return ordered.empty() ? NONE : getDegreeFromPitch(ordered.front(), key);
 	}
 
 	// |-|-|-|-|-|-|-|-|-|-| CHORD DETECTION |-|-|-|-|-|-|-|-|-|-|-|-|

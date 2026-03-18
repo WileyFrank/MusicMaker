@@ -172,6 +172,7 @@
     <ClCompile Include="src\SoundTrack.cpp" />
     <ClCompile Include="src\SoundMixer.cpp" />
     <ClCompile Include="src\Sound.cpp" />
+    <ClCompile Include="src\MainLoopHelpers.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Graphics\GUI\ToggleBox.cpp" />
   </ItemGroup>
@@ -304,6 +305,7 @@
     <ClInclude Include="src\Graphics\GUI\RenderObject.h" />
     <ClInclude Include="src\Graphics\GUI\SFButton.h" />
     <ClInclude Include="src\HeaderFiles\SpacialSound.h" />
+    <ClInclude Include="src\HeaderFiles\MainLoopHelpers.h" />
     <ClInclude Include="src\HeaderFiles\SoundTrack.h" />
     <ClInclude Include="src\HeaderFiles\SoundMixer.h" />
     <ClInclude Include="src\HeaderFiles\Sound.h" />

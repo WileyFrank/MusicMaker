@@ -1,6 +1,42 @@
 #include "SheetMusicMeasure.h"
 #include <cmath>
 
+namespace {
+std::string degreeToRomanString(ChordDegree degree)
+{
+	switch ((int)degree)
+	{
+	case 1: return "I";
+	case 2: return "II";
+	case 3: return "III";
+	case 4: return "IV";
+	case 5: return "V";
+	case 6: return "VI";
+	case 7: return "VII";
+	default: return "None";
+	}
+}
+
+int countDisplayLines(const std::string& text)
+{
+	if (text.empty())
+	{
+		return 0;
+	}
+
+	int lines = 1;
+	for (char c : text)
+	{
+		if (c == '\n')
+		{
+			lines++;
+		}
+	}
+
+	return lines;
+}
+}
+
 void SheetMusicMeasure::checkMeasure()
 {
 }
@@ -553,10 +589,6 @@ void SheetMusicMeasure::hoverAction()
 	
 
 
-	float height = 60.0f;
-
-	hoverPanel = addPanel((float)mouse.x, minY - height, 150.0f, height, sf::Color(11, 0, 45), sf::Color(31, 24, 96), 2);
-
 	std::string notesString = "";
 	std::vector<Pitch> pitches;
 
@@ -579,17 +611,52 @@ void SheetMusicMeasure::hoverAction()
 	}
 	
 	auto chord = MusicUtilities::findChord(pitches);
+	auto degree = MusicUtilities::getChordDegree(pitches, keySignature);
+	std::vector<std::string> panelLines;
 
 	if (chord.getType() != UNRECOGNIZEDCHORD)
 	{
 		std::string chordString = "Chord: " + MusicUtilities::getNoteString(chord.getRoot().note) + " " + MusicUtilities::getChordString(chord.getType());
-		hoverPanel->addText(chordString, 16, sf::Color(190, 188, 216));
+		panelLines.push_back(chordString);
+	}
+
+	if ((int)degree > 0)
+	{
+		std::string degreeString = "Degree: " + degreeToRomanString(degree);
+		panelLines.push_back(degreeString);
 	}
 	
 	if (notesString.length() > 0)
 	{
 		notesString = "Notes: " + notesString.substr(0, notesString.length() - 2);
-		hoverPanel->addText(notesString, 16, sf::Color(190, 188, 216));
+		panelLines.push_back(notesString);
+	}
+
+	int totalDisplayLines = 0;
+	for (const std::string& line : panelLines)
+	{
+		totalDisplayLines += countDisplayLines(line);
+	}
+
+	const float lineHeight = 22.0f;
+	const float verticalPadding = 8.0f;
+	const float interItemGap = 5.0f;
+	float height = 60.0f;
+	if (totalDisplayLines > 0)
+	{
+		height = std::max(
+			60.0f,
+			(verticalPadding * 2.0f) +
+			(totalDisplayLines * lineHeight) +
+			((float)std::max(0, (int)panelLines.size() - 1) * interItemGap)
+		);
+	}
+
+	hoverPanel = addPanel((float)mouse.x, minY - height, 150.0f, height, sf::Color(11, 0, 45), sf::Color(31, 24, 96), 2);
+
+	for (const std::string& line : panelLines)
+	{
+		hoverPanel->addText(line, 16, sf::Color(190, 188, 216));
 	}
 }
 

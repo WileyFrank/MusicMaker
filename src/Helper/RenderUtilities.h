@@ -2,7 +2,16 @@
 #include <fmod.hpp>
 #include "SFML/Graphics.hpp"
 #include "../Graphics/SheetMusic/SheetMusicStaff.h"
+#include "../Graphics/GameObjects/PlayerObject.h"
 #include "../Graphics/GUI/RenderObject.h"
+#include "../Graphics/GUI/TextBox.h"
+#include "../Graphics/GUI/FloatSlider.h"
+#include "../Graphics/GUI/BoundedFloatSlider.h"
+#include "../Graphics/GUI/CircleRingSelect.h"
+#include "../Graphics/GUI/ToggleBox.h"
+#include "../Graphics/GUI/DropdownMenu.h"
+#include "../Graphics/GUI/Primitives/PrimitiveText.h"
+#include "../HeaderFiles/SoundMixer.h"
 
 
 class RenderUtilities
@@ -126,7 +135,7 @@ public:
 
         //Creation of the staff
         auto staff = new SheetMusicStaff((float)100, (float)400, (float)1000, (float)30,
-            TrebleClef, MusicUtilities::getKey(NoteFs, MAJOR));
+            TrebleClef, MusicUtilities::getKey(NoteG, MAJOR));
 
         staff->setColor(sf::Color(94, 94, 255));
         staff->setClefColor(sf::Color(150, 150, 255));

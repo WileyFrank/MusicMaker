@@ -1,51 +1,21 @@
 #include "HeaderFiles/SpacialSound.h"
 
-SpacialSound::SpacialSound()
-{
-}
-
 SpacialSound::SpacialSound(FMOD::System* sys, const std::string& filePath, FMOD_VECTOR position)
+    : Sound(sys, filePath), position(position)
 {
-    system = sys;
-    path = filePath;
-    donePlaying = false;
-
-    duration = -1;
-    fadeIn = -1;
-    fadeOut = -1;
-
-    volume = 1.0;
-
-    load3DSound();
-
+    Sound::setPosition(position);
 }
 
 SpacialSound::SpacialSound(FMOD::System* sys, const std::string& filePath, double duration, double fadeIn, double fadeOut, FMOD_VECTOR position)
+    : Sound(sys, filePath, duration, fadeIn, fadeOut), position(position)
 {
-    this->system = sys;
-    this->path = filePath;
-    this->donePlaying = false;
-
-    this->duration = duration;
-    this->fadeIn = fadeIn;
-    this->fadeOut = fadeOut;
-
-    if (fadeIn > 0)
-    {
-        volume = 0.0;
-    }
-    else
-    {
-        volume = 1.0;
-    }
-
-
-    load3DSound();
-
+    Sound::setPosition(position);
 }
 
 SpacialSound::SpacialSound(FMOD::System* sys, const std::string& filePath, double duration, double fadeIn, double fadeOut, double maxVolume, FMOD_VECTOR position)
+    : Sound(sys, filePath, duration, fadeIn, fadeOut, maxVolume), position(position)
 {
+    Sound::setPosition(position);
 }
 
 void SpacialSound::load3DSound()
@@ -82,5 +52,9 @@ void SpacialSound::Play()
 void SpacialSound::setPosition(FMOD_VECTOR newPosition)
 {
     this->position = newPosition;
-    result = channel->set3DAttributes(&position, NULL);
+    Sound::setPosition(newPosition);
+
+    if (channel != nullptr) {
+        result = channel->set3DAttributes(&position, NULL);
+    }
 }
