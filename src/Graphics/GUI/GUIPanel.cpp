@@ -1,4 +1,5 @@
 #include "GUIPanel.h"
+#include <iostream>
 
 GUIPanel::GUIPanel()
 	:backgroundColor(sf::Color(255,255,255)), outlineColor(sf::Color(255, 255, 255))
@@ -11,22 +12,72 @@ GUIPanel::GUIPanel()
 	this->height = 100;
 
 	auto rect = new Rectangle(x, y, width, height, backgroundColor, outlineColor);
+	rect->setRectSpec(RectSpec{ Px(0), Px(0), Pct(1.0f), Pct(1.0f) });
+	rect->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+	backgroundShape = rect;
 
-	elements.push_back(rect);
+	addChild(rect);
 }
 
-GUIPanel::GUIPanel(float x, float y, float width, float height, sf::Color color, sf::Color outlineColor, float outline)
+GUIPanel::GUIPanel(float x, float y, float width, float height, sf::Color color, sf::Color outlineColor, float outline, float cornerSize)
 	:currentX(x + 5), currentY(y),
 	backgroundColor(color), outlineColor(outlineColor)
 {
+	setRectSpec(RectSpec{ Px(x), Px(y), Px(width), Px(height) });
+	setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+	setResolvedRect(sf::FloatRect(x, y, width, height));
+	setPadding(0.0f);
+
 	this->x = x;
 	this->y = y;
 	this->width = width;
 	this->height = height;
 
-	PrimitiveRoundRectangle* panel = new PrimitiveRoundRectangle(x, y, width, height, color, outlineColor, outline, 3,10);
+	if (cornerSize <= 0.0f)
+	{
+		Rectangle* panel = new Rectangle(x, y, width, height, color, outlineColor, outline);
+		panel->setRectSpec(RectSpec{ Px(0), Px(0), Pct(1.0f), Pct(1.0f) });
+		panel->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+		backgroundShape = panel;
+		addChild(panel);
+	}
+	else
+	{
+		PrimitiveRoundRectangle* panel = new PrimitiveRoundRectangle(x, y, width, height, color, outlineColor, outline, cornerSize, 10);
+		panel->setRectSpec(RectSpec{ Px(0), Px(0), Pct(1.0f), Pct(1.0f) });
+		panel->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+		backgroundShape = panel;
+		addChild(panel);
+	}
+}
 
-	elements.push_back(panel);
+GUIPanel::GUIPanel(const RectSpec& rectSpec, sf::Color color, sf::Color outlineColor, float outline, float cornerSize, MarginSpec marginSpec)
+{
+	setRectSpec(rectSpec);
+	setMarginSpec(marginSpec);
+	setPadding(0.0f);
+
+	if (cornerSize <= 0.0f)
+	{
+		Rectangle* panel = new Rectangle(x, y, width, height, color, outlineColor, outline);
+		panel->setRectSpec(RectSpec{ Pct(0.0f), Pct(0.0f), Pct(1.0f), Pct(1.0f) });
+		panel->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+		backgroundShape = panel;
+		addChild(panel);
+	}
+	else
+	{
+		PrimitiveRoundRectangle* panel = new PrimitiveRoundRectangle(x, y, width, height, color, outlineColor, outline, cornerSize, 10);
+		panel->setRectSpec(RectSpec{ Pct(0.0f), Pct(0.0f), Pct(1.0f), Pct(1.0f) });
+		panel->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+		backgroundShape = panel;
+		addChild(panel);
+	}
+}
+
+void GUIPanel::setRectSpec(const RectSpec& spec)
+{
+	Container::setRectSpec(spec);
 }
 
 void GUIPanel::addText(std::string text, int size, sf::Color color)
@@ -37,42 +88,44 @@ void GUIPanel::addText(std::string text, int size, sf::Color color)
 	textObject->setColor(color);
 	textObject->setWindow(window);
 
-	elements.push_back(textObject);
+	addChild(textObject);
 }
 
-void GUIPanel::render()
+void GUIPanel::resolveChildrenLayout()
 {
-	for (auto& element : elements)
+	// Background fills the full outer panel bounds (not the padded content rect).
+	if (backgroundShape != nullptr)
 	{
-		element->render();
+		backgroundShape->resolveLayout(getResolvedRect());
+	}
+
+	// All non-background children resolve inside padded content.
+	const sf::FloatRect contentRect = getContentRect();
+	for (auto* child : getChildren())
+	{
+		if (child == nullptr || child == backgroundShape)
+		{
+			continue;
+		}
+
+		child->resolveLayout(contentRect);
 	}
 }
 
-void GUIPanel::update()
+void GUIPanel::resolveLayout(const sf::FloatRect& parentRect)
 {
-	for (auto& element : elements)
-	{
-		element->update();
-	}
-}
+	Container::resolveLayout(parentRect);
 
-void GUIPanel::draw()
-{
-	for (auto& element : elements)
-	{
-		element->draw();
-	}
+	const sf::FloatRect panelRect = getResolvedRect();
+	/*std::cout
+		<< "[GUIPanel::resolveLayout] x=" << panelRect.left
+		<< " y=" << panelRect.top
+		<< " w=" << panelRect.width
+		<< " h=" << panelRect.height
+		<< std::endl;*/
 }
 
 RenderObject& GUIPanel::getHoverObject()
 {
-	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
-	auto hoverArea = this->getHoverArea();
-
-	if (GUIUtilities::positionInBounds(mousePosition, hoverArea))
-	{
-		return *this;
-	}
-
-	return *GUIUtilities::getEmptyRenderObject();
+	return Container::getHoverObject();
 }

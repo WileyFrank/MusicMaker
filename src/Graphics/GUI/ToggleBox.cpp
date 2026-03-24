@@ -1,12 +1,23 @@
 #include "ToggleBox.h"
+#include <algorithm>
 
-ToggleBox::ToggleBox(float x, float y, float width, float height, sf::Color background, sf::Color outlineColor, sf::Color selectionColor, sf::Color backgroundHoverColor, sf::Color selectionHoverColor)
-	:RenderObject(x, y, width, height),
-	backgroundColor(backgroundColor), outlineColor(outlineColor), selectionColor(selectionColor), backgroundHoverColor(backgroundHoverColor), selectionHoverColor(selectionHoverColor),
-	outBox(sf::Vector2f(width, height)), outlineWidth(2), selectionBox(sf::Vector2f(width - (4 * outlineWidth), height - (4 * outlineWidth))),
+ToggleBox::ToggleBox(
+	const RectSpec& rectSpec,
+	const MarginSpec& marginSpec,
+	sf::Color background,
+	sf::Color outlineColor,
+	sf::Color selectionColor,
+	sf::Color backgroundHoverColor,
+	sf::Color selectionHoverColor
+)
+	:RenderObject(0.0f, 0.0f, 0.0f, 0.0f),
+	backgroundColor(background), outlineColor(outlineColor), selectionColor(selectionColor), backgroundHoverColor(backgroundHoverColor), selectionHoverColor(selectionHoverColor),
+	outBox(sf::Vector2f(0.0f, 0.0f)), outlineWidth(2), selectionBox(sf::Vector2f(0.0f, 0.0f)),
 	boxState(false)
 {
 	this->type = GUIObject;
+	setRectSpec(rectSpec);
+	setMarginSpec(marginSpec);
 
 	outBox.setFillColor(backgroundColor);
 	outBox.setOutlineColor(outlineColor);
@@ -14,10 +25,20 @@ ToggleBox::ToggleBox(float x, float y, float width, float height, sf::Color back
 	
 	selectionBox.setFillColor(backgroundColor);
 	selectionBox.setOutlineThickness(0);
+}
 
-	outBox.setPosition(sf::Vector2f(x, y));
-	selectionBox.setPosition(sf::Vector2f(x + (2 * outlineWidth), y + (2 * outlineWidth)));
+void ToggleBox::resolveLayout(const sf::FloatRect& parentRect)
+{
+	RenderObject::resolveLayout(parentRect);
+	const sf::FloatRect pixelRect = getResolvedRect();
 
+	outBox.setPosition(sf::Vector2f(pixelRect.left, pixelRect.top));
+	outBox.setSize(sf::Vector2f(pixelRect.width, pixelRect.height));
+
+	const float innerWidth = std::max(0.0f, pixelRect.width - (4.0f * outlineWidth));
+	const float innerHeight = std::max(0.0f, pixelRect.height - (4.0f * outlineWidth));
+	selectionBox.setPosition(sf::Vector2f(pixelRect.left + (2.0f * outlineWidth), pixelRect.top + (2.0f * outlineWidth)));
+	selectionBox.setSize(sf::Vector2f(innerWidth, innerHeight));
 }
 
 void ToggleBox::update()

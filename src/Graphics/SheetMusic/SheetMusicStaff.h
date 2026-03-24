@@ -70,6 +70,13 @@ public:
 	SheetMusicStaff();
 	SheetMusicStaff(float x, float y, float width, float height, Clef clefType, 
 		KeySignature key = KeySignature(), TimeSignature timeSignature = TimeSignature());
+	SheetMusicStaff(
+		const RectSpec& rectSpec,
+		const MarginSpec& marginSpec,
+		Clef clefType,
+		KeySignature key = KeySignature(),
+		TimeSignature timeSignature = TimeSignature()
+	);
 
 	~SheetMusicStaff();
 
@@ -79,6 +86,7 @@ public:
 	float addNote(Note note, float beat);
 
 	void draw() override;
+	void resolveLayout(const sf::FloatRect& parentRect) override;
 	void setWindow(sf::RenderWindow* window) override;
 	std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() override;
 

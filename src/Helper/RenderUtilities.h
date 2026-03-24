@@ -10,6 +10,7 @@
 #include "../Graphics/GUI/CircleRingSelect.h"
 #include "../Graphics/GUI/ToggleBox.h"
 #include "../Graphics/GUI/DropdownMenu.h"
+#include "../Graphics/GUI/GUIPanel.h"
 #include "../Graphics/GUI/Primitives/PrimitiveText.h"
 #include "../HeaderFiles/SoundMixer.h"
 
@@ -17,7 +18,7 @@
 class RenderUtilities
 {
 public:
-    static void pollEvents(sf::RenderWindow* guiWindow, sf::RenderWindow* gameWindow, PlayerObject*& player, RenderObject*& activeObject, RenderObject*& hoverObject)
+    static void pollEvents(sf::RenderWindow* guiWindow, sf::RenderWindow* gameWindow, PlayerObject*& player, RenderObject*& activeObject, RenderObject*& hoverObject, bool* layoutDirty = nullptr)
     {
 
         sf::Event e;
@@ -28,6 +29,23 @@ public:
                 //stop the mixer thread 
                 // WILL RESULT IN ERROR IF LEFT RUNNNING
                 guiWindow->close();
+                // Ensure the app exits even though the game window is hidden.
+                gameWindow->close();
+            }
+            if (e.type == sf::Event::Resized)
+            {
+                sf::View resizedView(sf::FloatRect(
+                    0.0f,
+                    0.0f,
+                    static_cast<float>(e.size.width),
+                    static_cast<float>(e.size.height)
+                ));
+                guiWindow->setView(resizedView);
+
+                if (layoutDirty != nullptr)
+                {
+                    *layoutDirty = true;
+                }
             }
             if (e.type == sf::Event::MouseButtonPressed) {
                 if (e.mouseButton.button == sf::Mouse::Left) {
@@ -92,33 +110,59 @@ public:
         }
     }
 
+    static void resolveLayoutTree(std::vector<RenderObject*>& renderObjects, const sf::FloatRect& rootRect)
+    {
+        for (auto* object : renderObjects)
+        {
+            if (object != nullptr)
+            {
+                object->resolveLayout(rootRect);
+            }
+        }
+    }
+
+    static void updateUiLayout(std::vector<RenderObject*>& renderObjects, sf::RenderWindow* guiWindow)
+    {
+        if (guiWindow == nullptr)
+        {
+            return;
+        }
+
+        const sf::Vector2u windowSize = guiWindow->getSize();
+        const sf::FloatRect rootRect(
+            0.0f,
+            0.0f,
+            static_cast<float>(windowSize.x),
+            static_cast<float>(windowSize.y)
+        );
+        resolveLayoutTree(renderObjects, rootRect);
+    }
+
     static void initializeRenderObjects(
         std::vector<RenderObject*>& renderObjects, sf::RenderWindow* guiWindow, sf::RenderWindow* gameWindow,
         ToggleBox*& toggle, CircleRingSelect*& circleSelection, FloatSlider*& floatSlider
     )
     {
+        (void)gameWindow;
 
         auto button = new PrimitiveText(100.0f, 300.0f, 24, "This is a test", "resources/fonts/Century 751 Bold.otf", ALIGN_LEFT);
         button->setColor(sf::Color(20, 20, 60));
-        renderObjects.push_back(button);
-
-
-        for (auto& obj : renderObjects) {
-            obj->setWindow(guiWindow);
-        }
+        button->setWindow(guiWindow);
+        // renderObjects.push_back(button);
 
         Pitch note = { NoteC, 3 };
 
         // chords are vectors of notes
         auto chordTest = MusicUtilities::getNotes(note, MAJOR);
         auto chordTest2 = MusicUtilities::getNotes(note, MINOR);
+        (void)chordTest;
+        (void)chordTest2;
 
         sf::Texture texture;
         if (!texture.loadFromFile("resources/images/test.png")) {
             // Handle error
             return;
         }
-
 
         sf::Sprite sprite;
         sprite.setTexture(texture);
@@ -127,14 +171,99 @@ public:
 
         float sHeight = 200;
         float newScale = sHeight / sprite.getLocalBounds().height;
-
         sprite.setScale(newScale, newScale);
 
-
         std::vector<std::unique_ptr<SheetMusicElement>> sheetMusicObjects;
+        (void)sheetMusicObjects;
 
-        //Creation of the staff
-        auto staff = new SheetMusicStaff((float)100, (float)400, (float)1000, (float)30,
+        
+
+        auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
+        (void)scale;
+
+        TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        textBox->setWindow(guiWindow);
+        // renderObjects.push_back(textBox);
+
+        auto floatBox = new TextBox<float>(100, 130, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        floatBox->setWindow(guiWindow);
+        floatBox->setValue(420.69f);
+        // renderObjects.push_back(floatBox);
+
+        auto intBox = new TextBox<int>(100, 160, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        intBox->setWindow(guiWindow);
+        intBox->setValue(5);
+        // renderObjects.push_back(intBox);
+
+        textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        textBox->setWindow(guiWindow);
+        // renderObjects.push_back(textBox);
+
+        textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        textBox->setWindow(guiWindow);
+        textBox->setValue("This is the string now");
+        // renderObjects.push_back(textBox);
+
+        BoundedFloatSlider* boundedFloatSlider = new BoundedFloatSlider(100, 220, 150, 20,
+            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216), sf::Color(94, 150, 255));
+        boundedFloatSlider->setWindow(guiWindow);
+        boundedFloatSlider->setBounds(0, 360);
+        // renderObjects.push_back(boundedFloatSlider);
+
+        floatSlider = new FloatSlider(100, 250, 150, 20,
+            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        floatSlider->setWindow(guiWindow);
+        floatSlider->setValue(5.0f);
+        float slideVal = floatSlider->getValue();
+        (void)slideVal;
+        // renderObjects.push_back(floatSlider);
+
+        circleSelection = new CircleRingSelect(400, 200, 50, 10,
+            sf::Color(11, 0, 44), sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        circleSelection->setWindow(guiWindow);
+        circleSelection->setSlider(boundedFloatSlider);
+        // renderObjects.push_back(circleSelection);
+
+        auto basePanel = new GUIPanel(
+            RectSpec{ Px(0),Px(0),Pct(100),Pct(1.00f) },
+            sf::Color(0, 0, 0, 255),
+            sf::Color(0, 255, 0, 255),
+            2.0f,
+            0.0f
+        );
+        basePanel->setWindow(guiWindow);
+        basePanel->setPadding(5.0f);
+
+
+        auto topPanel = new GUIPanel(
+            RectSpec{ Px(0),Px(0),Pct(100),Pct(50) },
+            sf::Color(0, 0, 0, 255),
+            sf::Color(0, 0, 255, 255),
+            2.0f,
+            5.0f
+        );
+        basePanel->addChild(topPanel);
+
+        auto bottomPanel = new GUIPanel(
+            RectSpec{ Px(0),Pct(50),Pct(100),Pct(50) },
+            sf::Color(0, 0, 0, 255),
+            sf::Color(0, 0, 255, 255),
+            2.0f,
+            0.0f
+        );
+        basePanel->addChild(bottomPanel);
+
+
+
+        toggle = new ToggleBox(
+            RectSpec{ Pct(0.05f), Pct(0.05f), Px(20), Px(20) },
+            MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        topPanel->addChild(toggle);
+
+        // Creation of the staff
+
+        auto staff = new SheetMusicStaff(RectSpec{Pct(5),Pct(20),Pct(90),Px(50)}, MarginSpec{Px(0), Px(0), Px(0), Px(0)},
             TrebleClef, MusicUtilities::getKey(NoteG, MAJOR));
 
         staff->setColor(sf::Color(94, 94, 255));
@@ -142,14 +271,11 @@ public:
         staff->setNoteColor(sf::Color(94, 150, 255));
         staff->setNoteHoverColor(sf::Color(55, 220, 255));
         staff->setHoverColor(sf::Color(255, 200, 255));
-        staff->setWindow(guiWindow);
 
         sf::RectangleShape rect(sf::Vector2f(100, 100));
         rect.setFillColor(sf::Color(255, 0, 0));
-
-
         rect.setOrigin(sf::Vector2f(25, 25));
-
+        (void)rect;
 
         Note E3Note = Note({ Pitch({NoteE, 5 }), Quarter });
         Note C3Note = Note({ Pitch({NoteC, 5 }), Quarter });
@@ -162,8 +288,10 @@ public:
         auto key = MusicUtilities::getKey(NoteEf, MAJOR);
         auto distance = MusicUtilities::getNotesFromMiddleC(Pitch({ NoteD,  3 }));
         distance = MusicUtilities::getNotesFromMiddleC(Pitch({ NoteFs,  8 }));
+        (void)key;
+        (void)distance;
 
-        //Adding Notes
+        // Adding Notes
         currentBeat = 0.0f;
 
         staff->addNote(C3Note, currentBeat);
@@ -177,71 +305,11 @@ public:
         staff->addNote(D3Note, 13.0f);
         staff->addNote(D3Note, 17.0f);
         staff->addNote(D3Note, 14.0f);
-
-        renderObjects.push_back(staff);
-
-        auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
-
-        TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        textBox->setWindow(guiWindow);
-
-        renderObjects.push_back(textBox);
-
-        auto floatBox = new TextBox<float>(100, 130, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        floatBox->setWindow(guiWindow);
-
-        renderObjects.push_back(floatBox);
-
-        floatBox->setValue(420.69f);
-
-        auto intBox = new TextBox<int>(100, 160, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        intBox->setWindow(guiWindow);
-
-        renderObjects.push_back(intBox);
-
-        intBox->setValue(5);
-
-        textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        textBox->setWindow(guiWindow);
-
-        renderObjects.push_back(textBox);
-
-        textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        textBox->setWindow(guiWindow);
-
-        renderObjects.push_back(textBox);
-
-        textBox->setValue("This is the string now");
-
-        BoundedFloatSlider* boundedFloatSlider = new BoundedFloatSlider(100, 220, 150, 20,
-            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216), sf::Color(94, 150, 255));
-        boundedFloatSlider->setWindow(guiWindow);
-        boundedFloatSlider->setBounds(0, 360);
-
-        renderObjects.push_back(boundedFloatSlider);
-
-        floatSlider = new FloatSlider(100, 250, 150, 20,
-            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        floatSlider->setWindow(guiWindow);
-
-        floatSlider->setValue(5.0f);
-        float slideVal = floatSlider->getValue();
-
-        renderObjects.push_back(floatSlider);
-
-        circleSelection = new CircleRingSelect(400, 200, 50, 10,
-            sf::Color(11, 0, 44), sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        circleSelection->setWindow(guiWindow);
-        circleSelection->setSlider(boundedFloatSlider);
-
-        renderObjects.push_back(circleSelection);
+        bottomPanel->addChild(staff);
 
 
-        toggle = new ToggleBox(500, 150, 20, 20,
-            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        toggle->setWindow(guiWindow);
 
-        renderObjects.push_back(toggle);
+        renderObjects.push_back(basePanel);
 
         std::vector<std::string> options;
         options.push_back("This");
@@ -253,8 +321,7 @@ public:
         auto dropdown = new DropdownMenu<std::string>(600, 150, 150, 20, 14, 5, options,
             sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
         dropdown->setWindow(guiWindow);
-
-        renderObjects.push_back(dropdown);
+        // renderObjects.push_back(dropdown);
     }
 
     static void setActiveHover(std::vector<RenderObject*>& renderObjects, RenderObject*& hoverObject, RenderObject*& previousHoverObject, RenderObject*& activeObject)
@@ -275,6 +342,7 @@ public:
         {
             if (activeObject != previousHoverObject)
             {
+                previousHoverObject->setHover(false);
                 previousHoverObject->setUnhover();
             }
         }

@@ -215,6 +215,17 @@ void SheetMusicMeasure::setupStaff(float x, float y, float staffHeight, Clef cle
 	this->x = x;
 	this->y = y;
 	this->height = staffHeight;
+	this->noteGap = staffHeight / 5.0f;
+
+	for (auto& pair : sheetNotes)
+	{
+		for (auto* note : pair.second)
+		{
+			delete note;
+		}
+	}
+	sheetNotes.clear();
+
 	loadSheetNotes();
 }
 

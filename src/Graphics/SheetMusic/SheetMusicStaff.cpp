@@ -1,5 +1,6 @@
 #include "SheetMusicStaff.h"
 #include "../GUI/GUIUtilities.h"
+#include <new>
 
 //public
 SheetMusicStaff::SheetMusicStaff()
@@ -38,6 +39,19 @@ SheetMusicStaff::SheetMusicStaff(float x, float y, float width, float height, Cl
 
 }
 
+SheetMusicStaff::SheetMusicStaff(
+	const RectSpec& rectSpec,
+	const MarginSpec& marginSpec,
+	Clef clefType,
+	KeySignature key,
+	TimeSignature timeSignature
+)
+	: SheetMusicStaff(0.0f, 0.0f, 0.0f, 0.0f, clefType, key, timeSignature)
+{
+	setRectSpec(rectSpec);
+	setMarginSpec(marginSpec);
+}
+
 SheetMusicStaff::~SheetMusicStaff()
 {
 	for (auto shape : lines)
@@ -52,7 +66,7 @@ SheetMusicMeasure* SheetMusicStaff::addMeasure(SheetMusicMeasure* measure) {
 
 	// Sum the widths of existing measures
 	for (auto& existingMeasure : measures) {
-		currentMeasure += existingMeasure->getWidth() + measureGap;
+		currentMeasure += (height / 4.0f) + existingMeasure->getWidth() + measureGap;
 	}
 
 	// Create a new bar
@@ -81,7 +95,7 @@ SheetMusicMeasure* SheetMusicStaff::addMeasure()
 
 	for (auto& measure : measures)
 	{
-		currentMeasure += measure->getWidth() + measureGap;
+		currentMeasure += (height / 4.0f) + measure->getWidth() + measureGap;
 	}
 
 	if (measures.size() > 0)
@@ -172,12 +186,86 @@ void SheetMusicStaff::draw()
 	sheetMusicTimeSignature.draw();
 }
 
+void SheetMusicStaff::resolveLayout(const sf::FloatRect& parentRect)
+{
+	RenderObject::resolveLayout(parentRect);
+	const sf::FloatRect pixelRect = getResolvedRect();
+
+	x = pixelRect.left;
+	y = pixelRect.top;
+	width = pixelRect.width;
+	height = pixelRect.height;
+
+	// Rebuild clef/key/time geometry for the new staff bounds.
+	clef.~SheetMusicClef();
+	new (&clef) SheetMusicClef(x, y, width, height, clefType);
+
+	sheetMusicKeySignature.~SheetMusicKeySignature();
+	new (&sheetMusicKeySignature) SheetMusicKeySignature((x + clef.getWidth() + height / 6.0f), y, height, keySignature, clefType);
+
+	sheetMusicTimeSignature.~SheetMusicTimeSignature();
+	new (&sheetMusicTimeSignature) SheetMusicTimeSignature((x + clef.getWidth() + sheetMusicKeySignature.getWidth() + height / 3.0f), y, height, timeSignature);
+
+	if (this->window != nullptr)
+	{
+		clef.setWindow(this->window);
+		sheetMusicKeySignature.setWindow(this->window);
+		sheetMusicTimeSignature.setWindow(this->window);
+	}
+
+	measureStart =
+		(clef.getWidth()) +
+		(sheetMusicKeySignature.getWidth()) +
+		(sheetMusicTimeSignature.getWidth()) +
+		(this->height / 2);
+
+	// Rebuild staff lines/bars anchored to the resolved rectangle.
+	for (auto* shape : lines)
+	{
+		delete shape;
+	}
+	lines.clear();
+
+	for (auto* bar : bars)
+	{
+		delete bar;
+	}
+	bars.clear();
+
+	GenerateStaffLines();
+
+	// Re-layout measure X positions for the new geometry.
+	float barX = 0.0f;
+	for (size_t i = 0; i < measures.size(); ++i)
+	{
+		if (i > 0)
+		{
+			auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));
+			newRect->setPosition(sf::Vector2f(barX + measureStart + this->x, y));
+			newRect->setFillColor(staffColor);
+			bars.push_back(newRect);
+		}
+
+		const float measureX = barX + (height / 4.0f) + measureStart + this->x;
+		measures[i]->setupStaff(measureX, this->y, height, clef.getClef());
+		measures[i]->setWindow(this->window);
+		barX = (measureX - (measureStart + this->x)) + measures[i]->getWidth() + measureGap;
+	}
+
+	colorUpdate();
+}
+
 void SheetMusicStaff::setWindow(sf::RenderWindow* window)
 {
 	this->window = window;
 	clef.setWindow(window);
 	sheetMusicKeySignature.setWindow(window);
 	sheetMusicTimeSignature.setWindow(window);
+
+	for (auto& measure : measures)
+	{
+		measure->setWindow(window);
+	}
 }
 
 std::pair<sf::Vector2f, sf::Vector2f> SheetMusicStaff::getHoverArea()

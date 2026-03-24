@@ -133,6 +133,7 @@ void processInput(
     InteractionState& interactionState,
     sf::RenderWindow& guiWindow,
     sf::RenderWindow& gameWindow,
+    bool& layoutDirty,
     PlayerObject*& player
 ) {
     RenderUtilities::setActiveHover(
@@ -141,7 +142,16 @@ void processInput(
         interactionState.previousHoverObject,
         interactionState.activeObject
     );
-    RenderUtilities::pollEvents(&guiWindow, &gameWindow, player, interactionState.activeObject, interactionState.hoverObject);
+    RenderUtilities::pollEvents(&guiWindow, &gameWindow, player, interactionState.activeObject, interactionState.hoverObject, &layoutDirty);
+    if (layoutDirty)
+    {
+        RenderUtilities::updateUiLayout(renderObjects, &guiWindow);
+        layoutDirty = false;
+    }
+}
+
+void updateUiLayout(std::vector<RenderObject*>& renderObjects, sf::RenderWindow& guiWindow) {
+    RenderUtilities::updateUiLayout(renderObjects, &guiWindow);
 }
 
 void renderFrame(
@@ -167,6 +177,11 @@ void updateScalePlayback(
     CircleRingSelect*& circleSelection,
     FloatSlider*& floatSlider
 ) {
+    if (toggle == nullptr || circleSelection == nullptr || floatSlider == nullptr)
+    {
+        return;
+    }
+
     if (toggle->getState())
     {
         RenderUtilities::playScale(

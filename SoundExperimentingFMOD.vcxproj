@@ -280,10 +280,12 @@
     <ClInclude Include="src\Graphics\GameObjects\AnimationUtilities.h" />
     <ClInclude Include="src\Graphics\GameObjects\PlayerObject.h" />
     <ClInclude Include="src\Graphics\GUI\CircleRingSelect.h" />
+    <ClInclude Include="src\Graphics\GUI\Container.h" />
     <ClInclude Include="src\Graphics\GUI\DropdownMenu.h" />
     <ClInclude Include="src\Graphics\GUI\FloatSlider.h" />
     <ClInclude Include="src\Graphics\GUI\BoundedFloatSlider.h" />
     <ClInclude Include="src\Graphics\GUI\Primitives\PrimitiveRoundRectangle.h" />
+    <ClInclude Include="src\Graphics\GUI\RectSpec.h" />
     <ClInclude Include="src\Graphics\ResourceManager.h" />
     <ClInclude Include="src\Graphics\GUI\Primitives\PrimitiveText.h" />
     <ClInclude Include="src\Graphics\GUI\Primitives\Rectangle.h" />
