@@ -5,6 +5,7 @@
 #include <cmath>
 #include "Music/MusicUtilities.h"
 #include "Helper/RenderUtilities.h"
+#include "Graphics/GUI/Theme.h"
 
 namespace {
 constexpr std::chrono::milliseconds kSleepSlack(2);
@@ -76,7 +77,7 @@ PrimitiveText initializeFpsText(sf::RenderWindow& guiWindow, sf::RenderWindow& g
         "resources/fonts/Century 751 Bold.otf",
         ALIGN_RIGHT
     );
-    fpsText.setColor(sf::Color(60, 60, 180));
+    fpsText.setColor(Theme::TextCool);
     fpsText.setWindow(&gameWindow);
     return fpsText;
 }
@@ -161,8 +162,8 @@ void renderFrame(
     std::vector<RenderObject*>& renderObjects,
     InteractionState& interactionState
 ) {
-    guiWindow.clear(sf::Color(0, 3, 25));
-    gameWindow.clear(sf::Color(0, 3, 25));
+    guiWindow.clear(Theme::Background);
+    gameWindow.clear(Theme::Background);
     fpsText.draw();
     RenderUtilities::drawRenderObjects(renderObjects, interactionState.hoverObject, interactionState.activeObject);
     guiWindow.display();

@@ -11,6 +11,7 @@
 #include "../Graphics/GUI/ToggleBox.h"
 #include "../Graphics/GUI/DropdownMenu.h"
 #include "../Graphics/GUI/GUIPanel.h"
+#include "../Graphics/GUI/Theme.h"
 #include "../Graphics/GUI/Primitives/PrimitiveText.h"
 #include "../HeaderFiles/SoundMixer.h"
 
@@ -226,8 +227,8 @@ public:
 
         auto basePanel = new GUIPanel(
             RectSpec{ Px(0),Px(0),Pct(100),Pct(1.00f) },
-            sf::Color(0, 0, 0, 255),
-            sf::Color(0, 255, 0, 255),
+            Theme::Panel,
+            Theme::BorderPanel,
             2.0f,
             0.0f
         );
@@ -237,8 +238,8 @@ public:
 
         auto topPanel = new GUIPanel(
             RectSpec{ Px(0),Px(0),Pct(100),Pct(50) },
-            sf::Color(0, 0, 0, 255),
-            sf::Color(0, 0, 255, 255),
+            Theme::PanelAlt,
+            Theme::BorderSubtle,
             2.0f,
             5.0f
         );
@@ -246,8 +247,8 @@ public:
 
         auto bottomPanel = new GUIPanel(
             RectSpec{ Px(0),Pct(50),Pct(100),Pct(50) },
-            sf::Color(0, 0, 0, 255),
-            sf::Color(0, 0, 255, 255),
+            Theme::PanelAlt,
+            Theme::BorderSubtle,
             2.0f,
             0.0f
         );
@@ -258,7 +259,7 @@ public:
         toggle = new ToggleBox(
             RectSpec{ Pct(0.05f), Pct(0.05f), Px(20), Px(20) },
             MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+            Theme::Control, Theme::Accent, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
         topPanel->addChild(toggle);
 
         // Creation of the staff
@@ -266,11 +267,11 @@ public:
         auto staff = new SheetMusicStaff(RectSpec{Pct(5),Pct(20),Pct(90),Px(50)}, MarginSpec{Px(0), Px(0), Px(0), Px(0)},
             TrebleClef, MusicUtilities::getKey(NoteG, MAJOR));
 
-        staff->setColor(sf::Color(94, 94, 255));
-        staff->setClefColor(sf::Color(150, 150, 255));
-        staff->setNoteColor(sf::Color(94, 150, 255));
-        staff->setNoteHoverColor(sf::Color(55, 220, 255));
-        staff->setHoverColor(sf::Color(255, 200, 255));
+        staff->setColor(Theme::StaffLine);
+        staff->setClefColor(Theme::Clef);
+        staff->setNoteColor(Theme::Note);
+        staff->setNoteHoverColor(Theme::NoteHover);
+        staff->setHoverColor(Theme::StaffHover);
 
         sf::RectangleShape rect(sf::Vector2f(100, 100));
         rect.setFillColor(sf::Color(255, 0, 0));
@@ -318,10 +319,12 @@ public:
         options.push_back("That One");
         options.push_back("This One Too");
 
-        auto dropdown = new DropdownMenu<std::string>(600, 150, 150, 20, 14, 5, options,
-            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        dropdown->setWindow(guiWindow);
-        // renderObjects.push_back(dropdown);
+        auto dropdown = new DropdownMenu<std::string>(
+            RectSpec{ Pct(0.5f), Pct(0.35f), Pct(0.125f), Pct(0.05f) },
+            MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+            14, 5, options,
+            Theme::Control, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
+        topPanel->addChild(dropdown);
     }
 
     static void setActiveHover(std::vector<RenderObject*>& renderObjects, RenderObject*& hoverObject, RenderObject*& previousHoverObject, RenderObject*& activeObject)

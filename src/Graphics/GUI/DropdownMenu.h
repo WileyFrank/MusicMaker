@@ -25,6 +25,9 @@ private:
     sf::Color backgroundColor, textColor, activeBackgroundColor, activeTextColor;
 
     void initializeDropdownMenu() {
+        optionHeight = height;
+        margin = height / 2.0f;
+
         // Main dropdown appearance
         box.setSize(sf::Vector2f(width, height));
         box.setPosition(sf::Vector2f(x, y));
@@ -36,7 +39,6 @@ private:
 
         // Initialize each option box and text based on the options
         optionBoxes.clear();
-        optionTexts.clear();
         float boxY;
         std::string optionString = "---";
         for (size_t i = 0; i < optionDisplayCount; ++i) {
@@ -47,11 +49,14 @@ private:
             optionBox.setFillColor(backgroundColor);
             optionBoxes.push_back(optionBox);
             textY = boxY + optionHeight - (fontSize * 1.375f);
-            PrimitiveText* optionText = new PrimitiveText(x, textY, fontSize, optionString);
-            optionText->setText("----");
-            optionText->setColor(textColor);
-            optionText->setPosition(sf::Vector2f(x + margin / 2, textY));
-            optionTexts.push_back(optionText);
+            if (i >= optionTexts.size()) {
+                PrimitiveText* optionText = new PrimitiveText(x, textY, fontSize, optionString);
+                optionText->setText("----");
+                optionText->setColor(textColor);
+                optionTexts.push_back(optionText);
+            }
+            optionTexts[i]->setPosition(sf::Vector2f(x + margin / 2, textY));
+            optionTexts[i]->setColor(textColor);
         }
 
         for (size_t i = 0; i < options.size(); i++)
@@ -66,13 +71,33 @@ public:
         sf::Color backgroundColor = sf::Color(200, 200, 200), sf::Color textColor = sf::Color(50, 50, 50),
         sf::Color activeBackgroundColor = sf::Color(255, 255, 255), sf::Color activeTextColor = sf::Color(0, 0, 0))
         :options(options), fontSize(fontSize), backgroundColor(backgroundColor), textColor(textColor),
-        activeBackgroundColor(activeBackgroundColor), activeTextColor(activeTextColor), text(x, y, fontSize, defaultText), 
+        activeBackgroundColor(activeBackgroundColor), activeTextColor(activeTextColor), text(x, y, fontSize, defaultText),
         margin(height/2), optionDisplayCount(optionDisplayCount), optionHeight(height)
     {
-        this->x = x;
-        this->y = y;
-        this->width = width;
-        this->height = height;
+        this->x = 0.0f;
+        this->y = 0.0f;
+        this->width = 0.0f;
+        this->height = 0.0f;
+        setRectSpec(RectSpec{ Px(x), Px(y), Px(width), Px(height) });
+        setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        setResolvedRect(sf::FloatRect(x, y, width, height));
+        initializeDropdownMenu();
+        this->type = GUIObject;
+    }
+
+    DropdownMenu(const RectSpec& rectSpec, const MarginSpec& marginSpec, int fontSize, int optionDisplayCount, const std::vector<T>& options,
+        sf::Color backgroundColor = sf::Color(200, 200, 200), sf::Color textColor = sf::Color(50, 50, 50),
+        sf::Color activeBackgroundColor = sf::Color(255, 255, 255), sf::Color activeTextColor = sf::Color(0, 0, 0))
+        :options(options), fontSize(fontSize), backgroundColor(backgroundColor), textColor(textColor),
+        activeBackgroundColor(activeBackgroundColor), activeTextColor(activeTextColor), text(0.0f, 0.0f, fontSize, defaultText),
+        margin(0.0f), optionDisplayCount(optionDisplayCount), optionHeight(0.0f)
+    {
+        this->x = 0.0f;
+        this->y = 0.0f;
+        this->width = 0.0f;
+        this->height = 0.0f;
+        setRectSpec(rectSpec);
+        setMarginSpec(marginSpec);
         initializeDropdownMenu();
         this->type = GUIObject;
     }
@@ -84,6 +109,12 @@ public:
     }
     void update() override
     {}
+
+    void resolveLayout(const sf::FloatRect& parentRect) override
+    {
+        RenderObject::resolveLayout(parentRect);
+        initializeDropdownMenu();
+    }
     void draw() override
     {
         window->draw(box);

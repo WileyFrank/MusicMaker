@@ -1,4 +1,5 @@
 #include "SheetMusicKeySignature.h"
+#include "../GUI/Theme.h"
 
 void SheetMusicKeySignature::loadKeySignature()
 {
@@ -239,8 +240,8 @@ void SheetMusicKeySignature::hoverAction()
 
 	float height = 60.0f;
 
-	hoverPanel = addPanel(noteBounds.first.x, maxY - height, 120.0f, height, sf::Color(11, 0, 45), sf::Color(31, 24, 96), 2);
-	hoverPanel->addText("Key: " + key.name, 16, sf::Color(190, 188, 216));
+	hoverPanel = addPanel(noteBounds.first.x, maxY - height, 120.0f, height, Theme::TooltipFill, Theme::TooltipBorder, 2);
+	hoverPanel->addText("Key: " + key.name, 16, Theme::TooltipText);
 
 	std::string accidentalString;
 
@@ -269,7 +270,7 @@ void SheetMusicKeySignature::hoverAction()
 		}
 
 
-		hoverPanel->addText(accidentalString, 16, sf::Color(190, 188, 216));
+		hoverPanel->addText(accidentalString, 16, Theme::TooltipText);
 
 	}
 }
