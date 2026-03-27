@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>
+#include <memory>
 #include <fmod.hpp>
 #include "SFML/Graphics.hpp"
 #include "../Graphics/SheetMusic/SheetMusicStaff.h"
@@ -10,6 +12,9 @@
 #include "../Graphics/GUI/CircleRingSelect.h"
 #include "../Graphics/GUI/ToggleBox.h"
 #include "../Graphics/GUI/DropdownMenu.h"
+#include "../Graphics/GUI/RectangleButton.h"
+#include "../Graphics/GUI/GUIButton.h"
+#include "../Graphics/GUI/ImageButton.h"
 #include "../Graphics/GUI/GUIPanel.h"
 #include "../Graphics/GUI/Theme.h"
 #include "../Graphics/GUI/Primitives/PrimitiveText.h"
@@ -69,6 +74,18 @@ public:
                 }
             }
 
+            if (e.type == sf::Event::MouseButtonReleased)
+            {
+                if (e.mouseButton.button == sf::Mouse::Left && activeObject != nullptr)
+                {
+                    activeObject->onMouseButtonReleased(e.mouseButton.button);
+                    if (!activeObject->getActive())
+                    {
+                        activeObject = nullptr;
+                    }
+                }
+            }
+
             if (e.type == sf::Event::TextEntered) {
                 if (e.text.unicode <= 128) { // Basic ASCII filter
                     if (activeObject != nullptr)
@@ -89,6 +106,8 @@ public:
                 case sf::Keyboard::Down:
                 case sf::Keyboard::Left:
                 case sf::Keyboard::Right:
+                case sf::Keyboard::Return:
+                case sf::Keyboard::Escape:
                     if (activeObject != nullptr)
                         activeObject->arrowKeyInput(e.key.code);
                     break;
@@ -139,6 +158,15 @@ public:
         resolveLayoutTree(renderObjects, rootRect);
     }
 
+    static void setRadioSelection(std::vector<GUIButton*>& buttons, GUIButton* active)
+    {
+        for (auto* button : buttons)
+        {
+            button->setUnselected();
+        }
+        active->setActive();
+    }
+
     static void initializeRenderObjects(
         std::vector<RenderObject*>& renderObjects, sf::RenderWindow* guiWindow, sf::RenderWindow* gameWindow,
         ToggleBox*& toggle, CircleRingSelect*& circleSelection, FloatSlider*& floatSlider
@@ -146,10 +174,6 @@ public:
     {
         (void)gameWindow;
 
-        auto button = new PrimitiveText(100.0f, 300.0f, 24, "This is a test", "resources/fonts/Century 751 Bold.otf", ALIGN_LEFT);
-        button->setColor(sf::Color(20, 20, 60));
-        button->setWindow(guiWindow);
-        // renderObjects.push_back(button);
 
         Pitch note = { NoteC, 3 };
 
@@ -182,68 +206,162 @@ public:
         auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
         (void)scale;
 
-        TextBox<std::string>* textBox = new TextBox<std::string>(100, 100, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        auto textBox = new TextBox<std::string>(100, 100, 150, 20, 14, "",
+            Theme::Control, Theme::Accent, Theme::Panel, Theme::AccentBright);
         textBox->setWindow(guiWindow);
-        // renderObjects.push_back(textBox);
 
-        auto floatBox = new TextBox<float>(100, 130, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        auto floatBox = new TextBox<float>(100, 130, 150, 20, 14, "",
+            Theme::Control, Theme::Accent, Theme::Panel, Theme::AccentBright);
         floatBox->setWindow(guiWindow);
         floatBox->setValue(420.69f);
-        // renderObjects.push_back(floatBox);
 
-        auto intBox = new TextBox<int>(100, 160, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+        auto intBox = new TextBox<int>(100, 160, 150, 20, 14, "",
+            Theme::Control, Theme::Accent, Theme::Panel, Theme::AccentBright);
         intBox->setWindow(guiWindow);
         intBox->setValue(5);
-        // renderObjects.push_back(intBox);
 
-        textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        textBox->setWindow(guiWindow);
-        // renderObjects.push_back(textBox);
+        auto emptyStringBox = new TextBox<std::string>(100, 190, 150, 20, 14, "",
+            Theme::Control, Theme::Accent, Theme::Panel, Theme::AccentBright);
+        emptyStringBox->setWindow(guiWindow);
 
-        textBox = new TextBox<std::string>(100, 190, 150, 20, 14, "", sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        textBox->setWindow(guiWindow);
-        textBox->setValue("This is the string now");
-        // renderObjects.push_back(textBox);
+        auto textValueBox = new TextBox<std::string>(100, 190, 150, 20, 14, "",
+            Theme::Control, Theme::Accent, Theme::Panel, Theme::AccentBright);
+        textValueBox->setWindow(guiWindow);
+        textValueBox->setValue("This is the string now");
 
         BoundedFloatSlider* boundedFloatSlider = new BoundedFloatSlider(100, 220, 150, 20,
-            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(96, 82, 216), sf::Color(94, 150, 255));
+            Theme::Control, Theme::Accent, Theme::Accent, Theme::TextPrimary, Theme::Panel, Theme::AccentHover, Theme::AccentBright);
         boundedFloatSlider->setWindow(guiWindow);
         boundedFloatSlider->setBounds(0, 360);
-        // renderObjects.push_back(boundedFloatSlider);
 
         floatSlider = new FloatSlider(100, 250, 150, 20,
-            sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(247, 235, 236), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
+            Theme::Control, Theme::Accent, Theme::TextPrimary, Theme::Panel, Theme::AccentBright);
         floatSlider->setWindow(guiWindow);
         floatSlider->setValue(5.0f);
         float slideVal = floatSlider->getValue();
         (void)slideVal;
-        // renderObjects.push_back(floatSlider);
-
-        circleSelection = new CircleRingSelect(400, 200, 50, 10,
-            sf::Color(11, 0, 44), sf::Color(11, 0, 44), sf::Color(76, 62, 196), sf::Color(76, 62, 196), sf::Color(5, 0, 20), sf::Color(94, 150, 255));
-        circleSelection->setWindow(guiWindow);
-        circleSelection->setSlider(boundedFloatSlider);
-        // renderObjects.push_back(circleSelection);
 
         auto basePanel = new GUIPanel(
             RectSpec{ Px(0),Px(0),Pct(100),Pct(1.00f) },
             Theme::Panel,
             Theme::BorderPanel,
-            2.0f,
+            0.0f,
             0.0f
         );
         basePanel->setWindow(guiWindow);
-        basePanel->setPadding(5.0f);
+        basePanel->setPadding(10.0f);
 
 
-        auto topPanel = new GUIPanel(
-            RectSpec{ Px(0),Px(0),Pct(100),Pct(50) },
+        auto leftPanel = new GUIPanel(
+            RectSpec{ Px(0),Px(0),Pct(30),Pct(100) },
             Theme::PanelAlt,
+            Theme::BorderPanel,
+            2.0f,
+            5.0f
+        );
+        leftPanel->setPadding(10);
+        basePanel->addChild(leftPanel);
+
+        auto leftPanelTitle = new PrimitiveText(
+            RectSpec{ Pct(0.0125f), Px(0), Pct(100), Px(26) },
+            MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+            18,
+            "Duration:",
+            "C:/Windows/Fonts/segoeui.ttf",
+            ALIGN_LEFT
+        );
+        leftPanelTitle->setColor(Theme::TextPrimary);
+        leftPanel->addChild(leftPanelTitle);
+
+        auto rightPanel = new GUIPanel(
+            RectSpec{ Pct(80),Pct(0),Pct(20),Pct(100) },
+            Theme::ElevatedPanel,
             Theme::BorderSubtle,
             2.0f,
             5.0f
         );
-        basePanel->addChild(topPanel);
+        basePanel->addChild(rightPanel);
+
+        auto radioButtons = std::make_shared<std::vector<GUIButton*>>();
+
+        const ImageButtonColors durationNoteColors{
+            Theme::Control,
+            Theme::ControlHover,
+            Theme::ControlPressed,
+            Theme::BorderPanel,
+            Theme::AccentBright,
+            Theme::TextCool,
+            Theme::TextCool,
+            Theme::TextCool,
+        };
+
+        static const char* const kDurationNoteImagePaths[] = {
+            "resources/images/sheet_music/notes/Whole.png",
+            "resources/images/sheet_music/notes/HalfLow.png",
+            "resources/images/sheet_music/notes/QuarterLow.png",
+            "resources/images/sheet_music/notes/EighthSingleLow.png",
+        };
+
+        float spacing = 0.0125f;
+
+        for (size_t i = 0; i < 4; ++i)
+        {
+            auto* noteButton = new ImageButton(
+                RectSpec{ Pct(static_cast<float>(i) * 0.25f + (spacing / 2)) , Px(28), Pct(0.25f - spacing), Px(50) },
+                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                kDurationNoteImagePaths[i],
+                durationNoteColors,
+                nullptr
+            );
+            if (kDurationNoteImagePaths[i] == "resources/images/sheet_music/notes/Whole.png")
+            {
+                noteButton->setImageScaleFactor(0.5f);
+            }
+
+            radioButtons->push_back(noteButton);
+            noteButton->setOnClick([radioButtons, noteButton]() {
+                setRadioSelection(*radioButtons, noteButton);
+            });
+            noteButton->setToggleMode(true);
+            leftPanel->addChild(noteButton);
+        }
+
+        toggle = new ToggleBox(
+            RectSpec{ Pct(0.05f), Pct(0.05f), Px(20), Px(20) },
+            MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+            Theme::Control, Theme::Accent, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
+        toggle->setWindow(guiWindow);
+        //leftPanel->addChild(toggle);
+
+        // topPanel->addChild(button);
+
+        textBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.16f), Pct(0.18f), Px(24) });
+        textBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(textBox);
+
+        floatBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.24f), Pct(0.18f), Px(24) });
+        floatBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(floatBox);
+
+        intBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.32f), Pct(0.18f), Px(24) });
+        intBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(intBox);
+
+        emptyStringBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.40f), Pct(0.18f), Px(24) });
+        emptyStringBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(emptyStringBox);
+
+        textValueBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.48f), Pct(0.22f), Px(24) });
+        textValueBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(textValueBox);
+
+        boundedFloatSlider->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.58f), Pct(0.24f), Px(24) });
+        boundedFloatSlider->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(boundedFloatSlider);
+
+        floatSlider->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.68f), Pct(0.24f), Px(24) });
+        floatSlider->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(floatSlider);
 
         auto bottomPanel = new GUIPanel(
             RectSpec{ Px(0),Pct(50),Pct(100),Pct(50) },
@@ -252,15 +370,14 @@ public:
             2.0f,
             0.0f
         );
-        basePanel->addChild(bottomPanel);
+        // basePanel->addChild(bottomPanel);
 
-
-
-        toggle = new ToggleBox(
-            RectSpec{ Pct(0.05f), Pct(0.05f), Px(20), Px(20) },
+        circleSelection = new CircleRingSelect(
+            RectSpec{ Pct(0.55f), Pct(0.10f), Pct(0.30f), Pct(0.30f) },
             MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-            Theme::Control, Theme::Accent, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
-        topPanel->addChild(toggle);
+            Theme::Control, Theme::Control, Theme::Accent, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
+        circleSelection->setSlider(boundedFloatSlider);
+        // topPanel->addChild(circleSelection);
 
         // Creation of the staff
 
@@ -306,7 +423,7 @@ public:
         staff->addNote(D3Note, 13.0f);
         staff->addNote(D3Note, 17.0f);
         staff->addNote(D3Note, 14.0f);
-        bottomPanel->addChild(staff);
+        // bottomPanel->addChild(staff);
 
 
 
@@ -324,7 +441,7 @@ public:
             MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
             14, 5, options,
             Theme::Control, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
-        topPanel->addChild(dropdown);
+        // topPanel->addChild(dropdown);
     }
 
     static void setActiveHover(std::vector<RenderObject*>& renderObjects, RenderObject*& hoverObject, RenderObject*& previousHoverObject, RenderObject*& activeObject)

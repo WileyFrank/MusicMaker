@@ -34,6 +34,24 @@ FloatSlider::FloatSlider(float x, float y, float width, float height, sf::Color 
     widthValue = 0.1f;
 }
 
+void FloatSlider::resolveLayout(const sf::FloatRect& parentRect)
+{
+    RenderObject::resolveLayout(parentRect);
+    const sf::FloatRect pixelRect = getResolvedRect();
+    x = pixelRect.left;
+    y = pixelRect.top;
+    width = pixelRect.width;
+    height = pixelRect.height;
+
+    outBox.setPosition(x, y);
+    outBox.setSize(sf::Vector2f(width, height));
+    text.setPosition(sf::Vector2f(x + width / 2.0f, y));
+
+    inputTextBox.setRectSpec(RectSpec{ Px(x), Px(y), Px(width), Px(height) });
+    inputTextBox.setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+    inputTextBox.resolveLayout(sf::FloatRect(0.0f, 0.0f, 0.0f, 0.0f));
+}
+
 void FloatSlider::onClick()
 {
     if (textBoxOpen)

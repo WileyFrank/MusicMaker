@@ -1,6 +1,28 @@
 #include "SheetMusicKeySignature.h"
 #include "../GUI/Theme.h"
 
+namespace
+{
+int countDisplayLines(const std::string& text)
+{
+	if (text.empty())
+	{
+		return 0;
+	}
+
+	int lines = 1;
+	for (char c : text)
+	{
+		if (c == '\n')
+		{
+			lines++;
+		}
+	}
+
+	return lines;
+}
+}
+
 void SheetMusicKeySignature::loadKeySignature()
 {
 	PitchEnum notePattern[7];
@@ -237,11 +259,8 @@ void SheetMusicKeySignature::hoverAction()
 	auto noteBounds = getHoverArea();
 
 	float maxY = noteBounds.first.y;
-
-	float height = 60.0f;
-
-	hoverPanel = addPanel(noteBounds.first.x, maxY - height, 120.0f, height, Theme::TooltipFill, Theme::TooltipBorder, 2);
-	hoverPanel->addText("Key: " + key.name, 16, Theme::TooltipText);
+	std::vector<std::pair<std::string, int>> panelLines;
+	panelLines.push_back({ "Key: " + key.name, 16 });
 
 	std::string accidentalString;
 
@@ -269,9 +288,23 @@ void SheetMusicKeySignature::hoverAction()
 			break;
 		}
 
+		panelLines.push_back({ accidentalString, 16 });
 
-		hoverPanel->addText(accidentalString, 16, Theme::TooltipText);
+	}
 
+	float requiredHeight = 5.0f;
+	for (const auto& line : panelLines)
+	{
+		const int lineCount = countDisplayLines(line.first);
+		requiredHeight += (float)lineCount * ((float)line.second * 1.35f) + 5.0f;
+	}
+
+	const float height = std::max(60.0f, requiredHeight);
+	hoverPanel = addPanel(noteBounds.first.x, maxY - height, 160.0f, height, Theme::TooltipFill, Theme::TooltipBorder, 2);
+
+	for (const auto& line : panelLines)
+	{
+		hoverPanel->addText(line.first, line.second, Theme::TooltipText);
 	}
 }
 

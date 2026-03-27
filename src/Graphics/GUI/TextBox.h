@@ -494,6 +494,30 @@ public:
         this->selectedText.setWindow(window);
     }
 
+    void resolveLayout(const sf::FloatRect& parentRect) override
+    {
+        RenderObject::resolveLayout(parentRect);
+        const sf::FloatRect pixelRect = getResolvedRect();
+        x = pixelRect.left;
+        y = pixelRect.top;
+        width = pixelRect.width;
+        height = pixelRect.height;
+
+        margin = height / 2.0f;
+        textY = y + height - (fontSize * 1.375f);
+        cursorY = y + (height - fontSize) / 2.0f;
+
+        box.setPosition(sf::Vector2f(x, y));
+        box.setSize(sf::Vector2f(width, height));
+
+        selectionHighlight.setSize(sf::Vector2f((float)fontSize, height - (fontSize * 1.125f)));
+
+        text.setPosition(sf::Vector2f(x + margin / 2.0f, textY));
+        selectedText.setPosition(sf::Vector2f(x + margin / 2.0f, textY));
+        cursor.setPosition(sf::Vector2f(x + margin / 2.0f, cursorY));
+        updateTextBox();
+    }
+
     void render() override
     {
         update();
@@ -544,6 +568,7 @@ public:
     void setActive() override
     {
         active = true;
+        oldString = textString;
         box.setFillColor(activeBackgroundColor);
         box.setOutlineColor(activeTextColor);
         text.setColor(activeTextColor);
@@ -677,6 +702,19 @@ public:
     {
         switch (key)
         {
+        case sf::Keyboard::Escape:
+            textString = oldString;
+            validateInput<T>();
+            cursorIndex = (int)textString.size();
+            selectionStart = -1;
+            selectionEnd = -1;
+            setInactive();
+            return;
+        case sf::Keyboard::Return:
+            selectionStart = -1;
+            selectionEnd = -1;
+            setInactive();
+            return;
         case sf::Keyboard::Up:
             break;
         case sf::Keyboard::Down:

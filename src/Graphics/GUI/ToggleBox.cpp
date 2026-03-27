@@ -21,7 +21,7 @@ ToggleBox::ToggleBox(
 
 	outBox.setFillColor(backgroundColor);
 	outBox.setOutlineColor(outlineColor);
-	outBox.setOutlineThickness(outlineWidth);
+	outBox.setOutlineThickness((float)outlineWidth);
 	
 	selectionBox.setFillColor(backgroundColor);
 	selectionBox.setOutlineThickness(0);

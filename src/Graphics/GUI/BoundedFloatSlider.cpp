@@ -40,6 +40,12 @@ void BoundedFloatSlider::render()
     draw();
 }
 
+void BoundedFloatSlider::resolveLayout(const sf::FloatRect& parentRect)
+{
+    FloatSlider::resolveLayout(parentRect);
+    fillBox.setPosition(x + 2.0f, y + 2.0f);
+}
+
 void BoundedFloatSlider::update()
 {
     if (textBoxOpen)

@@ -28,6 +28,7 @@ public:
     }
     
     void render() override;
+    void resolveLayout(const sf::FloatRect& parentRect) override;
     void update() override;
     void draw() override;
     void activeDraw() override;

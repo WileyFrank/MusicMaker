@@ -1,8 +1,10 @@
 #include "GUIPanel.h"
 #include <iostream>
+#include <algorithm>
 
 GUIPanel::GUIPanel()
-	:backgroundColor(sf::Color(255,255,255)), outlineColor(sf::Color(255, 255, 255))
+	: currentX(5.0f), currentY(5.0f),
+	backgroundColor(sf::Color(255,255,255)), outlineColor(sf::Color(255, 255, 255))
 {
 	type = GUIObject;
 
@@ -20,7 +22,7 @@ GUIPanel::GUIPanel()
 }
 
 GUIPanel::GUIPanel(float x, float y, float width, float height, sf::Color color, sf::Color outlineColor, float outline, float cornerSize)
-	:currentX(x + 5), currentY(y),
+	:currentX(5.0f), currentY(5.0f),
 	backgroundColor(color), outlineColor(outlineColor)
 {
 	setRectSpec(RectSpec{ Px(x), Px(y), Px(width), Px(height) });
@@ -52,6 +54,8 @@ GUIPanel::GUIPanel(float x, float y, float width, float height, sf::Color color,
 }
 
 GUIPanel::GUIPanel(const RectSpec& rectSpec, sf::Color color, sf::Color outlineColor, float outline, float cornerSize, MarginSpec marginSpec)
+	: currentX(5.0f), currentY(5.0f),
+	backgroundColor(color), outlineColor(outlineColor)
 {
 	setRectSpec(rectSpec);
 	setMarginSpec(marginSpec);
@@ -82,9 +86,13 @@ void GUIPanel::setRectSpec(const RectSpec& spec)
 
 void GUIPanel::addText(std::string text, int size, sf::Color color)
 {
-	PrimitiveText* textObject = new PrimitiveText(currentX, currentY, size, text, "resources/fonts/Sansation_Regular.ttf", ALIGN_LEFT);
+	PrimitiveText* textObject = new PrimitiveText(0.0f, 0.0f, size, text, "resources/fonts/Sansation_Regular.ttf", ALIGN_LEFT);
+	textObject->setRectSpec(RectSpec{ Px(currentX), Px(currentY), Px(0), Px(0) });
+	textObject->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
 
-	currentY += textObject->getHoverArea().second.y + padding;
+	const int lineCount = std::max(1, 1 + static_cast<int>(std::count(text.begin(), text.end(), '\n')));
+	const float lineHeight = static_cast<float>(size) * 1.35f;
+	currentY += (lineCount * lineHeight) + padding;
 	textObject->setColor(color);
 	textObject->setWindow(window);
 

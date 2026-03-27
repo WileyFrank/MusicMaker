@@ -1,67 +1,74 @@
 #pragma once
 #include "SFML/Graphics.hpp"
 #include <functional>
+#include <string>
 #include "GUIButton.h"
 #include "GUIUtilities.h"
 #include "../ResourceManager.h"
 
 
-struct RectangleButtonColors
+struct ImageButtonColors
 {
 	sf::Color baseFill;
 	sf::Color hoverFill;
 	sf::Color activeFill;
-	sf::Color text;
-	sf::Color textActive;
-	/** Border ring; outer bounds of the button match the layout width/height. */
 	sf::Color outline;
 	sf::Color outlineActive;
+	/** Multiplied with texture (use white for unchanged artwork). */
+	sf::Color imageTint;
+	sf::Color imageTintHover;
+	sf::Color imageTintActive;
 };
 
 
-class RectangleButton : public GUIButton
+class ImageButton : public GUIButton
 {
 protected:
 	sf::RectangleShape* outlineShape;
 	sf::RectangleShape* shape;
 	float outlineThickness;
 
-	sf::Font* font;
-	sf::Text text;
-	sf::Color textColor;
-	sf::Color textActiveColor;
+	sf::Texture* texture;
+	sf::Sprite sprite;
+	sf::Color imageTintBase;
+	sf::Color imageTintHover;
+	sf::Color imageTintActive;
 	sf::Color outlineNormalColor;
 	sf::Color outlineActiveColor;
+	/** Multiplied with the uniform scale after fitting the texture inside the inner rect (default 1). */
+	float imageScaleFactor;
 
 	void applyNormalVisuals() override;
 	void syncOutlineColor();
 
 private:
-	void layoutShapesAndText();
+	void layoutShapesAndImage();
 
 public:
-	/** Last argument is optional: pass a lambda at creation, e.g. `[](){ ... }` or `[&]{ foo(); }`. */
-	/** outlineWidthPx: border thickness on each side in pixels (inner fill is inset by this amount). */
-	RectangleButton(
+	ImageButton(
 		float xIn,
 		float yIn,
 		float width,
 		float height,
-		const RectangleButtonColors& colors,
+		const std::string& imagePath,
+		const ImageButtonColors& colors,
 		std::function<void()> onClickAction = nullptr,
-		float outlineWidthPx = 2.0f
+		float outlineWidthPx = 2.0f,
+		float imageScaleFactor = 1.0f
 	);
-	RectangleButton(
+	ImageButton(
 		const RectSpec& rectSpec,
 		const MarginSpec& marginSpec,
-		const RectangleButtonColors& colors,
+		const std::string& imagePath,
+		const ImageButtonColors& colors,
 		std::function<void()> onClickAction = nullptr,
-		float outlineWidthPx = 2.0f
+		float outlineWidthPx = 2.0f,
+		float imageScaleFactor = 1.0f
 	);
-	~RectangleButton();
+	~ImageButton();
 
-	//setters
-	void setText(std::string textString);
+	void setImageScaleFactor(float factor);
+	float getImageScaleFactor() const { return imageScaleFactor; }
 
 	void update() override;
 	void draw() override;
@@ -69,6 +76,4 @@ public:
 	void activeDraw() override;
 	void resolveLayout(const sf::FloatRect& parentRect) override;
 	RenderObject& getHoverObject();
-
 };
-

@@ -53,6 +53,8 @@ private:
 
 	KeySignature keySignature;
 	SheetMusicKeySignature sheetMusicKeySignature;
+	std::vector<SheetMusicClef*> wrappedClefs;
+	std::vector<SheetMusicKeySignature*> wrappedKeySignatures;
 
 	TimeSignature timeSignature;
 	SheetMusicTimeSignature sheetMusicTimeSignature;
@@ -61,10 +63,21 @@ private:
 	sf::Color staffColor, clefColor, noteColor, hoverColor, noteHoverColor, placeholderColor;
 
 	std::vector<SheetMusicMeasure*> measures;
+
+	float rowSpacing = 0.0f;
+	float continuationMeasureStart = 0.0f;
+	float lastMeasuredHeight = -1.0f;
+	bool hasMeasuredWidths = false;
  
 	void GenerateStaffLines();
 	float getStaffPosition(Pitch note);
 	void addBar(float xPosition);
+	void clearWrappedSymbols();
+	void clearStaffGeometry();
+	void addStaffRow(int rowIndex);
+	void relayoutMeasuresWithWrap();
+	float getRowTop(int rowIndex) const;
+	float getRowPrefixWidth(int rowIndex) const;
 
 public:
 	SheetMusicStaff();

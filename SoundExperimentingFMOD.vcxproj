@@ -164,6 +164,8 @@
     <ClCompile Include="src\Graphics\SheetMusic\SheetMusicStaff.cpp" />
     <ClCompile Include="src\Graphics\SheetMusic\SheetMusicElement.cpp" />
     <ClCompile Include="src\Music\Chord.cpp" />
+    <ClCompile Include="src\Graphics\GUI\GUIButton.cpp" />
+    <ClCompile Include="src\Graphics\GUI\ImageButton.cpp" />
     <ClCompile Include="src\Graphics\GUI\RectangleButton.cpp" />
     <ClCompile Include="src\Graphics\GUI\RenderObject.cpp" />
     <ClCompile Include="src\Graphics\GUI\SFButton.cpp" />
@@ -303,6 +305,8 @@
     <ClInclude Include="src\Graphics\SheetMusic\SheetMusicStaff.h" />
     <ClInclude Include="src\Graphics\SheetMusic\SheetMusicElement.h" />
     <ClInclude Include="src\Music\Chord.h" />
+    <ClInclude Include="src\Graphics\GUI\GUIButton.h" />
+    <ClInclude Include="src\Graphics\GUI\ImageButton.h" />
     <ClInclude Include="src\Graphics\GUI\RectangleButton.h" />
     <ClInclude Include="src\Graphics\GUI\RenderObject.h" />
     <ClInclude Include="src\Graphics\GUI\SFButton.h" />

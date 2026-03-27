@@ -1,5 +1,7 @@
 #include "SheetMusicStaff.h"
 #include "../GUI/GUIUtilities.h"
+#include <algorithm>
+#include <cmath>
 #include <new>
 
 //public
@@ -36,6 +38,12 @@ SheetMusicStaff::SheetMusicStaff(float x, float y, float width, float height, Cl
 		(sheetMusicKeySignature.getWidth()) +
 		(sheetMusicTimeSignature.getWidth()) +
 		(this->height / 2);
+	continuationMeasureStart =
+		(clef.getWidth()) +
+		(this->height / 6.0f) +
+		(sheetMusicKeySignature.getWidth()) +
+		(this->height / 2);
+	rowSpacing = this->height * 1.125f;
 
 }
 
@@ -59,65 +67,40 @@ SheetMusicStaff::~SheetMusicStaff()
 		delete shape;
 	}
 	lines.clear();
+	for (auto shape : bars)
+	{
+		delete shape;
+	}
+	bars.clear();
+	for (auto* measure : measures)
+	{
+		delete measure;
+	}
+	measures.clear();
+	clearWrappedSymbols();
 }
 
 SheetMusicMeasure* SheetMusicStaff::addMeasure(SheetMusicMeasure* measure) {
-	currentMeasure = 0.0f;
-
-	// Sum the widths of existing measures
-	for (auto& existingMeasure : measures) {
-		currentMeasure += (height / 4.0f) + existingMeasure->getWidth() + measureGap;
-	}
-
-	// Create a new bar
-	auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));
-	newRect->setPosition(sf::Vector2f(currentMeasure + this->x + measureStart, y));
-	newRect->setFillColor(staffColor);
-	bars.push_back(newRect);
-
-	currentMeasure += height / 5;
-
-	// Create a copy of the measure
-	SheetMusicMeasure* newMeasure = new SheetMusicMeasure(measure); // Copying the measure
-	newMeasure->setupStaff(currentMeasure + measureStart + this->x, this->y, height, clef.getClef());
+	SheetMusicMeasure* newMeasure = new SheetMusicMeasure(measure);
 	newMeasure->setNoteColor(noteColor);
 	newMeasure->setStaffColor(staffColor);
 	newMeasure->setWindow(this->window);
 	measures.push_back(newMeasure);
-	currentMeasure += newMeasure->getWidth();
+	relayoutMeasuresWithWrap();
+	colorUpdate();
 
-	return newMeasure; // Return the pointer to the new measure
+	return newMeasure;
 }
 
 SheetMusicMeasure* SheetMusicStaff::addMeasure()
 {
-	currentMeasure = 0.0f;
-
-	for (auto& measure : measures)
-	{
-		currentMeasure += (height / 4.0f) + measure->getWidth() + measureGap;
-	}
-
-	if (measures.size() > 0)
-	{
-		auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));
-
-		newRect->setPosition(sf::Vector2f(currentMeasure + measureStart + this->x, y));
-		newRect->setFillColor(staffColor);
-		bars.push_back(newRect);
-	}
-
-	currentMeasure += height / 4;
-
-
-
-
-	SheetMusicMeasure* newMeasure = new SheetMusicMeasure(currentMeasure + measureStart + this->x, this->y, height, clef.getClef(), timeSignature, keySignature);
+	SheetMusicMeasure* newMeasure = new SheetMusicMeasure(0.0f, 0.0f, height, clef.getClef(), timeSignature, keySignature);
 
 	newMeasure->setNoteColor(noteColor);
 	newMeasure->setStaffColor(staffColor);
 	newMeasure->setWindow(this->window);
 	measures.push_back(newMeasure);
+	relayoutMeasuresWithWrap();
 	colorUpdate();
 
 	return newMeasure;
@@ -140,25 +123,11 @@ float SheetMusicStaff::addNote(Note note, float beat)
 	}
 
 	float placement = fmod(beat, (float)timeSignature.denominator);
-	float measureWidth = measures[measure]->getWidth();
 	measures[measure]->clearRests();
 	measures[measure]->addNote(note,placement);
 	measures[measure]->addRests();
 	measures[measure]->reload();
-	//If affecting a measure with more measures after it, update the later ones
-	if (measure != measures.size() - 1)
-	{
-		float difference = measures[measure]->getWidth() - measureWidth;
-		if (difference)
-		{
-			for (int i = measure + 1; i < measures.size(); i++)
-			{
-				measures[i]->moveX(difference);
-				int j = i - 1;
-				bars[j]->setPosition(bars[j]->getPosition().x + difference, bars[j]->getPosition().y);
-			}
-		}
-	}
+	relayoutMeasuresWithWrap();
 	colorUpdate();
 	return beat + MusicUtilities::getBeats(timeSignature, note.value);;
 }
@@ -184,6 +153,20 @@ void SheetMusicStaff::draw()
 	clef.draw();
 	sheetMusicKeySignature.draw();
 	sheetMusicTimeSignature.draw();
+	for (auto* wrappedClef : wrappedClefs)
+	{
+		if (wrappedClef != nullptr)
+		{
+			wrappedClef->draw();
+		}
+	}
+	for (auto* wrappedKeySignature : wrappedKeySignatures)
+	{
+		if (wrappedKeySignature != nullptr)
+		{
+			wrappedKeySignature->draw();
+		}
+	}
 }
 
 void SheetMusicStaff::resolveLayout(const sf::FloatRect& parentRect)
@@ -218,39 +201,13 @@ void SheetMusicStaff::resolveLayout(const sf::FloatRect& parentRect)
 		(sheetMusicKeySignature.getWidth()) +
 		(sheetMusicTimeSignature.getWidth()) +
 		(this->height / 2);
-
-	// Rebuild staff lines/bars anchored to the resolved rectangle.
-	for (auto* shape : lines)
-	{
-		delete shape;
-	}
-	lines.clear();
-
-	for (auto* bar : bars)
-	{
-		delete bar;
-	}
-	bars.clear();
-
-	GenerateStaffLines();
-
-	// Re-layout measure X positions for the new geometry.
-	float barX = 0.0f;
-	for (size_t i = 0; i < measures.size(); ++i)
-	{
-		if (i > 0)
-		{
-			auto newRect = new sf::RectangleShape(sf::Vector2f(height / 20, height));
-			newRect->setPosition(sf::Vector2f(barX + measureStart + this->x, y));
-			newRect->setFillColor(staffColor);
-			bars.push_back(newRect);
-		}
-
-		const float measureX = barX + (height / 4.0f) + measureStart + this->x;
-		measures[i]->setupStaff(measureX, this->y, height, clef.getClef());
-		measures[i]->setWindow(this->window);
-		barX = (measureX - (measureStart + this->x)) + measures[i]->getWidth() + measureGap;
-	}
+	continuationMeasureStart =
+		(clef.getWidth()) +
+		(this->height / 6.0f) +
+		(sheetMusicKeySignature.getWidth()) +
+		(this->height / 2);
+	rowSpacing = this->height * 1.125f;
+	relayoutMeasuresWithWrap();
 
 	colorUpdate();
 }
@@ -261,6 +218,20 @@ void SheetMusicStaff::setWindow(sf::RenderWindow* window)
 	clef.setWindow(window);
 	sheetMusicKeySignature.setWindow(window);
 	sheetMusicTimeSignature.setWindow(window);
+	for (auto* wrappedClef : wrappedClefs)
+	{
+		if (wrappedClef != nullptr)
+		{
+			wrappedClef->setWindow(window);
+		}
+	}
+	for (auto* wrappedKeySignature : wrappedKeySignatures)
+	{
+		if (wrappedKeySignature != nullptr)
+		{
+			wrappedKeySignature->setWindow(window);
+		}
+	}
 
 	for (auto& measure : measures)
 	{
@@ -278,9 +249,6 @@ std::pair<sf::Vector2f, sf::Vector2f> SheetMusicStaff::getHoverArea()
 
 RenderObject& SheetMusicStaff::getHoverObject()
 {
-	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
-
-
 	//clef, key, time
 
 	if (clef.getHoverObject().getType() != EmptyRenderObject)
@@ -298,6 +266,20 @@ RenderObject& SheetMusicStaff::getHoverObject()
 	if (sheetMusicTimeSignature.getHoverObject().getType() != EmptyRenderObject)
 	{
 		return sheetMusicTimeSignature.getHoverObject();
+	}
+	for (auto* wrappedClef : wrappedClefs)
+	{
+		if (wrappedClef != nullptr && wrappedClef->getHoverObject().getType() != EmptyRenderObject)
+		{
+			return wrappedClef->getHoverObject();
+		}
+	}
+	for (auto* wrappedKeySignature : wrappedKeySignatures)
+	{
+		if (wrappedKeySignature != nullptr && wrappedKeySignature->getHoverObject().getType() != EmptyRenderObject)
+		{
+			return wrappedKeySignature->getHoverObject();
+		}
 	}
 	for (auto& measure : measures)
 	{
@@ -319,6 +301,20 @@ void SheetMusicStaff::setHover(bool hover)
 	clef.setHover(hover);
 	sheetMusicKeySignature.setHover(hover);
 	sheetMusicTimeSignature.setHover(hover);
+	for (auto* wrappedClef : wrappedClefs)
+	{
+		if (wrappedClef != nullptr)
+		{
+			wrappedClef->setHover(hover);
+		}
+	}
+	for (auto* wrappedKeySignature : wrappedKeySignatures)
+	{
+		if (wrappedKeySignature != nullptr)
+		{
+			wrappedKeySignature->setHover(hover);
+		}
+	}
 
 	for (auto& measure : measures)
 	{
@@ -331,6 +327,20 @@ void SheetMusicStaff::render()
 	clef.update();
 	sheetMusicKeySignature.update();
 	sheetMusicTimeSignature.update();
+	for (auto* wrappedClef : wrappedClefs)
+	{
+		if (wrappedClef != nullptr)
+		{
+			wrappedClef->update();
+		}
+	}
+	for (auto* wrappedKeySignature : wrappedKeySignatures)
+	{
+		if (wrappedKeySignature != nullptr)
+		{
+			wrappedKeySignature->update();
+		}
+	}
 
 
 	for (auto& measure : measures)
@@ -390,6 +400,10 @@ void SheetMusicStaff::setColor(sf::Color color)
 	{
 		shape->setFillColor(color);
 	}
+	for (auto shape : bars)
+	{
+		shape->setFillColor(color);
+	}
 	for (auto& measure : measures)
 	{
 		measure->setStaffColor(color);
@@ -397,6 +411,13 @@ void SheetMusicStaff::setColor(sf::Color color)
 	
 	clef.setColor(color);
 	sheetMusicTimeSignature.setColor(color);
+	for (auto* wrappedClef : wrappedClefs)
+	{
+		if (wrappedClef != nullptr)
+		{
+			wrappedClef->setColor(color);
+		}
+	}
 }
 
 void SheetMusicStaff::setNoteColor(sf::Color color)
@@ -408,12 +429,26 @@ void SheetMusicStaff::setNoteColor(sf::Color color)
 
 	noteColor = color;
 	sheetMusicKeySignature.setColor(color);
+	for (auto* wrappedKeySignature : wrappedKeySignatures)
+	{
+		if (wrappedKeySignature != nullptr)
+		{
+			wrappedKeySignature->setColor(color);
+		}
+	}
 }
 
 void SheetMusicStaff::setClefColor(sf::Color color)
 {
 	clefColor = color;
 	clef.setColor(color);
+	for (auto* wrappedClef : wrappedClefs)
+	{
+		if (wrappedClef != nullptr)
+		{
+			wrappedClef->setColor(color);
+		}
+	}
 }
 
 void SheetMusicStaff::setHoverColor(sf::Color color)
@@ -422,6 +457,20 @@ void SheetMusicStaff::setHoverColor(sf::Color color)
 	sheetMusicKeySignature.setHoverColor(color);
 	sheetMusicTimeSignature.setHoverColor(color);
 	clef.setHoverColor(color);
+	for (auto* wrappedKeySignature : wrappedKeySignatures)
+	{
+		if (wrappedKeySignature != nullptr)
+		{
+			wrappedKeySignature->setHoverColor(color);
+		}
+	}
+	for (auto* wrappedClef : wrappedClefs)
+	{
+		if (wrappedClef != nullptr)
+		{
+			wrappedClef->setHoverColor(color);
+		}
+	}
 }
 
 void SheetMusicStaff::setNoteHoverColor(sf::Color color)
@@ -435,25 +484,8 @@ void SheetMusicStaff::setNoteHoverColor(sf::Color color)
 
 void SheetMusicStaff::GenerateStaffLines()
 {
-	int lineWidth = (int)height/40;
-	if (lineWidth < 1) lineWidth = 1;
-
-	float spaceWidth = this->height - lineWidth * 5;
-
-	float newY;
-
-	sf::RectangleShape* newShape;
-	for (int i = 0; i < 5; i++)
-	{
-		newY = (spaceWidth / 4 + lineWidth) * i + y;
-
-		newShape = new sf::RectangleShape(sf::Vector2f(width, (float)lineWidth));
-		newShape->setPosition(sf::Vector2f(this->x, newY));
-
-		lines.push_back(newShape);
-	}
-
-	addBar(0);
+	clearStaffGeometry();
+	addStaffRow(0);
 }
 
 //returns the position of a note in the staff
@@ -475,4 +507,194 @@ void SheetMusicStaff::addBar(float xPosition)
 	sf::RectangleShape* newShape = new sf::RectangleShape(sf::Vector2f((float)lineWidth, this->height));
 	newShape->setPosition(xPosition + this->x, this->y);
 	lines.push_back(newShape);
+}
+
+void SheetMusicStaff::clearStaffGeometry()
+{
+	for (auto* shape : lines)
+	{
+		delete shape;
+	}
+	lines.clear();
+
+	for (auto* shape : bars)
+	{
+		delete shape;
+	}
+	bars.clear();
+}
+
+void SheetMusicStaff::clearWrappedSymbols()
+{
+	for (auto* wrappedClef : wrappedClefs)
+	{
+		delete wrappedClef;
+	}
+	wrappedClefs.clear();
+
+	for (auto* wrappedKeySignature : wrappedKeySignatures)
+	{
+		delete wrappedKeySignature;
+	}
+	wrappedKeySignatures.clear();
+}
+
+float SheetMusicStaff::getRowTop(int rowIndex) const
+{
+	const float rowStep = height + rowSpacing;
+	return y + static_cast<float>(rowIndex) * rowStep;
+}
+
+float SheetMusicStaff::getRowPrefixWidth(int rowIndex) const
+{
+	return rowIndex == 0 ? measureStart : continuationMeasureStart;
+}
+
+void SheetMusicStaff::addStaffRow(int rowIndex)
+{
+	int lineWidth = static_cast<int>(height / 40.0f);
+	if (lineWidth < 1)
+	{
+		lineWidth = 1;
+	}
+
+	const float lineThickness = static_cast<float>(lineWidth);
+	const float spaceWidth = height - lineThickness * 5.0f;
+	const float rowTop = getRowTop(rowIndex);
+
+	for (int i = 0; i < 5; i++)
+	{
+		const float lineY = (spaceWidth / 4.0f + lineThickness) * i + rowTop;
+		auto* newShape = new sf::RectangleShape(sf::Vector2f(width, lineThickness));
+		newShape->setPosition(sf::Vector2f(this->x, lineY));
+		newShape->setFillColor(staffColor);
+		lines.push_back(newShape);
+	}
+
+	int barWidth = static_cast<int>(height / 20.0f);
+	if (barWidth < 1)
+	{
+		barWidth = 1;
+	}
+
+	auto* leftBar = new sf::RectangleShape(sf::Vector2f(static_cast<float>(barWidth), this->height));
+	leftBar->setPosition(this->x, rowTop);
+	leftBar->setFillColor(staffColor);
+	lines.push_back(leftBar);
+}
+
+void SheetMusicStaff::relayoutMeasuresWithWrap()
+{
+	clearStaffGeometry();
+	clearWrappedSymbols();
+	if (height <= 0.0f || width <= 0.0f)
+	{
+		return;
+	}
+
+	const float preMeasureGap = height / 4.0f;
+	const float barWidth = std::max(1.0f, height / 20.0f);
+	const float probeRowTop = getRowTop(0);
+	const Clef activeClef = clef.getClef();
+	const bool requiresMeasureRebuild =
+		(!hasMeasuredWidths) ||
+		(std::fabs(lastMeasuredHeight - height) > 0.001f);
+
+	// Precompute widths only when staff height changed (or first run).
+	// Width-only resizes can reuse existing note geometry widths.
+	std::vector<float> measureWidths(measures.size(), 0.0f);
+	for (size_t i = 0; i < measures.size(); ++i)
+	{
+		SheetMusicMeasure* measure = measures[i];
+		if (measure == nullptr)
+		{
+			continue;
+		}
+
+		if (requiresMeasureRebuild)
+		{
+			measure->setupStaff(0.0f, probeRowTop, height, activeClef);
+			measure->setWindow(this->window);
+			measureWidths[i] = measure->getWidth();
+		}
+		else
+		{
+			measureWidths[i] = measure->getWidth();
+		}
+	}
+	hasMeasuredWidths = true;
+	lastMeasuredHeight = height;
+
+	int currentRow = 0;
+	addStaffRow(currentRow);
+
+	float runningX = 0.0f;
+	float rowUsableWidth = width - getRowPrefixWidth(currentRow);
+	if (rowUsableWidth < 0.0f)
+	{
+		rowUsableWidth = 0.0f;
+	}
+
+	for (size_t i = 0; i < measures.size(); ++i)
+	{
+		SheetMusicMeasure* measure = measures[i];
+		if (measure == nullptr)
+		{
+			continue;
+		}
+
+		const float measureWidth = measureWidths[i];
+		const float requiredWidth = preMeasureGap + measureWidth;
+		const bool exceedsRow = runningX > 0.0f && (runningX + requiredWidth > rowUsableWidth);
+
+		if (exceedsRow)
+		{
+			currentRow++;
+			addStaffRow(currentRow);
+			const float rowTop = getRowTop(currentRow);
+			auto* wrappedClef = new SheetMusicClef(this->x, rowTop, width, height, clefType);
+			wrappedClef->setColor(clefColor);
+			wrappedClef->setHoverColor(hoverColor);
+			wrappedClef->setWindow(this->window);
+			wrappedClefs.push_back(wrappedClef);
+
+			auto* wrappedKey = new SheetMusicKeySignature(
+				this->x + wrappedClef->getWidth() + (height / 6.0f),
+				rowTop,
+				height,
+				keySignature,
+				clefType
+			);
+			wrappedKey->setColor(noteColor);
+			wrappedKey->setHoverColor(hoverColor);
+			wrappedKey->setWindow(this->window);
+			wrappedKeySignatures.push_back(wrappedKey);
+
+			runningX = 0.0f;
+			rowUsableWidth = width - getRowPrefixWidth(currentRow);
+			if (rowUsableWidth < 0.0f)
+			{
+				rowUsableWidth = 0.0f;
+			}
+		}
+
+		const float rowPrefix = getRowPrefixWidth(currentRow);
+		const float rowTop = getRowTop(currentRow);
+
+		if (runningX > 0.0f)
+		{
+			auto* divider = new sf::RectangleShape(sf::Vector2f(barWidth, height));
+			divider->setPosition(sf::Vector2f(this->x + rowPrefix + runningX, rowTop));
+			divider->setFillColor(staffColor);
+			bars.push_back(divider);
+		}
+
+		const float measureX = this->x + rowPrefix + runningX + preMeasureGap;
+		measure->setupStaff(measureX, rowTop, height, activeClef);
+		measure->setWindow(this->window);
+
+		runningX += requiredWidth + measureGap;
+	}
+
+	currentMeasure = runningX;
 }

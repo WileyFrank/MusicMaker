@@ -1,5 +1,6 @@
 #include "CircleRingSelect.h"
 #include "GUIUtilities.h"
+#include <algorithm>
 
 void CircleRingSelect::positionOnCircle()
 {
@@ -73,6 +74,45 @@ CircleRingSelect::CircleRingSelect(float x, float y, float ringRadius, float cir
 
 	selectionRing.setOrigin(sf::Vector2f(ringRadius, ringRadius));
 	selectionCircle.setOrigin(sf::Vector2f(circleRadius, circleRadius));
+}
+
+CircleRingSelect::CircleRingSelect(
+	const RectSpec& rectSpec,
+	const MarginSpec& marginSpec,
+	sf::Color ringColor,
+	sf::Color circleColor,
+	sf::Color ringOutlineColor,
+	sf::Color circleOutlineColor,
+	sf::Color hoverCircleColor,
+	sf::Color activeCircleColor
+)
+	: CircleRingSelect(0.0f, 0.0f, 10.0f, 4.0f, ringColor, circleColor, ringOutlineColor, circleOutlineColor, hoverCircleColor, activeCircleColor)
+{
+	setRectSpec(rectSpec);
+	setMarginSpec(marginSpec);
+}
+
+void CircleRingSelect::resolveLayout(const sf::FloatRect& parentRect)
+{
+	RenderObject::resolveLayout(parentRect);
+	const sf::FloatRect pixelRect = getResolvedRect();
+
+	// Use resolved rect as the interaction area; ring scales from the smaller side.
+	x = pixelRect.left + (pixelRect.width * 0.5f);
+	y = pixelRect.top + (pixelRect.height * 0.5f);
+	ringRadius = std::max(1.0f, std::min(pixelRect.width, pixelRect.height) * 0.5f);
+	circleRadius = std::max(1.0f, ringRadius * 0.2f);
+
+	selectionRing.setRadius(ringRadius);
+	selectionRing.setPointCount((int)std::max(8.0f, ringRadius));
+	selectionRing.setOrigin(sf::Vector2f(ringRadius, ringRadius));
+	selectionRing.setPosition(sf::Vector2f(x, y));
+
+	selectionCircle.setRadius(circleRadius);
+	selectionCircle.setPointCount((int)std::max(8.0f, circleRadius * 2.0f));
+	selectionCircle.setOrigin(sf::Vector2f(circleRadius, circleRadius));
+
+	updateAngle();
 }
 
 void CircleRingSelect::render()
