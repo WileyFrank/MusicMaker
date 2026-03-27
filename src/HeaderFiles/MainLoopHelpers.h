@@ -63,8 +63,11 @@ void processInput(
     InteractionState& interactionState,
     sf::RenderWindow& guiWindow,
     sf::RenderWindow& gameWindow,
+    bool& layoutDirty,
     PlayerObject*& player
 );
+
+void updateUiLayout(std::vector<RenderObject*>& renderObjects, sf::RenderWindow& guiWindow);
 
 void renderFrame(
     sf::RenderWindow& guiWindow,

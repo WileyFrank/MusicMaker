@@ -164,6 +164,8 @@
     <ClCompile Include="src\Graphics\SheetMusic\SheetMusicStaff.cpp" />
     <ClCompile Include="src\Graphics\SheetMusic\SheetMusicElement.cpp" />
     <ClCompile Include="src\Music\Chord.cpp" />
+    <ClCompile Include="src\Graphics\GUI\GUIButton.cpp" />
+    <ClCompile Include="src\Graphics\GUI\ImageButton.cpp" />
     <ClCompile Include="src\Graphics\GUI\RectangleButton.cpp" />
     <ClCompile Include="src\Graphics\GUI\RenderObject.cpp" />
     <ClCompile Include="src\Graphics\GUI\SFButton.cpp" />
@@ -280,10 +282,12 @@
     <ClInclude Include="src\Graphics\GameObjects\AnimationUtilities.h" />
     <ClInclude Include="src\Graphics\GameObjects\PlayerObject.h" />
     <ClInclude Include="src\Graphics\GUI\CircleRingSelect.h" />
+    <ClInclude Include="src\Graphics\GUI\Container.h" />
     <ClInclude Include="src\Graphics\GUI\DropdownMenu.h" />
     <ClInclude Include="src\Graphics\GUI\FloatSlider.h" />
     <ClInclude Include="src\Graphics\GUI\BoundedFloatSlider.h" />
     <ClInclude Include="src\Graphics\GUI\Primitives\PrimitiveRoundRectangle.h" />
+    <ClInclude Include="src\Graphics\GUI\RectSpec.h" />
     <ClInclude Include="src\Graphics\ResourceManager.h" />
     <ClInclude Include="src\Graphics\GUI\Primitives\PrimitiveText.h" />
     <ClInclude Include="src\Graphics\GUI\Primitives\Rectangle.h" />
@@ -301,6 +305,8 @@
     <ClInclude Include="src\Graphics\SheetMusic\SheetMusicStaff.h" />
     <ClInclude Include="src\Graphics\SheetMusic\SheetMusicElement.h" />
     <ClInclude Include="src\Music\Chord.h" />
+    <ClInclude Include="src\Graphics\GUI\GUIButton.h" />
+    <ClInclude Include="src\Graphics\GUI\ImageButton.h" />
     <ClInclude Include="src\Graphics\GUI\RectangleButton.h" />
     <ClInclude Include="src\Graphics\GUI\RenderObject.h" />
     <ClInclude Include="src\Graphics\GUI\SFButton.h" />

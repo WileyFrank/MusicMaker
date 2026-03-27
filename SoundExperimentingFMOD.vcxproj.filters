@@ -30,6 +30,12 @@
     <ClCompile Include="src\SpacialSound.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\GUI\GUIButton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\GUI\ImageButton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\GUI\RectangleButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,6 +135,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\HeaderFiles\MainLoopHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\GUI\GUIButton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\GUI\ImageButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\GUI\RectangleButton.h">
@@ -519,6 +531,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\SFML\Window.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\GUI\RectSpec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\GUI\Container.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

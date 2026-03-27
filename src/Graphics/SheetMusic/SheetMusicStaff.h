@@ -53,6 +53,8 @@ private:
 
 	KeySignature keySignature;
 	SheetMusicKeySignature sheetMusicKeySignature;
+	std::vector<SheetMusicClef*> wrappedClefs;
+	std::vector<SheetMusicKeySignature*> wrappedKeySignatures;
 
 	TimeSignature timeSignature;
 	SheetMusicTimeSignature sheetMusicTimeSignature;
@@ -61,15 +63,33 @@ private:
 	sf::Color staffColor, clefColor, noteColor, hoverColor, noteHoverColor, placeholderColor;
 
 	std::vector<SheetMusicMeasure*> measures;
+
+	float rowSpacing = 0.0f;
+	float continuationMeasureStart = 0.0f;
+	float lastMeasuredHeight = -1.0f;
+	bool hasMeasuredWidths = false;
  
 	void GenerateStaffLines();
 	float getStaffPosition(Pitch note);
 	void addBar(float xPosition);
+	void clearWrappedSymbols();
+	void clearStaffGeometry();
+	void addStaffRow(int rowIndex);
+	void relayoutMeasuresWithWrap();
+	float getRowTop(int rowIndex) const;
+	float getRowPrefixWidth(int rowIndex) const;
 
 public:
 	SheetMusicStaff();
 	SheetMusicStaff(float x, float y, float width, float height, Clef clefType, 
 		KeySignature key = KeySignature(), TimeSignature timeSignature = TimeSignature());
+	SheetMusicStaff(
+		const RectSpec& rectSpec,
+		const MarginSpec& marginSpec,
+		Clef clefType,
+		KeySignature key = KeySignature(),
+		TimeSignature timeSignature = TimeSignature()
+	);
 
 	~SheetMusicStaff();
 
@@ -79,6 +99,7 @@ public:
 	float addNote(Note note, float beat);
 
 	void draw() override;
+	void resolveLayout(const sf::FloatRect& parentRect) override;
 	void setWindow(sf::RenderWindow* window) override;
 	std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() override;
 

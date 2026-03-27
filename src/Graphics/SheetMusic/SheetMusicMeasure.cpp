@@ -1,5 +1,6 @@
 #include "SheetMusicMeasure.h"
 #include <cmath>
+#include "../GUI/Theme.h"
 
 namespace {
 std::string degreeToRomanString(ChordDegree degree)
@@ -215,6 +216,17 @@ void SheetMusicMeasure::setupStaff(float x, float y, float staffHeight, Clef cle
 	this->x = x;
 	this->y = y;
 	this->height = staffHeight;
+	this->noteGap = staffHeight / 5.0f;
+
+	for (auto& pair : sheetNotes)
+	{
+		for (auto* note : pair.second)
+		{
+			delete note;
+		}
+	}
+	sheetNotes.clear();
+
 	loadSheetNotes();
 }
 
@@ -652,11 +664,11 @@ void SheetMusicMeasure::hoverAction()
 		);
 	}
 
-	hoverPanel = addPanel((float)mouse.x, minY - height, 150.0f, height, sf::Color(11, 0, 45), sf::Color(31, 24, 96), 2);
+	hoverPanel = addPanel((float)mouse.x, minY - height, 150.0f, height, Theme::TooltipFill, Theme::TooltipBorder, 2);
 
 	for (const std::string& line : panelLines)
 	{
-		hoverPanel->addText(line, 16, sf::Color(190, 188, 216));
+		hoverPanel->addText(line, 16, Theme::TooltipText);
 	}
 }
 

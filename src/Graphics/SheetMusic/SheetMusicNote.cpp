@@ -1,4 +1,27 @@
 #include "SheetMusicNote.h"
+#include "../GUI/Theme.h"
+
+namespace
+{
+int countDisplayLines(const std::string& text)
+{
+	if (text.empty())
+	{
+		return 0;
+	}
+
+	int lines = 1;
+	for (char c : text)
+	{
+		if (c == '\n')
+		{
+			lines++;
+		}
+	}
+
+	return lines;
+}
+}
 
 SheetMusicNote::SheetMusicNote()
 	:staffX(100), staffY(100), staffHeight(100), clef(TrebleClef), C4Position(1.25f), accidental(Natural),
@@ -231,9 +254,6 @@ void SheetMusicNote::hoverAction()
 
 	float maxY = noteBounds.first.y;
 
-	float height = 60.0f;
-
-	hoverPanel = addPanel((float)mouse.x, maxY - height, 120.0f, height, sf::Color(11, 0,45), sf::Color(31, 24, 96), 2);
 	auto noteName = MusicUtilities::getNatural(note.pitch.note);
 	Accidental acc = MusicUtilities::getAccidental(note.pitch.note);
 
@@ -241,18 +261,36 @@ void SheetMusicNote::hoverAction()
 
 	std::string pitchString = MusicUtilities::getNoteString(note.pitch.note);
 	std::string valueString = MusicUtilities::getValueString(note.value);
+	std::vector<std::pair<std::string, int>> panelLines;
 
 	if (note.pitch.note == NoteRest)
 	{
 		noteRest = "Rest";
-		hoverPanel->addText(valueString + noteRest, 16, sf::Color(190,188,216));
+		panelLines.push_back({ valueString + noteRest, 16 });
 	}
 	else
 	{
-		hoverPanel->addText(valueString + noteRest, 16, sf::Color(190, 188, 216));
-		hoverPanel->addText("Pitch: " + pitchString, 14, sf::Color(212, 209,255));
-		hoverPanel->addText("Interval: " + MusicUtilities::getIntervals(note.pitch.note, key), 14, sf::Color(212, 209, 255));
+		panelLines.push_back({ valueString + noteRest, 16 });
+		panelLines.push_back({ "Pitch: " + pitchString, 14 });
+		panelLines.push_back({ "Interval: " + MusicUtilities::getIntervals(note.pitch.note, key), 14 });
 	}
+
+	float requiredHeight = 5.0f;
+	for (const auto& line : panelLines)
+	{
+		const int lineCount = countDisplayLines(line.first);
+		requiredHeight += (float)lineCount * ((float)line.second * 1.35f) + 5.0f;
+	}
+
+	const float height = std::max(60.0f, requiredHeight);
+	hoverPanel = addPanel((float)mouse.x, maxY - height, 150.0f, height, Theme::TooltipFill, Theme::TooltipBorder, 2);
+
+	for (const auto& line : panelLines)
+	{
+		const sf::Color textColor = (line.second >= 16) ? Theme::TooltipText : Theme::TooltipSecondary;
+		hoverPanel->addText(line.first, line.second, textColor);
+	}
+
 	unhover = true;
 }
 

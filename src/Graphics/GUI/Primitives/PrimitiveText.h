@@ -23,10 +23,19 @@ public:
 	PrimitiveText();
 	PrimitiveText(std::string text);
 	PrimitiveText(float x, float y, int size, std::string text, std::string fontname = "resources/fonts/SourceCodePro-Regular.ttf", Alignment align = ALIGN_LEFT);
+	/** Positioned via RectSpec/MarginSpec; resolves inside panel content. */
+	PrimitiveText(
+		const RectSpec& rectSpec,
+		const MarginSpec& marginSpec,
+		int fontSize,
+		std::string text,
+		std::string fontpath,
+		Alignment align = ALIGN_LEFT);
 
 	void render() override;
 	void update() override;
 	void draw() override;
+	void resolveLayout(const sf::FloatRect& parentRect) override;
 	std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() override {
 
 		float xPos = x;

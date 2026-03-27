@@ -5,6 +5,7 @@
 #include <cmath>
 #include "Music/MusicUtilities.h"
 #include "Helper/RenderUtilities.h"
+#include "Graphics/GUI/Theme.h"
 
 namespace {
 constexpr std::chrono::milliseconds kSleepSlack(2);
@@ -76,7 +77,7 @@ PrimitiveText initializeFpsText(sf::RenderWindow& guiWindow, sf::RenderWindow& g
         "resources/fonts/Century 751 Bold.otf",
         ALIGN_RIGHT
     );
-    fpsText.setColor(sf::Color(60, 60, 180));
+    fpsText.setColor(Theme::TextCool);
     fpsText.setWindow(&gameWindow);
     return fpsText;
 }
@@ -133,6 +134,7 @@ void processInput(
     InteractionState& interactionState,
     sf::RenderWindow& guiWindow,
     sf::RenderWindow& gameWindow,
+    bool& layoutDirty,
     PlayerObject*& player
 ) {
     RenderUtilities::setActiveHover(
@@ -141,7 +143,16 @@ void processInput(
         interactionState.previousHoverObject,
         interactionState.activeObject
     );
-    RenderUtilities::pollEvents(&guiWindow, &gameWindow, player, interactionState.activeObject, interactionState.hoverObject);
+    RenderUtilities::pollEvents(&guiWindow, &gameWindow, player, interactionState.activeObject, interactionState.hoverObject, &layoutDirty);
+    if (layoutDirty)
+    {
+        RenderUtilities::updateUiLayout(renderObjects, &guiWindow);
+        layoutDirty = false;
+    }
+}
+
+void updateUiLayout(std::vector<RenderObject*>& renderObjects, sf::RenderWindow& guiWindow) {
+    RenderUtilities::updateUiLayout(renderObjects, &guiWindow);
 }
 
 void renderFrame(
@@ -151,8 +162,8 @@ void renderFrame(
     std::vector<RenderObject*>& renderObjects,
     InteractionState& interactionState
 ) {
-    guiWindow.clear(sf::Color(0, 3, 25));
-    gameWindow.clear(sf::Color(0, 3, 25));
+    guiWindow.clear(Theme::Background);
+    gameWindow.clear(Theme::Background);
     fpsText.draw();
     RenderUtilities::drawRenderObjects(renderObjects, interactionState.hoverObject, interactionState.activeObject);
     guiWindow.display();
@@ -167,6 +178,11 @@ void updateScalePlayback(
     CircleRingSelect*& circleSelection,
     FloatSlider*& floatSlider
 ) {
+    if (toggle == nullptr || circleSelection == nullptr || floatSlider == nullptr)
+    {
+        return;
+    }
+
     if (toggle->getState())
     {
         RenderUtilities::playScale(

@@ -22,9 +22,20 @@ private:
 
 public:
     CircleRingSelect(float x, float y, float ringRadius, float circleRadius, sf::Color ringColor, sf::Color circleColor, sf::Color ringOutlineColor, sf::Color circleOutlineColor, sf::Color hoverCircleColor, sf::Color activeCircleColor);
+    CircleRingSelect(
+        const RectSpec& rectSpec,
+        const MarginSpec& marginSpec,
+        sf::Color ringColor,
+        sf::Color circleColor,
+        sf::Color ringOutlineColor,
+        sf::Color circleOutlineColor,
+        sf::Color hoverCircleColor,
+        sf::Color activeCircleColor
+    );
 
     float getAngle() { return angleRadians; }
 
+    void resolveLayout(const sf::FloatRect& parentRect) override;
     void render() override;
     void update() override;
     void draw() override;

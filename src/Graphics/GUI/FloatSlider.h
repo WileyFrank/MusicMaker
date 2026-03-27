@@ -34,6 +34,7 @@ public:
     float getValue() { return value; }
 
 
+    void resolveLayout(const sf::FloatRect& parentRect) override;
     virtual void update() override;
     virtual void draw() override;
 

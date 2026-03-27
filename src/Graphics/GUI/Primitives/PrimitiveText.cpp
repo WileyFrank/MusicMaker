@@ -1,5 +1,7 @@
 #include "PrimitiveText.h"
 
+#include "../../ResourceManager.h"
+
 void PrimitiveText::reloadText()
 {
 	text.setString(textString);
@@ -24,6 +26,7 @@ PrimitiveText::PrimitiveText()
 	:textString("Init"), fontString("resources/fonts/Century 751 Bold.otf"),
 	font(*ResourceManager::getFont(fontString)), text(fontString, font), align(ALIGN_LEFT)
 {
+	type = GUIObject;
 	this->x = 100;
 	this->y = 100;
 }
@@ -32,6 +35,7 @@ PrimitiveText::PrimitiveText(std::string text)
 	:textString(text), fontString("resources/fonts/Century 751 Bold.otf"),
 	font(*ResourceManager::getFont(fontString)), text(textString, font), align(ALIGN_LEFT)
 {
+	type = GUIObject;
 	this->x = 100;
 	this->y = 100;
 }
@@ -40,6 +44,7 @@ PrimitiveText::PrimitiveText(float x, float y, int size, std::string text, std::
 	:textString(text), fontString(fontpath), align(align),
 	font(*ResourceManager::getFont(fontString)), text(textString, font, size)
 {
+	type = GUIObject;
 	this->x = x;
 	this->y = y;
 
@@ -59,6 +64,19 @@ PrimitiveText::PrimitiveText(float x, float y, int size, std::string text, std::
 	this->text.setPosition(x, y);
 }
 
+PrimitiveText::PrimitiveText(
+	const RectSpec& rectSpec,
+	const MarginSpec& marginSpec,
+	int fontSize,
+	std::string text,
+	std::string fontpath,
+	Alignment align)
+	: PrimitiveText(0.0f, 0.0f, fontSize, std::move(text), std::move(fontpath), align)
+{
+	setRectSpec(rectSpec);
+	setMarginSpec(marginSpec);
+}
+
 void PrimitiveText::render()
 {
 	update();
@@ -73,6 +91,15 @@ void PrimitiveText::update()
 void PrimitiveText::draw()
 {
 	window->draw(text);
+}
+
+void PrimitiveText::resolveLayout(const sf::FloatRect& parentRect)
+{
+	RenderObject::resolveLayout(parentRect);
+	const sf::FloatRect pixelRect = getResolvedRect();
+	x = pixelRect.left;
+	y = pixelRect.top;
+	reloadText();
 }
 
 RenderObject& PrimitiveText::getHoverObject()

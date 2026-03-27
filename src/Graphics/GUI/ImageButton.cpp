@@ -3,47 +3,25 @@
 
 #include "SFML/Graphics.hpp"
 
-#include "RectangleButton.h"
+#include "ImageButton.h"
 
 namespace
 {
-void centerTextInRect(sf::Text& text, float x, float y, float width, float height)
-{
-	const sf::FloatRect bounds = text.getLocalBounds();
-	text.setPosition(
-		x + (width * 0.5f) - (bounds.left + bounds.width * 0.5f),
-		y + (height * 0.5f) - (bounds.top + bounds.height * 0.5f)
-	);
+constexpr float kImagePaddingPx = 4.0f;
 }
 
-int fitCharacterSizeToBounds(sf::Text& text, float width, float height)
-{
-	const float availableWidth = std::max(1.0f, width - 8.0f);
-	const float availableHeight = std::max(1.0f, height - 6.0f);
-	int charSize = std::max(10, (int)std::floor(availableHeight * 0.7f));
-
-	text.setCharacterSize((unsigned int)charSize);
-	while (charSize > 8 && text.getLocalBounds().width > availableWidth)
-	{
-		charSize--;
-		text.setCharacterSize((unsigned int)charSize);
-	}
-
-	return charSize;
-}
-}
-
-RectangleButton::RectangleButton(
+ImageButton::ImageButton(
 	float xIn,
 	float yIn,
 	float width,
 	float height,
-	const RectangleButtonColors& colors,
+	const std::string& imagePath,
+	const ImageButtonColors& colors,
 	std::function<void()> onClickAction,
-	float outlineWidthPx
+	float outlineWidthPx,
+	float imageScaleFactorIn
 )
 {
-	// Must match a non-EmptyRenderObject or setActiveHover() will ignore this widget (uninitialized type is often 0 == Empty).
 	type = GUIObject;
 
 	this->x = xIn;
@@ -53,12 +31,14 @@ RectangleButton::RectangleButton(
 	this->baseColor = colors.baseFill;
 	this->hoverColor = colors.hoverFill;
 	this->activeFillColor = colors.activeFill;
-	this->textColor = colors.text;
-	this->textActiveColor = colors.textActive;
+	this->imageTintBase = colors.imageTint;
+	this->imageTintHover = colors.imageTintHover;
+	this->imageTintActive = colors.imageTintActive;
 	this->outlineNormalColor = colors.outline;
 	this->outlineActiveColor = colors.outlineActive;
 	this->color = colors.baseFill;
 	this->onClickAction = std::move(onClickAction);
+	this->imageScaleFactor = imageScaleFactorIn;
 
 	this->window = nullptr;
 	outlineThickness = std::max(0.0f, outlineWidthPx);
@@ -73,45 +53,48 @@ RectangleButton::RectangleButton(
 	shape->setFillColor(colors.baseFill);
 	shape->setPosition(this->x + t, this->y + t);
 
+	texture = ResourceManager::getTexture(imagePath);
+	if (texture != nullptr)
+	{
+		sprite.setTexture(*texture);
+		sprite.setColor(colors.imageTint);
+	}
+
 	setRectSpec(RectSpec{ Px(xIn), Px(yIn), Px(width), Px(height) });
 	setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
 	setResolvedRect(sf::FloatRect(xIn, yIn, width, height));
 
-	font = ResourceManager::getFont("resources/fonts/Dream Orphans Bd.otf");
-	if (font == nullptr) {
-		std::cerr << "Failed to load font file\n";
-		return;
-	}
-
-
-	text.setFont(*font);        // Set the font to the text
-	text.setString("Button");  // Set the string to display
-	text.setFillColor(colors.text);
-	layoutShapesAndText();
-
-
+	layoutShapesAndImage();
 }
 
-RectangleButton::RectangleButton(
+ImageButton::ImageButton(
 	const RectSpec& rectSpec,
 	const MarginSpec& marginSpec,
-	const RectangleButtonColors& colors,
+	const std::string& imagePath,
+	const ImageButtonColors& colors,
 	std::function<void()> onClickAction,
-	float outlineWidthPx
+	float outlineWidthPx,
+	float imageScaleFactorIn
 )
-	: RectangleButton(0.0f, 0.0f, 0.0f, 0.0f, colors, std::move(onClickAction), outlineWidthPx)
+	: ImageButton(0.0f, 0.0f, 0.0f, 0.0f, imagePath, colors, std::move(onClickAction), outlineWidthPx, imageScaleFactorIn)
 {
 	setRectSpec(rectSpec);
 	setMarginSpec(marginSpec);
 }
 
-RectangleButton::~RectangleButton()
+ImageButton::~ImageButton()
 {
 	delete outlineShape;
 	delete shape;
 }
 
-void RectangleButton::layoutShapesAndText()
+void ImageButton::setImageScaleFactor(float factor)
+{
+	imageScaleFactor = factor;
+	layoutShapesAndImage();
+}
+
+void ImageButton::layoutShapesAndImage()
 {
 	const float t = outlineThickness;
 	const float innerW = std::max(1.0f, width - 2.0f * t);
@@ -120,17 +103,36 @@ void RectangleButton::layoutShapesAndText()
 	outlineShape->setSize(sf::Vector2f(width, height));
 	shape->setPosition(x + t, y + t);
 	shape->setSize(sf::Vector2f(innerW, innerH));
-	fitCharacterSizeToBounds(text, innerW, innerH);
-	centerTextInRect(text, x + t, y + t, innerW, innerH);
+
+	if (texture == nullptr)
+	{
+		return;
+	}
+
+	const unsigned texW = texture->getSize().x;
+	const unsigned texH = texture->getSize().y;
+	if (texW == 0 || texH == 0)
+	{
+		return;
+	}
+
+	const float availW = std::max(1.0f, innerW - 2.0f * kImagePaddingPx);
+	const float availH = std::max(1.0f, innerH - 2.0f * kImagePaddingPx);
+	const float tw = static_cast<float>(texW);
+	const float th = static_cast<float>(texH);
+	const float fitScale = std::min(availW / tw, availH / th);
+	const float scale = fitScale * imageScaleFactor;
+	sprite.setScale(scale, scale);
+
+	const float scaledW = tw * scale;
+	const float scaledH = th * scale;
+	sprite.setPosition(
+		x + t + (innerW - scaledW) * 0.5f,
+		y + t + (innerH - scaledH) * 0.5f
+	);
 }
 
-void RectangleButton::setText(std::string textString)
-{
-	text.setString(textString);  // Set the string to display
-	layoutShapesAndText();
-}
-
-void RectangleButton::update()
+void ImageButton::update()
 {
 	if (window != nullptr)
 	{
@@ -143,47 +145,48 @@ void RectangleButton::update()
 		{
 			this->color = activeFillColor;
 			shape->setFillColor(activeFillColor);
-			text.setFillColor(textActiveColor);
+			sprite.setColor(imageTintActive);
 			this->hover = over;
 		}
 		else if (over)
 		{
 			this->color = hoverColor;
 			shape->setFillColor(this->color);
-			text.setFillColor(textColor);
+			sprite.setColor(imageTintHover);
 			this->hover = true;
 		}
 		else
 		{
 			this->color = baseColor;
 			shape->setFillColor(this->color);
-			text.setFillColor(textColor);
+			sprite.setColor(imageTintBase);
 			this->hover = false;
 		}
 	}
 	else
 	{
 		shape->setFillColor((toggleMode && !active && togglePressed) ? activeFillColor : baseColor);
-		text.setFillColor((toggleMode && !active && togglePressed) ? textActiveColor : textColor);
+		sprite.setColor((toggleMode && !active && togglePressed) ? imageTintActive : imageTintBase);
 	}
 	syncOutlineColor();
 }
-	
 
-void RectangleButton::syncOutlineColor()
+void ImageButton::syncOutlineColor()
 {
 	outlineShape->setFillColor(isShowingActiveChrome() ? outlineActiveColor : outlineNormalColor);
 }
 
-void RectangleButton::draw()
+void ImageButton::draw()
 {
 	window->draw(*this->outlineShape);
 	window->draw(*this->shape);
-	window->draw(this->text);
-	return;
+	if (texture != nullptr)
+	{
+		window->draw(this->sprite);
+	}
 }
 
-void RectangleButton::activeDraw()
+void ImageButton::activeDraw()
 {
 	if (!active)
 	{
@@ -191,26 +194,24 @@ void RectangleButton::activeDraw()
 	}
 
 	shape->setFillColor(activeFillColor);
-	text.setFillColor(textActiveColor);
+	sprite.setColor(imageTintActive);
+	syncOutlineColor();
 	draw();
 }
 
-void RectangleButton::render()
+void ImageButton::render()
 {
-
 	if (window != nullptr)
 	{
 		update();
 		draw();
 		return;
 	}
-	else
-	{
-		std::cerr << "Error: Attempted to draw Rectangle Button when window is uninitialized\n";
-	}
+
+	std::cerr << "Error: Attempted to draw ImageButton when window is uninitialized\n";
 }
 
-void RectangleButton::resolveLayout(const sf::FloatRect& parentRect)
+void ImageButton::resolveLayout(const sf::FloatRect& parentRect)
 {
 	RenderObject::resolveLayout(parentRect);
 	const sf::FloatRect pixelRect = getResolvedRect();
@@ -219,17 +220,17 @@ void RectangleButton::resolveLayout(const sf::FloatRect& parentRect)
 	width = pixelRect.width;
 	height = pixelRect.height;
 
-	layoutShapesAndText();
+	layoutShapesAndImage();
 }
 
-void RectangleButton::applyNormalVisuals()
+void ImageButton::applyNormalVisuals()
 {
 	shape->setFillColor(baseColor);
-	text.setFillColor(textColor);
+	sprite.setColor(imageTintBase);
 	outlineShape->setFillColor(outlineNormalColor);
 }
 
-RenderObject& RectangleButton::getHoverObject()
+RenderObject& ImageButton::getHoverObject()
 {
 	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
 	auto hoverArea = this->getHoverArea();

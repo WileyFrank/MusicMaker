@@ -1,59 +1,39 @@
 #include "PrimitiveRoundRectangle.h"
+#include <algorithm>
 
 PrimitiveRoundRectangle::PrimitiveRoundRectangle(float x, float y, float width, float height, sf::Color color, sf::Color outlineColor, float outline, float cornerRadius, int cornerPointCount)
-    :shape(4 * cornerPointCount + 8), width(width), height(height), x(x), y(y),
-    color(color), outlineColor(outlineColor)
+    : shape(4 * cornerPointCount + 8),
+    color(color), outlineColor(outlineColor),
+    outlineThickness(outline), cornerRadius(cornerRadius), cornerPointCount(cornerPointCount)
 {
-    std::size_t pointIndex = 0;
+    setResolvedRect(sf::FloatRect(x, y, width, height));
+    resolveLayout(sf::FloatRect(0.0f, 0.0f, 0.0f, 0.0f));
+}
 
-    // Helper lambda to set points in the correct order
-    auto setPoint = [&](float x, float y) {
-        shape.setPoint(pointIndex++, sf::Vector2f(x, y));
-        };
+void PrimitiveRoundRectangle::setRectSpec(const RectSpec& spec)
+{
+    RenderObject::setRectSpec(spec);
+}
 
-    // Top left corner
-    std::vector<std::pair<float, float>> points;
-    std::vector<std::pair<float, float>> anchorPoints;
-    points.push_back(std::make_pair(width - cornerRadius, cornerRadius));
-    points.push_back(std::make_pair(cornerRadius, cornerRadius));
-    points.push_back(std::make_pair(cornerRadius, height - cornerRadius));
-    points.push_back(std::make_pair(width - cornerRadius, height - cornerRadius));
+void PrimitiveRoundRectangle::resolveLayout(const sf::FloatRect& parentRect)
+{
+    RenderObject::resolveLayout(parentRect);
+    const sf::FloatRect pixelRect = getResolvedRect();
 
-    anchorPoints.push_back(std::make_pair(width, cornerRadius));
-    anchorPoints.push_back(std::make_pair(cornerRadius, 0.0f));
-    anchorPoints.push_back(std::make_pair(0.0f, height - cornerRadius));
-    anchorPoints.push_back(std::make_pair(width - cornerRadius, height));
+    const float inset = outlineThickness > 0.0f ? outlineThickness : 0.0f;
+    const float shapeWidth = std::max(0.0f, pixelRect.width - (2.0f * inset));
+    const float shapeHeight = std::max(0.0f, pixelRect.height - (2.0f * inset));
+    const float shapeX = pixelRect.left + inset;
+    const float shapeY = pixelRect.top + inset;
 
-    anchorPoints.push_back(std::make_pair(width - cornerRadius, 0.0f));
-    anchorPoints.push_back(std::make_pair(0.0f, cornerRadius));
-    anchorPoints.push_back(std::make_pair(cornerRadius, height));
-    anchorPoints.push_back(std::make_pair(width, height - cornerRadius));
+    const float maxCornerRadius = std::max(0.0f, std::min(shapeWidth, shapeHeight) * 0.5f);
+    const float appliedCornerRadius = std::min(cornerRadius, maxCornerRadius);
 
-
-    float pi = 3.14159265f;
-
-    for (int i = 0; i < 4; i++)
-    {
-        setPoint(anchorPoints[i].first, anchorPoints[i].second);
-        for (int j = 0; j < (float)cornerPointCount; j++)
-        {
-            float angle = ((90.0f * i) + (j * (90.0f / cornerPointCount))) * pi / 180.0f;
-            float x = points[i].first + cos(angle) * cornerRadius;
-            float y = points[i].second - sin(angle) * cornerRadius;
-
-            setPoint(x, y);
-        }
-        setPoint(anchorPoints[i + 4].first, anchorPoints[i + 4].second);
-    }
-
-    // Complete the shape by setting the last point equal to the first
-    shape.setPoint(pointIndex - 1, shape.getPoint(0));
-
+    shape = GUIUtilities::createRoundedRectangle(shapeWidth, shapeHeight, appliedCornerRadius, cornerPointCount);
     shape.setFillColor(color);
     shape.setOutlineColor(outlineColor);
-    shape.setOutlineThickness(outline);
-    shape.setPosition(x, y); 
-
+    shape.setOutlineThickness(outlineThickness);
+    shape.setPosition(shapeX, shapeY);
 }
 
 void PrimitiveRoundRectangle::render()
