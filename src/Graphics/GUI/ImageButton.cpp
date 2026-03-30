@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 #include "SFML/Graphics.hpp"
@@ -53,7 +54,7 @@ ImageButton::ImageButton(
 	shape->setFillColor(colors.baseFill);
 	shape->setPosition(this->x + t, this->y + t);
 
-	texture = ResourceManager::getTexture(imagePath);
+	texture = ResourceManager::getTexture(imagePath, true);
 	if (texture != nullptr)
 	{
 		sprite.setTexture(*texture);
@@ -126,10 +127,10 @@ void ImageButton::layoutShapesAndImage()
 
 	const float scaledW = tw * scale;
 	const float scaledH = th * scale;
-	sprite.setPosition(
-		x + t + (innerW - scaledW) * 0.5f,
-		y + t + (innerH - scaledH) * 0.5f
-	);
+	// Integer pixel alignment avoids subpixel sampling that can erase 1px strokes with linear filtering.
+	const float px = std::round(x + t + (innerW - scaledW) * 0.5f);
+	const float py = std::round(y + t + (innerH - scaledH) * 0.5f);
+	sprite.setPosition(px, py);
 }
 
 void ImageButton::update()

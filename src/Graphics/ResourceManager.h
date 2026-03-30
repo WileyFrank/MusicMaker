@@ -9,7 +9,8 @@ class ResourceManager
 	static std::map<std::string, sf::Font> fonts;
 
 public:
-	static sf::Texture* getTexture(std::string filepath);
+	/** @param smooth If true (default), linear filtering — better for scaled UI/line art. Use false for crisp pixel-art sprites. */
+	static sf::Texture* getTexture(std::string filepath, bool smooth = true);
 	static sf::Font* getFont(std::string filepath);
 
 };

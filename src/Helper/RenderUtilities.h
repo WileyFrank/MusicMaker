@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <fmod.hpp>
@@ -24,6 +25,10 @@
 class RenderUtilities
 {
 public:
+    /** Used when clamping GUI window size (SFML 2.x has no setMinimumSize; SFML 3 adds it on Window). */
+    static constexpr unsigned kGuiWindowMinWidth = 960;
+    static constexpr unsigned kGuiWindowMinHeight = 600;
+
     static void pollEvents(sf::RenderWindow* guiWindow, sf::RenderWindow* gameWindow, PlayerObject*& player, RenderObject*& activeObject, RenderObject*& hoverObject, bool* layoutDirty = nullptr)
     {
 
@@ -40,11 +45,18 @@ public:
             }
             if (e.type == sf::Event::Resized)
             {
+                unsigned w = std::max(e.size.width, kGuiWindowMinWidth);
+                unsigned h = std::max(e.size.height, kGuiWindowMinHeight);
+                if (w != e.size.width || h != e.size.height)
+                {
+                    guiWindow->setSize(sf::Vector2u(w, h));
+                }
+
                 sf::View resizedView(sf::FloatRect(
                     0.0f,
                     0.0f,
-                    static_cast<float>(e.size.width),
-                    static_cast<float>(e.size.height)
+                    static_cast<float>(w),
+                    static_cast<float>(h)
                 ));
                 guiWindow->setView(resizedView);
 
@@ -288,7 +300,7 @@ public:
         basePanel->setPadding(10.0f);
         
         
-        //LEFT PANEL
+        // --- Left panel ---
         {
             auto leftPanel = new GUIPanel(
                 RectSpec{ Px(0),Px(0),Pct(25),Pct(100) },
@@ -300,14 +312,55 @@ public:
             leftPanel->setPadding(10);
             basePanel->addChild(leftPanel);
 
+            // --- Left panel layout (fractions of the panel content rect) ---
+
+            constexpr float spacing = 0.0125f;
+            constexpr float halfSpacing = spacing / 2.0f;
+            constexpr float kQuarter = 1.0f / 4.0f;
+            constexpr float kSixth = 1.0f / 6.0f;
+            constexpr float kRefH = 800.0f;
+
+            // Inset / shared width (inset matches `spacing`)
+            constexpr float kLPInset = spacing;
+            constexpr float kLPWidth = 0.975f;
+
+            // Duration: title strip, note row, text row (verticals: px / ref height)
+            constexpr float kDurTitleH = 28.0f / kRefH;
+            constexpr float kDurNoteY = 34.0f / kRefH;
+            constexpr float kDurNoteH = 50.0f / kRefH;
+            constexpr float kDurTextY = 90.0f / kRefH;
+            constexpr float kDurTextH = 24.0f / kRefH;
+            constexpr float kDurColW = kQuarter - spacing;
+
+            // Accidentals: title strip, button row (six columns incl. gap)
+            constexpr float kAccTitleY = 120.0f / kRefH;
+            constexpr float kAccTitleH = 34.0f / kRefH;
+            constexpr float kAccRowY = 160.0f / kRefH;
+            constexpr float kAccRowH = 35.0f / kRefH;
+            constexpr float kAccColW = kSixth - spacing;
+
+            // Chord: title strip, panel
+            constexpr float kChordTitleY = 216.0f / kRefH;
+            constexpr float kChordTitleH = 32.0f / kRefH;
+            constexpr float kChordPanelY = 254.0f / kRefH;
+            constexpr float kChordPanelH = 1.0f / 4.0f;
+
+            // Motif: title strip (above panel), panel
+            constexpr float kMotifTitleH = 28.0f / kRefH;
+            constexpr float kMotifPanelY = 0.65f - halfSpacing;
+            constexpr float kMotifPanelH = 1 - kMotifPanelY - spacing/2;
+            constexpr float kMotifTitleY = kMotifPanelY - kMotifTitleH - (6.0f / kRefH);
+
             auto leftPanelTitle = new PrimitiveText(
-                RectSpec{ Pct(0.0125f), Px(0), Pct(100), Px(26) },
-                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-                24,
+                RectSpec{ Pct(kLPInset), Pct(0.0f), Pct(kLPWidth), Pct(kDurTitleH) },
+                MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                Pct(0.02f),
                 "Duration:",
                 "C:/Windows/Fonts/segoeui.ttf",
-                ALIGN_LEFT
+                ALIGN_LEFT,
+                VERTICAL_ALIGN_BOTTOM
             );
+            leftPanelTitle->setFontSizeClamp(16.0f, 24.0f);
             leftPanelTitle->setColor(Theme::TextPrimary);
             leftPanel->addChild(leftPanelTitle);
 
@@ -338,13 +391,11 @@ public:
                 "128th",
             };
 
-            float spacing = 0.0125f;
-
             for (size_t i = 0; i < 4; ++i)
             {
                 auto* noteButton = new ImageButton(
-                    RectSpec{ Pct(static_cast<float>(i) * 0.25f + (spacing / 2)) , Px(34), Pct(0.25f - spacing), Px(50) },
-                    MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                    RectSpec{ Pct(static_cast<float>(i) * kQuarter + halfSpacing), Pct(kDurNoteY), Pct(kDurColW), Pct(kDurNoteH) },
+                    MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
                     kDurationNoteImagePaths[i],
                     durationNoteColors,
                     nullptr
@@ -376,12 +427,12 @@ public:
             {
                 auto* textButton = new RectangleButton(
                     RectSpec{
-                        Pct(static_cast<float>(i) * 0.25f + (spacing / 2)),
-                        Px(90),
-                        Pct(0.25f - spacing),
-                        Px(24)
+                        Pct(static_cast<float>(i) * kQuarter + halfSpacing),
+                        Pct(kDurTextY),
+                        Pct(kDurColW),
+                        Pct(kDurTextH)
                     },
-                    MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                    MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
                     durationTextColors,
                     nullptr
                 );
@@ -395,14 +446,18 @@ public:
                 leftPanel->addChild(textButton);
             }
 
+            setRadioSelection(*radioButtons, (*radioButtons)[0]);
+
             auto accidentalTitle = new PrimitiveText(
-                RectSpec{ Pct(0.0125f), Px(129), Pct(100), Px(26) },
-                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-                24,
+                RectSpec{ Pct(kLPInset), Pct(kAccTitleY), Pct(kLPWidth), Pct(kAccTitleH) },
+                MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                Pct(0.02f),
                 "Accidental:",
                 "C:/Windows/Fonts/segoeui.ttf",
-                ALIGN_LEFT
+                ALIGN_LEFT,
+                VERTICAL_ALIGN_BOTTOM
             );
+            accidentalTitle->setFontSizeClamp(16.0f, 24.0f);
             accidentalTitle->setColor(Theme::TextPrimary);
             leftPanel->addChild(accidentalTitle);
 
@@ -425,10 +480,9 @@ public:
                 Theme::TextCool,
             };
 
-            constexpr float accidentalColumnWidth = 1.0f / 6.0f;
             auto* accidentalNoneButton = new RectangleButton(
-                RectSpec{ Pct(spacing / 2), Px(165), Pct(accidentalColumnWidth - spacing), Px(50) },
-                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                RectSpec{ Pct(halfSpacing), Pct(kAccRowY), Pct(kAccColW), Pct(kAccRowH) },
+                MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
                 accidentalNoneColors,
                 nullptr
             );
@@ -444,8 +498,8 @@ public:
             for (size_t i = 0; i < 5; ++i)
             {
                 auto* accidentalButton = new ImageButton(
-                    RectSpec{ Pct(static_cast<float>(i + 1) * accidentalColumnWidth + (spacing / 2)), Px(165), Pct(accidentalColumnWidth - spacing), Px(50) },
-                    MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                    RectSpec{ Pct(static_cast<float>(i + 1) * kSixth + halfSpacing), Pct(kAccRowY), Pct(kAccColW), Pct(kAccRowH) },
+                    MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
                     kAccidentalImagePaths[i],
                     durationNoteColors,
                     nullptr
@@ -464,19 +518,23 @@ public:
                 leftPanel->addChild(accidentalButton);
             }
 
+            setRadioSelection(*accidentalButtons, accidentalNoneButton);
+
             auto chordTitle = new PrimitiveText(
-                RectSpec{ Pct(0.0125f), Px(224), Pct(100), Px(26) },
-                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-                24,
+                RectSpec{ Pct(kLPInset), Pct(kChordTitleY), Pct(kLPWidth), Pct(kChordTitleH) },
+                MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                Pct(0.02f),
                 "Chord:",
                 "C:/Windows/Fonts/segoeui.ttf",
-                ALIGN_LEFT
+                ALIGN_LEFT,
+                VERTICAL_ALIGN_BOTTOM
             );
+            chordTitle->setFontSizeClamp(16.0f, 24.0f);
             chordTitle->setColor(Theme::TextPrimary);
             leftPanel->addChild(chordTitle);
 
             auto chordPanel = new GUIPanel(
-                RectSpec{ Pct(0.0125f), Px(256), Pct(0.975f), Pct(0.25f) },
+                RectSpec{ Pct(kLPInset), Pct(kChordPanelY), Pct(kLPWidth), Pct(kChordPanelH) },
                 Theme::ElevatedPanel,
                 Theme::BorderSubtle,
                 2.0f,
@@ -485,18 +543,20 @@ public:
             leftPanel->addChild(chordPanel);
 
             auto motifTitle = new PrimitiveText(
-                RectSpec{ Pct(0.0125f), Pct(70), Pct(100), Px(26) },
-                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-                24,
+                RectSpec{ Pct(kLPInset), Pct(kMotifTitleY), Pct(kLPWidth), Pct(kMotifTitleH) },
+                MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                Pct(0.02f),
                 "Motif:",
                 "C:/Windows/Fonts/segoeui.ttf",
-                ALIGN_LEFT
+                ALIGN_LEFT,
+                VERTICAL_ALIGN_BOTTOM
             );
+            motifTitle->setFontSizeClamp(16.0f, 24.0f);
             motifTitle->setColor(Theme::TextPrimary);
             leftPanel->addChild(motifTitle);
 
             auto motifPanel = new GUIPanel(
-                RectSpec{ Pct(0.0125f), Pct(0.75f - spacing/2), Pct(0.975f), Pct(0.25f) },
+                RectSpec{ Pct(kLPInset), Pct(kMotifPanelY), Pct(kLPWidth), Pct(kMotifPanelH) },
                 Theme::ElevatedPanel,
                 Theme::BorderSubtle,
                 2.0f,

@@ -161,7 +161,7 @@ public:
     SpriteSheet(int width, int height, int fps, std::string path)
         :frameWidth(width), frameHeight(height), fps(fps), path(path), inTransition(false)
     {
-        texture = ResourceManager::getTexture(path);
+        texture = ResourceManager::getTexture(path, false);
         sprite.setTexture(*texture);
         drawStates.blendMode = sf::BlendNone;
 
