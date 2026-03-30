@@ -9,7 +9,7 @@ int main() {
     auto soundMap = MainLoopHelpers::loadPianoScale(system);
 
     sf::RenderWindow gameWindow(sf::VideoMode(1200, 800), "Game Window");
-    sf::RenderWindow guiWindow(sf::VideoMode(1200, 800), "Sheet Music Generator");
+    sf::RenderWindow guiWindow(sf::VideoMode(1920, 1000), "Sheet Music Generator");
 
     // Hide the game window so only the GUI is visible.
     // To bring it back, change `false` to `true` (or remove this line).

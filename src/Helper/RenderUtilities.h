@@ -206,7 +206,7 @@ public:
         auto scale = Scale(Pitch({ NoteEf, 3 }), MAJOR);
         (void)scale;
 
-        auto textBox = new TextBox<std::string>(100, 100, 150, 20, 14, "",
+        /*auto textBox = new TextBox<std::string>(100, 100, 150, 20, 14, "",
             Theme::Control, Theme::Accent, Theme::Panel, Theme::AccentBright);
         textBox->setWindow(guiWindow);
 
@@ -239,102 +239,8 @@ public:
         floatSlider->setWindow(guiWindow);
         floatSlider->setValue(5.0f);
         float slideVal = floatSlider->getValue();
-        (void)slideVal;
-
-        auto basePanel = new GUIPanel(
-            RectSpec{ Px(0),Px(0),Pct(100),Pct(1.00f) },
-            Theme::Panel,
-            Theme::BorderPanel,
-            0.0f,
-            0.0f
-        );
-        basePanel->setWindow(guiWindow);
-        basePanel->setPadding(10.0f);
-
-
-        auto leftPanel = new GUIPanel(
-            RectSpec{ Px(0),Px(0),Pct(30),Pct(100) },
-            Theme::PanelAlt,
-            Theme::BorderPanel,
-            2.0f,
-            5.0f
-        );
-        leftPanel->setPadding(10);
-        basePanel->addChild(leftPanel);
-
-        auto leftPanelTitle = new PrimitiveText(
-            RectSpec{ Pct(0.0125f), Px(0), Pct(100), Px(26) },
-            MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-            18,
-            "Duration:",
-            "C:/Windows/Fonts/segoeui.ttf",
-            ALIGN_LEFT
-        );
-        leftPanelTitle->setColor(Theme::TextPrimary);
-        leftPanel->addChild(leftPanelTitle);
-
-        auto rightPanel = new GUIPanel(
-            RectSpec{ Pct(80),Pct(0),Pct(20),Pct(100) },
-            Theme::ElevatedPanel,
-            Theme::BorderSubtle,
-            2.0f,
-            5.0f
-        );
-        basePanel->addChild(rightPanel);
-
-        auto radioButtons = std::make_shared<std::vector<GUIButton*>>();
-
-        const ImageButtonColors durationNoteColors{
-            Theme::Control,
-            Theme::ControlHover,
-            Theme::ControlPressed,
-            Theme::BorderPanel,
-            Theme::AccentBright,
-            Theme::TextCool,
-            Theme::TextCool,
-            Theme::TextCool,
-        };
-
-        static const char* const kDurationNoteImagePaths[] = {
-            "resources/images/sheet_music/notes/Whole.png",
-            "resources/images/sheet_music/notes/HalfLow.png",
-            "resources/images/sheet_music/notes/QuarterLow.png",
-            "resources/images/sheet_music/notes/EighthSingleLow.png",
-        };
-
-        float spacing = 0.0125f;
-
-        for (size_t i = 0; i < 4; ++i)
-        {
-            auto* noteButton = new ImageButton(
-                RectSpec{ Pct(static_cast<float>(i) * 0.25f + (spacing / 2)) , Px(28), Pct(0.25f - spacing), Px(50) },
-                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-                kDurationNoteImagePaths[i],
-                durationNoteColors,
-                nullptr
-            );
-            if (kDurationNoteImagePaths[i] == "resources/images/sheet_music/notes/Whole.png")
-            {
-                noteButton->setImageScaleFactor(0.5f);
-            }
-
-            radioButtons->push_back(noteButton);
-            noteButton->setOnClick([radioButtons, noteButton]() {
-                setRadioSelection(*radioButtons, noteButton);
-            });
-            noteButton->setToggleMode(true);
-            leftPanel->addChild(noteButton);
-        }
-
-        toggle = new ToggleBox(
-            RectSpec{ Pct(0.05f), Pct(0.05f), Px(20), Px(20) },
-            MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-            Theme::Control, Theme::Accent, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
-        toggle->setWindow(guiWindow);
-        //leftPanel->addChild(toggle);
-
-        // topPanel->addChild(button);
-
+        (void)slideVal;*/
+        /*
         textBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.16f), Pct(0.18f), Px(24) });
         textBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
         // topPanel->addChild(textBox);
@@ -363,6 +269,293 @@ public:
         floatSlider->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
         // topPanel->addChild(floatSlider);
 
+        circleSelection = new CircleRingSelect(
+            RectSpec{ Pct(0.55f), Pct(0.10f), Pct(0.30f), Pct(0.30f) },
+            MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+            Theme::Control, Theme::Control, Theme::Accent, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
+        circleSelection->setSlider(boundedFloatSlider);
+        // topPanel->addChild(circleSelection);
+        */
+
+        auto basePanel = new GUIPanel(
+            RectSpec{ Px(0),Px(0),Pct(100),Pct(1.00f) },
+            Theme::Panel,
+            Theme::BorderPanel,
+            0.0f,
+            0.0f
+        );
+        basePanel->setWindow(guiWindow);
+        basePanel->setPadding(10.0f);
+        
+        
+        //LEFT PANEL
+        {
+            auto leftPanel = new GUIPanel(
+                RectSpec{ Px(0),Px(0),Pct(25),Pct(100) },
+                Theme::PanelAlt,
+                Theme::BorderPanel,
+                2.0f,
+                5.0f
+            );
+            leftPanel->setPadding(10);
+            basePanel->addChild(leftPanel);
+
+            auto leftPanelTitle = new PrimitiveText(
+                RectSpec{ Pct(0.0125f), Px(0), Pct(100), Px(26) },
+                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                24,
+                "Duration:",
+                "C:/Windows/Fonts/segoeui.ttf",
+                ALIGN_LEFT
+            );
+            leftPanelTitle->setColor(Theme::TextPrimary);
+            leftPanel->addChild(leftPanelTitle);
+
+            auto radioButtons = std::make_shared<std::vector<GUIButton*>>();
+
+            const ImageButtonColors durationNoteColors{
+                Theme::Control,
+                Theme::ControlHover,
+                Theme::ControlPressed,
+                Theme::BorderPanel,
+                Theme::AccentBright,
+                Theme::TextCool,
+                Theme::TextCool,
+                Theme::TextCool,
+            };
+
+            static const char* const kDurationNoteImagePaths[] = {
+                "resources/images/sheet_music/notes/Whole.png",
+                "resources/images/sheet_music/notes/HalfLow.png",
+                "resources/images/sheet_music/notes/QuarterLow.png",
+                "resources/images/sheet_music/notes/EighthSingleLow.png",
+            };
+
+            static const char* const kDurationNames[] = {
+                "16th",
+                "32nd",
+                "64th",
+                "128th",
+            };
+
+            float spacing = 0.0125f;
+
+            for (size_t i = 0; i < 4; ++i)
+            {
+                auto* noteButton = new ImageButton(
+                    RectSpec{ Pct(static_cast<float>(i) * 0.25f + (spacing / 2)) , Px(34), Pct(0.25f - spacing), Px(50) },
+                    MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                    kDurationNoteImagePaths[i],
+                    durationNoteColors,
+                    nullptr
+                );
+                if (kDurationNoteImagePaths[i] == "resources/images/sheet_music/notes/Whole.png")
+                {
+                    noteButton->setImageScaleFactor(0.5f);
+                }
+
+                radioButtons->push_back(noteButton);
+                noteButton->setOnClick([radioButtons, noteButton]() {
+                    setRadioSelection(*radioButtons, noteButton);
+                });
+                noteButton->setToggleMode(true);
+                leftPanel->addChild(noteButton);
+            }
+
+            const RectangleButtonColors durationTextColors{
+                Theme::Control,
+                Theme::ControlHover,
+                Theme::ControlPressed,
+                Theme::BorderPanel,
+                Theme::AccentBright,
+                Theme::TextCool,
+                Theme::TextCool,
+            };
+
+            for (size_t i = 0; i < 4; ++i)
+            {
+                auto* textButton = new RectangleButton(
+                    RectSpec{
+                        Pct(static_cast<float>(i) * 0.25f + (spacing / 2)),
+                        Px(90),
+                        Pct(0.25f - spacing),
+                        Px(24)
+                    },
+                    MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                    durationTextColors,
+                    nullptr
+                );
+                textButton->setFontPath("C:/Windows/Fonts/segoeui.ttf");
+                textButton->setText(kDurationNames[i],24);
+                radioButtons->push_back(textButton);
+                textButton->setOnClick([radioButtons, textButton]() {
+                    setRadioSelection(*radioButtons, textButton);
+                });
+                textButton->setToggleMode(true);
+                leftPanel->addChild(textButton);
+            }
+
+            auto accidentalTitle = new PrimitiveText(
+                RectSpec{ Pct(0.0125f), Px(129), Pct(100), Px(26) },
+                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                24,
+                "Accidental:",
+                "C:/Windows/Fonts/segoeui.ttf",
+                ALIGN_LEFT
+            );
+            accidentalTitle->setColor(Theme::TextPrimary);
+            leftPanel->addChild(accidentalTitle);
+
+            auto accidentalButtons = std::make_shared<std::vector<GUIButton*>>();
+            static const char* const kAccidentalImagePaths[] = {
+                "resources/images/sheet_music/accidentals/double_flat.png",
+                "resources/images/sheet_music/accidentals/Flat.png",
+                "resources/images/sheet_music/accidentals/Natural.png",
+                "resources/images/sheet_music/accidentals/Sharp.png",
+                "resources/images/sheet_music/accidentals/Double_Sharp.png",
+            };
+
+            const RectangleButtonColors accidentalNoneColors{
+                Theme::Control,
+                Theme::ControlHover,
+                Theme::ControlPressed,
+                Theme::BorderPanel,
+                Theme::AccentBright,
+                Theme::TextCool,
+                Theme::TextCool,
+            };
+
+            constexpr float accidentalColumnWidth = 1.0f / 6.0f;
+            auto* accidentalNoneButton = new RectangleButton(
+                RectSpec{ Pct(spacing / 2), Px(165), Pct(accidentalColumnWidth - spacing), Px(50) },
+                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                accidentalNoneColors,
+                nullptr
+            );
+            accidentalNoneButton->setFontPath("C:/Windows/Fonts/segoeui.ttf");
+            accidentalNoneButton->setText("None", 24);
+            accidentalButtons->push_back(accidentalNoneButton);
+            accidentalNoneButton->setOnClick([accidentalButtons, accidentalNoneButton]() {
+                setRadioSelection(*accidentalButtons, accidentalNoneButton);
+            });
+            accidentalNoneButton->setToggleMode(true);
+            leftPanel->addChild(accidentalNoneButton);
+
+            for (size_t i = 0; i < 5; ++i)
+            {
+                auto* accidentalButton = new ImageButton(
+                    RectSpec{ Pct(static_cast<float>(i + 1) * accidentalColumnWidth + (spacing / 2)), Px(165), Pct(accidentalColumnWidth - spacing), Px(50) },
+                    MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                    kAccidentalImagePaths[i],
+                    durationNoteColors,
+                    nullptr
+                );
+
+                if (kAccidentalImagePaths[i] == "resources/images/sheet_music/accidentals/Double_Sharp.png")
+                {
+                    accidentalButton->setImageScaleFactor(0.6f);
+                }
+
+                accidentalButtons->push_back(accidentalButton);
+                accidentalButton->setOnClick([accidentalButtons, accidentalButton]() {
+                    setRadioSelection(*accidentalButtons, accidentalButton);
+                });
+                accidentalButton->setToggleMode(true);
+                leftPanel->addChild(accidentalButton);
+            }
+
+            auto chordTitle = new PrimitiveText(
+                RectSpec{ Pct(0.0125f), Px(224), Pct(100), Px(26) },
+                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                24,
+                "Chord:",
+                "C:/Windows/Fonts/segoeui.ttf",
+                ALIGN_LEFT
+            );
+            chordTitle->setColor(Theme::TextPrimary);
+            leftPanel->addChild(chordTitle);
+
+            auto chordPanel = new GUIPanel(
+                RectSpec{ Pct(0.0125f), Px(256), Pct(0.975f), Pct(0.25f) },
+                Theme::ElevatedPanel,
+                Theme::BorderSubtle,
+                2.0f,
+                5.0f
+            );
+            leftPanel->addChild(chordPanel);
+
+            auto motifTitle = new PrimitiveText(
+                RectSpec{ Pct(0.0125f), Pct(70), Pct(100), Px(26) },
+                MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+                24,
+                "Motif:",
+                "C:/Windows/Fonts/segoeui.ttf",
+                ALIGN_LEFT
+            );
+            motifTitle->setColor(Theme::TextPrimary);
+            leftPanel->addChild(motifTitle);
+
+            auto motifPanel = new GUIPanel(
+                RectSpec{ Pct(0.0125f), Pct(0.75f - spacing/2), Pct(0.975f), Pct(0.25f) },
+                Theme::ElevatedPanel,
+                Theme::BorderSubtle,
+                2.0f,
+                5.0f
+            );
+            leftPanel->addChild(motifPanel);
+
+        }
+
+        auto rightPanel = new GUIPanel(
+            RectSpec{ Pct(80),Pct(0),Pct(20),Pct(100) },
+            Theme::ElevatedPanel,
+            Theme::BorderSubtle,
+            2.0f,
+            5.0f
+        );
+        basePanel->addChild(rightPanel);
+
+
+        toggle = new ToggleBox(
+            RectSpec{ Pct(0.05f), Pct(0.05f), Px(20), Px(20) },
+            MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
+            Theme::Control, Theme::Accent, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
+        toggle->setWindow(guiWindow);
+        //leftPanel->addChild(toggle);
+
+        // topPanel->addChild(button);
+
+        /*
+        textBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.16f), Pct(0.18f), Px(24) });
+        textBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(textBox);
+
+        floatBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.24f), Pct(0.18f), Px(24) });
+        floatBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(floatBox);
+
+        intBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.32f), Pct(0.18f), Px(24) });
+        intBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(intBox);
+
+        emptyStringBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.40f), Pct(0.18f), Px(24) });
+        emptyStringBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(emptyStringBox);
+
+        textValueBox->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.48f), Pct(0.22f), Px(24) });
+        textValueBox->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(textValueBox);
+
+        boundedFloatSlider->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.58f), Pct(0.24f), Px(24) });
+        boundedFloatSlider->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(boundedFloatSlider);
+
+        floatSlider->setRectSpec(RectSpec{ Pct(0.14f), Pct(0.68f), Pct(0.24f), Px(24) });
+        floatSlider->setMarginSpec(MarginSpec{ Px(0), Px(0), Px(0), Px(0) });
+        // topPanel->addChild(floatSlider);
+        */
+
+
         auto bottomPanel = new GUIPanel(
             RectSpec{ Px(0),Pct(50),Pct(100),Pct(50) },
             Theme::PanelAlt,
@@ -372,12 +565,7 @@ public:
         );
         // basePanel->addChild(bottomPanel);
 
-        circleSelection = new CircleRingSelect(
-            RectSpec{ Pct(0.55f), Pct(0.10f), Pct(0.30f), Pct(0.30f) },
-            MarginSpec{ Px(0), Px(0), Px(0), Px(0) },
-            Theme::Control, Theme::Control, Theme::Accent, Theme::Accent, Theme::ControlHover, Theme::AccentBright);
-        circleSelection->setSlider(boundedFloatSlider);
-        // topPanel->addChild(circleSelection);
+        
 
         // Creation of the staff
 

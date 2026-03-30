@@ -11,11 +11,11 @@ struct RectangleButtonColors
 	sf::Color baseFill;
 	sf::Color hoverFill;
 	sf::Color activeFill;
+	sf::Color outline;
+	sf::Color outlineActive;
 	sf::Color text;
 	sf::Color textActive;
 	/** Border ring; outer bounds of the button match the layout width/height. */
-	sf::Color outline;
-	sf::Color outlineActive;
 };
 
 
@@ -32,6 +32,7 @@ protected:
 	sf::Color textActiveColor;
 	sf::Color outlineNormalColor;
 	sf::Color outlineActiveColor;
+	int preferredCharacterSize = 0;
 
 	void applyNormalVisuals() override;
 	void syncOutlineColor();
@@ -61,7 +62,8 @@ public:
 	~RectangleButton();
 
 	//setters
-	void setText(std::string textString);
+	void setText(std::string textString, int fontSize = 0);
+	void setFontPath(const std::string& fontPath);
 
 	void update() override;
 	void draw() override;

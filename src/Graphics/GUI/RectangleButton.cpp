@@ -120,13 +120,43 @@ void RectangleButton::layoutShapesAndText()
 	outlineShape->setSize(sf::Vector2f(width, height));
 	shape->setPosition(x + t, y + t);
 	shape->setSize(sf::Vector2f(innerW, innerH));
-	fitCharacterSizeToBounds(text, innerW, innerH);
+	if (preferredCharacterSize > 0)
+	{
+		const int maxByHeight = std::max(8, (int)std::floor(std::max(1.0f, innerH - 6.0f)));
+		int charSize = std::min(preferredCharacterSize, maxByHeight);
+		text.setCharacterSize((unsigned int)charSize);
+		const float availableWidth = std::max(1.0f, innerW - 8.0f);
+		while (charSize > 8 && text.getLocalBounds().width > availableWidth)
+		{
+			charSize--;
+			text.setCharacterSize((unsigned int)charSize);
+		}
+	}
+	else
+	{
+		fitCharacterSizeToBounds(text, innerW, innerH);
+	}
 	centerTextInRect(text, x + t, y + t, innerW, innerH);
 }
 
-void RectangleButton::setText(std::string textString)
+void RectangleButton::setText(std::string textString, int fontSize)
 {
 	text.setString(textString);  // Set the string to display
+	preferredCharacterSize = std::max(0, fontSize);
+	layoutShapesAndText();
+}
+
+void RectangleButton::setFontPath(const std::string& fontPath)
+{
+	sf::Font* newFont = ResourceManager::getFont(fontPath);
+	if (newFont == nullptr)
+	{
+		std::cerr << "Failed to load font file: " << fontPath << "\n";
+		return;
+	}
+
+	font = newFont;
+	text.setFont(*font);
 	layoutShapesAndText();
 }
 
