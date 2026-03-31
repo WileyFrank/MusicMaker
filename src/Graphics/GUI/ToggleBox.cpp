@@ -8,12 +8,14 @@ ToggleBox::ToggleBox(
 	sf::Color outlineColor,
 	sf::Color selectionColor,
 	sf::Color backgroundHoverColor,
-	sf::Color selectionHoverColor
+	sf::Color selectionHoverColor,
+	std::function<void(bool)> stateChanged
 )
 	:RenderObject(0.0f, 0.0f, 0.0f, 0.0f),
 	backgroundColor(background), outlineColor(outlineColor), selectionColor(selectionColor), backgroundHoverColor(backgroundHoverColor), selectionHoverColor(selectionHoverColor),
 	outBox(sf::Vector2f(0.0f, 0.0f)), outlineWidth(2), selectionBox(sf::Vector2f(0.0f, 0.0f)),
-	boxState(false)
+	boxState(false),
+	onStateChanged(std::move(stateChanged))
 {
 	this->type = GUIObject;
 	setRectSpec(rectSpec);
@@ -25,19 +27,61 @@ ToggleBox::ToggleBox(
 	
 	selectionBox.setFillColor(backgroundColor);
 	selectionBox.setOutlineThickness(0);
+
+	applyIdleVisuals();
+}
+
+void ToggleBox::applyIdleVisuals()
+{
+	outBox.setFillColor(backgroundColor);
+	selectionBox.setFillColor(boxState ? selectionColor : backgroundColor);
+}
+
+void ToggleBox::notifyStateChanged()
+{
+	if (onStateChanged)
+	{
+		onStateChanged(boxState);
+	}
+}
+
+void ToggleBox::setChecked(bool checked, bool notifyCallback)
+{
+	if (boxState == checked)
+	{
+		return;
+	}
+	boxState = checked;
+	applyIdleVisuals();
+	if (notifyCallback)
+	{
+		notifyStateChanged();
+	}
 }
 
 void ToggleBox::resolveLayout(const sf::FloatRect& parentRect)
 {
 	RenderObject::resolveLayout(parentRect);
-	const sf::FloatRect pixelRect = getResolvedRect();
+	sf::FloatRect pixelRect = getResolvedRect();
+
+	// Keep the control square: use the smaller edge and center in the allocated rect.
+	const float side = std::min(pixelRect.width, pixelRect.height);
+	const float offsetX = (pixelRect.width - side) * 0.5f;
+	const float offsetY = (pixelRect.height - side) * 0.5f;
+	setResolvedRect(sf::FloatRect(
+		pixelRect.left + offsetX,
+		pixelRect.top + offsetY,
+		side,
+		side));
+	pixelRect = getResolvedRect();
 
 	outBox.setPosition(sf::Vector2f(pixelRect.left, pixelRect.top));
 	outBox.setSize(sf::Vector2f(pixelRect.width, pixelRect.height));
 
-	const float innerWidth = std::max(0.0f, pixelRect.width - (4.0f * outlineWidth));
-	const float innerHeight = std::max(0.0f, pixelRect.height - (4.0f * outlineWidth));
-	selectionBox.setPosition(sf::Vector2f(pixelRect.left + (2.0f * outlineWidth), pixelRect.top + (2.0f * outlineWidth)));
+	const float inset = static_cast<float>(outlineWidth);
+	const float innerWidth = std::max(0.0f, pixelRect.width - 2.0f * inset);
+	const float innerHeight = std::max(0.0f, pixelRect.height - 2.0f * inset);
+	selectionBox.setPosition(sf::Vector2f(pixelRect.left + inset, pixelRect.top + inset));
 	selectionBox.setSize(sf::Vector2f(innerWidth, innerHeight));
 }
 
@@ -72,8 +116,7 @@ void ToggleBox::setHoverstate()
 
 void ToggleBox::setUnhover()
 {
-	selectionBox.setFillColor(selectionColor);
-	outBox.setFillColor(backgroundColor);
+	applyIdleVisuals();
 }
 
 void ToggleBox::setActive()
@@ -99,4 +142,6 @@ RenderObject& ToggleBox::getHoverObject()
 void ToggleBox::onClick()
 {
 	boxState = !boxState;
+	applyIdleVisuals();
+	notifyStateChanged();
 }

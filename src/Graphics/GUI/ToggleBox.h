@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include "RenderObject.h"
 #include "GUIUtilities.h"
 
@@ -13,6 +14,8 @@ private:
     sf::RectangleShape outBox, selectionBox;
     sf::Color backgroundColor, outlineColor, selectionColor, backgroundHoverColor, selectionHoverColor;
 
+    std::function<void(bool)> onStateChanged;
+
 public:
     ToggleBox(
         const RectSpec& rectSpec,
@@ -21,10 +24,14 @@ public:
         sf::Color outlineColor,
         sf::Color selectionColor,
         sf::Color backgroundHoverColor,
-        sf::Color selectionHoverColor
+        sf::Color selectionHoverColor,
+        std::function<void(bool)> stateChanged = nullptr
     );
         
     bool getState() { return boxState; }
+
+    /** Sets checked state and idle colors. Pass notifyCallback true to invoke onStateChanged (e.g. programmatic sync). */
+    void setChecked(bool checked, bool notifyCallback = false);
 
     void resolveLayout(const sf::FloatRect& parentRect) override;
     void update() override;
@@ -49,6 +56,8 @@ public:
 
     virtual void onClick();
 
-
+private:
+    void applyIdleVisuals();
+    void notifyStateChanged();
 };
 

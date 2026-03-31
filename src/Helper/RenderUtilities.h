@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
+#include <vector>
 #include <fmod.hpp>
 #include "SFML/Graphics.hpp"
 #include "../Graphics/SheetMusic/SheetMusicStaff.h"
@@ -28,6 +29,131 @@ public:
     /** Used when clamping GUI window size (SFML 2.x has no setMinimumSize; SFML 3 adds it on Window). */
     static constexpr unsigned kGuiWindowMinWidth = 960;
     static constexpr unsigned kGuiWindowMinHeight = 600;
+
+    /** Reads current checked state of each ToggleBox child (in child order: toggles only). */
+    static std::vector<bool> collectChordToggleStates(GUIPanel* chordPanel)
+    {
+        std::vector<bool> states;
+        if (chordPanel == nullptr)
+        {
+            return states;
+        }
+        for (auto* child : chordPanel->getChildren())
+        {
+            if (child == nullptr)
+            {
+                continue;
+            }
+            auto* tb = dynamic_cast<ToggleBox*>(child);
+            if (tb != nullptr)
+            {
+                states.push_back(tb->getState());
+            }
+        }
+        return states;
+    }
+
+    /** Called when a chord checkbox is toggled. `chordCheckboxStates` is the shared model (mutate pairs, then call updateChordToggleBoxes(chordPanel, chordCheckboxStates)). */
+    static void chordToggleChanged(
+        int changedIndex,
+        std::shared_ptr<std::vector<std::pair<std::string, bool>>> chordCheckboxStates,
+        GUIPanel* chordPanel)
+    {
+        (void)chordPanel;
+        if (chordCheckboxStates == nullptr)
+        {
+            return;
+        }
+        const std::vector<std::pair<std::string, bool>>& pairs = *chordCheckboxStates;
+        std::cout << "chordToggleChanged index=" << changedIndex << " pairs=[";
+        for (size_t i = 0; i < pairs.size(); ++i)
+        {
+            if (i > 0)
+            {
+                std::cout << ", ";
+            }
+            std::cout << pairs[i].first << ":" << (pairs[i].second ? "1" : "0");
+        }
+        std::cout << "]" << std::endl;
+    }
+
+    static void updateChordToggleBoxes(
+        GUIPanel* chordPanel,
+        std::shared_ptr<std::vector<std::pair<std::string, bool>>> chordCheckboxStates,
+        float startHeightPct = 0.05f)
+    {
+        if (chordPanel == nullptr || chordCheckboxStates == nullptr)
+        {
+            return;
+        }
+
+        std::vector<std::pair<std::string, bool>>& checkboxStates = *chordCheckboxStates;
+
+        chordPanel->clearChildren();
+
+        const float rowHeightPct = 0.16f;
+        const float boxSizePct = 0.10f;
+        for (size_t i = 0; i < checkboxStates.size(); ++i)
+        {
+            const float rowY = startHeightPct + rowHeightPct * static_cast<float>(i);
+            if (rowY > 0.90f)
+            {
+                break;
+            }
+
+            // Copy index per row: lambda captures rowIndex by value, so each toggle keeps its own index (not the loop var after the loop).
+            const int rowIndex = static_cast<int>(i);
+            auto* toggle = new ToggleBox(
+                RectSpec{ Pct(0), Pct(rowY), Pct(boxSizePct), Pct(boxSizePct) },
+                MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                Theme::Control,
+                Theme::Accent,
+                Theme::AccentBright,
+                Theme::ControlHover,
+                Theme::AccentBright,
+                [chordPanel, rowIndex, chordCheckboxStates](bool)
+                {
+                    const std::vector<bool> states = collectChordToggleStates(chordPanel);
+                    for (size_t j = 0; j < states.size() && j < chordCheckboxStates->size(); ++j)
+                    {
+                        (*chordCheckboxStates)[j].second = states[j];
+                    }
+                    chordToggleChanged(rowIndex, chordCheckboxStates, chordPanel);
+                });
+
+            auto* label = new PrimitiveText(
+                RectSpec{ Pct(0.15f), Pct(rowY), Pct(0.75f), Pct(boxSizePct) },
+                MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                Pct(0.018f),
+                checkboxStates[i].first,
+                "C:/Windows/Fonts/segoeui.ttf",
+                ALIGN_LEFT,
+                VERTICAL_ALIGN_MIDDLE
+            );
+            label->setFontSizeClamp(12.0f, 18.0f);
+            label->setColor(Theme::TextPrimary);
+
+            chordPanel->addChild(toggle);
+            toggle->setChecked(checkboxStates[i].second);
+            chordPanel->addChild(label);
+        }
+    }
+
+    static void chordSelected(
+        const std::string& chordType,
+        int index,
+        GUIPanel* chordPanel,
+        std::shared_ptr<std::vector<std::pair<std::string, bool>>> chordCheckboxStates)
+    {
+        static std::string selectedChordType;
+        if (selectedChordType == chordType)
+        {
+            return;
+        }
+        selectedChordType = chordType;
+        updateChordToggleBoxes(chordPanel, chordCheckboxStates, 0.05f);
+        std::cout << "Chord selected [" << index << "]: " << chordType << std::endl;
+    }
 
     static void pollEvents(sf::RenderWindow* guiWindow, sf::RenderWindow* gameWindow, PlayerObject*& player, RenderObject*& activeObject, RenderObject*& hoverObject, bool* layoutDirty = nullptr)
     {
@@ -540,7 +666,72 @@ public:
                 2.0f,
                 5.0f
             );
+
+            //Chord panel split for left and right
+            auto chordPanelLeft = new GUIPanel(
+                RectSpec{ Pct(0), Pct(0), Pct(50), Pct(100) },
+                sf::Color(0, 0, 0, 0),
+                sf::Color(0, 0, 0, 0),
+                0.0f,
+                0.0f
+            );
+
+            auto chordPanelRight = new GUIPanel(
+                RectSpec{ Pct(50), Pct(0), Pct(50), Pct(100) },
+                sf::Color(0, 0, 0, 0),
+                sf::Color(0, 0, 0, 0),
+                0.0f,
+                0.0f
+            );
+
+            auto chordPanelLeftExtensions = new GUIPanel(
+                RectSpec{ Pct(0), Pct(20), Pct(100), Pct(80) },
+                sf::Color(0, 0, 0, 0),
+                sf::Color(0, 0, 0, 0),
+                0.0f,
+                0.0f
+            );
+
+            chordPanelLeft->addChild(chordPanelLeftExtensions);
+
+            chordPanel->setPadding(15.0f);
+            chordPanel->addChild(chordPanelLeft);
+            chordPanel->addChild(chordPanelRight);
+
             leftPanel->addChild(chordPanel);
+
+            const std::vector<std::string> chordTypeOptions{
+                "Major",
+                "Minor",
+                "Diminished",
+                "Augmented",
+                "Sus2",
+                "Sus4",
+            };
+            auto chordCheckboxStates = std::make_shared<std::vector<std::pair<std::string, bool>>>(
+                std::initializer_list<std::pair<std::string, bool>>{
+                    { "Root", true },
+                    { "Third", true },
+                    { "Fifth", true },
+                    { "Seventh", false },
+                    { "Ninth", false },
+                });
+            auto* chordTypeDropdown = new DropdownMenu<std::string>(
+                RectSpec{ Pct(0.0f), Pct(0.0f), Pct(100), Pct(0.12f) },
+                MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                12,
+                static_cast<int>(chordTypeOptions.size()),
+                chordTypeOptions,
+                Theme::Control,
+                Theme::Accent,
+                Theme::ControlHover,
+                Theme::AccentBright,
+                "Select Chord",
+                [chordPanelLeftExtensions, chordCheckboxStates](const std::string& chordType, int index)
+                {
+                    RenderUtilities::chordSelected(chordType, index, chordPanelLeftExtensions, chordCheckboxStates);
+                });
+            chordPanelLeft->addChild(chordTypeDropdown);
 
             auto motifTitle = new PrimitiveText(
                 RectSpec{ Pct(kLPInset), Pct(kMotifTitleY), Pct(kLPWidth), Pct(kMotifTitleH) },
