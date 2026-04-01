@@ -3,5 +3,10 @@
 enum class UnitType
 {
     Pixels,
-    Percent
+    Percent,
+    PercentWidth,
+    PercentHeight,
+    PercentInverse,
+    PercentWidthInverse,
+    PercentHeightInverse
 };

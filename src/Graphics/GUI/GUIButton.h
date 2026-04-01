@@ -14,6 +14,7 @@ protected:
 	bool toggleMode = false;
 	bool togglePressed = false;
 	std::function<void()> onClickAction;
+	std::function<void()> onRightClickAction;
 	sf::Color activeFillColor;
 
 	virtual void applyNormalVisuals() = 0;
@@ -27,10 +28,12 @@ public:
 	void setActive() override;
 	void setInactive() override;
 	void onClick() override;
+	void onRightClick() override;
 	void onMouseButtonReleased(sf::Mouse::Button button) override;
 	void setUnselected();
 
 	void setOnClick(std::function<void()> action) { onClickAction = std::move(action); }
+	void setOnRightClick(std::function<void()> action) { onRightClickAction = std::move(action); }
 	void setToggleMode(bool enabled) { toggleMode = enabled; }
 
 	std::pair<sf::Vector2f, sf::Vector2f> getHoverArea() {

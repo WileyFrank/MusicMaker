@@ -50,6 +50,7 @@ public:
 		float height,
 		const RectangleButtonColors& colors,
 		std::function<void()> onClickAction = nullptr,
+		std::function<void()> onRightClickAction = nullptr,
 		float outlineWidthPx = 2.0f
 	);
 	RectangleButton(
@@ -57,6 +58,7 @@ public:
 		const MarginSpec& marginSpec,
 		const RectangleButtonColors& colors,
 		std::function<void()> onClickAction = nullptr,
+		std::function<void()> onRightClickAction = nullptr,
 		float outlineWidthPx = 2.0f
 	);
 	~RectangleButton();

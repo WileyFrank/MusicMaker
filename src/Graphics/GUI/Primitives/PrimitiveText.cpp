@@ -158,6 +158,15 @@ void PrimitiveText::setFontSizeClamp(float minPx, float maxPx)
 	maxFontSizePx = std::max(minPx, maxPx);
 }
 
+void PrimitiveText::setFontSizePx(float px)
+{
+	const float clamped = std::max(1.0f, px);
+	fontSizeSpec = Px(clamped);
+	const unsigned charSize = static_cast<unsigned>(std::max(1.0f, std::round(clamped)));
+	text.setCharacterSize(charSize);
+	reloadText();
+}
+
 void PrimitiveText::render()
 {
 	update();
@@ -181,7 +190,7 @@ void PrimitiveText::resolveLayout(const sf::FloatRect& parentRect)
 	layoutCell = pixelRect;
 	layoutResolved = true;
 
-	float fontPx = UnitValueResolver::resolveVertical(fontSizeSpec, parentRect.height);
+	float fontPx = UnitValueResolver::resolveVertical(fontSizeSpec, parentRect.height, parentRect.width);
 	const float lo = std::min(minFontSizePx, maxFontSizePx);
 	const float hi = std::max(minFontSizePx, maxFontSizePx);
 	fontPx = std::min(std::max(fontPx, lo), hi);

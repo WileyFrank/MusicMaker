@@ -27,6 +27,9 @@ private:
 
 	float hoverBeat = -1.0f;
 
+	// When true, addRests only spans one beat (no trailing rests for the rest of the bar).
+	bool singleBeatMeasure = false;
+
 	sf::Color staffColor, noteColor;
 
 	//used to ensure that a measure is properly filled with notes and rests
@@ -86,6 +89,9 @@ public:
 	{ 
 		this->keySignature = key;
 	}
+
+	void setSingleBeatMeasure(bool enabled) { singleBeatMeasure = enabled; }
+	bool getSingleBeatMeasure() const { return singleBeatMeasure; }
 
 
 };

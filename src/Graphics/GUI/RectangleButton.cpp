@@ -40,6 +40,7 @@ RectangleButton::RectangleButton(
 	float height,
 	const RectangleButtonColors& colors,
 	std::function<void()> onClickAction,
+	std::function<void()> onRightClickAction,
 	float outlineWidthPx
 )
 {
@@ -59,6 +60,7 @@ RectangleButton::RectangleButton(
 	this->outlineActiveColor = colors.outlineActive;
 	this->color = colors.baseFill;
 	this->onClickAction = std::move(onClickAction);
+	this->onRightClickAction = std::move(onRightClickAction);
 
 	this->window = nullptr;
 	outlineThickness = std::max(0.0f, outlineWidthPx);
@@ -97,9 +99,10 @@ RectangleButton::RectangleButton(
 	const MarginSpec& marginSpec,
 	const RectangleButtonColors& colors,
 	std::function<void()> onClickAction,
+	std::function<void()> onRightClickAction,
 	float outlineWidthPx
 )
-	: RectangleButton(0.0f, 0.0f, 0.0f, 0.0f, colors, std::move(onClickAction), outlineWidthPx)
+	: RectangleButton(0.0f, 0.0f, 0.0f, 0.0f, colors, std::move(onClickAction), std::move(onRightClickAction), outlineWidthPx)
 {
 	setRectSpec(rectSpec);
 	setMarginSpec(marginSpec);

@@ -176,6 +176,7 @@ SheetMusicMeasure::SheetMusicMeasure(SheetMusicMeasure* old)
 	: clef(old->clef),
 	timeSignature(old->timeSignature), keySignature(old->keySignature),
 	quarterValue(old->quarterValue), noteCount(old->noteCount), noteGap(old->noteGap),
+	singleBeatMeasure(old->singleBeatMeasure),
 	notes(old->notes), chords(old->chords)
 {
 
@@ -296,7 +297,8 @@ void SheetMusicMeasure::addRests()
 	clearRests();
 
 	
-	while (currentBeat < (float)timeSignature.denominator)
+	const float measureSpan = singleBeatMeasure ? 1.0f : static_cast<float>(timeSignature.denominator);
+	while (currentBeat < measureSpan)
 	{
 		auto currentNotes = getPlaying(currentBeat);
 

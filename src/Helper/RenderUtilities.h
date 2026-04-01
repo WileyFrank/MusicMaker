@@ -2,7 +2,9 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
+#include <cctype>
 #include <fmod.hpp>
 #include "SFML/Graphics.hpp"
 #include "../Graphics/SheetMusic/SheetMusicStaff.h"
@@ -53,6 +55,181 @@ public:
         return states;
     }
 
+    /**
+     * Steps the root note letter (first character only: A–G, suffix left unchanged).
+     * @param increment true = A→B→…→G→A, false = reverse.
+     */
+    static void adjustRootLetter(TextBox<std::string>* rootTextBox, bool increment)
+    {
+        if (rootTextBox == nullptr)
+        {
+            return;
+        }
+
+        std::string s = rootTextBox->getTextString();
+        if (s.empty())
+        {
+            s = "C";
+        }
+
+        char first = static_cast<char>(std::toupper(static_cast<unsigned char>(s[0])));
+        if (first < 'A' || first > 'G')
+        {
+            first = 'C';
+        }
+
+        int idx = first - 'A';
+        if (increment)
+        {
+            idx = (idx + 1) % 7;
+        }
+        else
+        {
+            idx = (idx + 6) % 7;
+        }
+
+        s[0] = static_cast<char>('A' + idx);
+        rootTextBox->setValue(std::move(s));
+    }
+
+    /**
+     * Right-click root steppers: + adds sharp(s), - adds flat(s), up to two of the same kind.
+     * If the opposite accidental is present, removes one of that symbol instead of stacking more.
+     */
+    static void adjustRootAccidental(TextBox<std::string>* rootTextBox, bool addSharp)
+    {
+        if (rootTextBox == nullptr)
+        {
+            return;
+        }
+
+        std::string s = rootTextBox->getTextString();
+        if (s.empty())
+        {
+            s = "C";
+        }
+
+        char letter = static_cast<char>(std::toupper(static_cast<unsigned char>(s[0])));
+        if (letter < 'A' || letter > 'G')
+        {
+            letter = 'C';
+        }
+
+        std::string suffix = s.size() > 1 ? s.substr(1) : "";
+
+        if (addSharp)
+        {
+            const size_t pos = suffix.rfind('b');
+            if (pos != std::string::npos)
+            {
+                suffix.erase(pos, 1);
+            }
+            else
+            {
+                int sharpCount = 0;
+                for (char c : suffix)
+                {
+                    if (c == '#')
+                    {
+                        sharpCount++;
+                    }
+                }
+                if (sharpCount < 2)
+                {
+                    suffix += '#';
+                }
+            }
+        }
+        else
+        {
+            const size_t pos = suffix.rfind('#');
+            if (pos != std::string::npos)
+            {
+                suffix.erase(pos, 1);
+            }
+            else
+            {
+                int flatCount = 0;
+                for (char c : suffix)
+                {
+                    if (c == 'b')
+                    {
+                        flatCount++;
+                    }
+                }
+                if (flatCount < 2)
+                {
+                    suffix += 'b';
+                }
+            }
+        }
+
+        std::string out;
+        out.push_back(letter);
+        out += suffix;
+        rootTextBox->setValue(std::move(out));
+    }
+
+    /** Valid octave range for the chord octave field (matches TextBox validator). */
+    static constexpr int kOctaveMin = 0;
+    static constexpr int kOctaveMax = 8;
+
+    /**
+     * Steps octave up/down without leaving [kOctaveMin, kOctaveMax].
+     * @param increment true = +1, false = -1 (no-op at the corresponding bound).
+     */
+    static void adjustOctave(TextBox<int>* octaveTextBox, bool increment)
+    {
+        if (octaveTextBox == nullptr)
+        {
+            return;
+        }
+
+        int current = 4;
+        const std::string& t = octaveTextBox->getTextString();
+        if (!t.empty())
+        {
+            try
+            {
+                current = std::stoi(t);
+            }
+            catch (...)
+            {
+                current = octaveTextBox->getValue();
+            }
+        }
+        else
+        {
+            current = octaveTextBox->getValue();
+        }
+
+        if (current < kOctaveMin)
+        {
+            current = kOctaveMin;
+        }
+        if (current > kOctaveMax)
+        {
+            current = kOctaveMax;
+        }
+
+        if (increment)
+        {
+            if (current < kOctaveMax)
+            {
+                current++;
+            }
+        }
+        else
+        {
+            if (current > kOctaveMin)
+            {
+                current--;
+            }
+        }
+
+        octaveTextBox->setValue(current);
+    }
+
     /** Called when a chord checkbox is toggled. `chordCheckboxStates` is the shared model (mutate pairs, then call updateChordToggleBoxes(chordPanel, chordCheckboxStates)). */
     static void chordToggleChanged(
         int changedIndex,
@@ -75,6 +252,15 @@ public:
             std::cout << pairs[i].first << ":" << (pairs[i].second ? "1" : "0");
         }
         std::cout << "]" << std::endl;
+
+        for (size_t i = 0; i < pairs.size(); ++i)
+        {
+            if (pairs[i].first == "Root")
+            {
+
+            }
+        }
+
     }
 
     static void updateChordToggleBoxes(
@@ -140,11 +326,24 @@ public:
     }
 
     static void chordSelected(
-        const std::string& chordType,
-        int index,
+        DropdownMenu<std::string>* chordDropdown,
         GUIPanel* chordPanel,
         std::shared_ptr<std::vector<std::pair<std::string, bool>>> chordCheckboxStates)
     {
+        if (chordDropdown == nullptr)
+        {
+            return;
+        }
+
+        const std::string* selectedChord = chordDropdown->getSelectedOptionPtr();
+        if (selectedChord == nullptr)
+        {
+            return;
+        }
+
+        const std::string& chordType = *selectedChord;
+        const int index = chordDropdown->getSelectedIndex();
+
         static std::string selectedChordType;
         if (selectedChordType == chordType)
         {
@@ -193,11 +392,6 @@ public:
             }
             if (e.type == sf::Event::MouseButtonPressed) {
                 if (e.mouseButton.button == sf::Mouse::Left) {
-
-                    // Handle left mouse button pressed
-                    int mouseX = e.mouseButton.x;
-                    int mouseY = e.mouseButton.y;
-
                     if (activeObject != nullptr && hoverObject != activeObject)
                     {
                         (activeObject)->setInactive();
@@ -210,11 +404,25 @@ public:
                         hoverObject->onClick();
                     }
                 }
+                else if (e.mouseButton.button == sf::Mouse::Right)
+                {
+                    if (hoverObject != nullptr)
+                    {
+                        if (activeObject != nullptr && hoverObject != activeObject)
+                        {
+                            activeObject->setInactive();
+                            activeObject = nullptr;
+                        }
+                        activeObject = hoverObject;
+                        activeObject->setActive();
+                        hoverObject->onRightClick();
+                    }
+                }
             }
 
             if (e.type == sf::Event::MouseButtonReleased)
             {
-                if (e.mouseButton.button == sf::Mouse::Left && activeObject != nullptr)
+                if ((e.mouseButton.button == sf::Mouse::Left || e.mouseButton.button == sf::Mouse::Right) && activeObject != nullptr)
                 {
                     activeObject->onMouseButtonReleased(e.mouseButton.button);
                     if (!activeObject->getActive())
@@ -466,10 +674,10 @@ public:
             constexpr float kAccColW = kSixth - spacing;
 
             // Chord: title strip, panel
-            constexpr float kChordTitleY = 216.0f / kRefH;
+            constexpr float kChordTitleY = 201.0f / kRefH;
             constexpr float kChordTitleH = 32.0f / kRefH;
-            constexpr float kChordPanelY = 254.0f / kRefH;
-            constexpr float kChordPanelH = 1.0f / 4.0f;
+            constexpr float kChordPanelY = 239.0f / kRefH;
+            constexpr float kChordPanelH = 3.0f / 10.0f;
 
             // Motif: title strip (above panel), panel
             constexpr float kMotifTitleH = 28.0f / kRefH;
@@ -677,12 +885,240 @@ public:
             );
 
             auto chordPanelRight = new GUIPanel(
-                RectSpec{ Pct(50), Pct(0), Pct(50), Pct(100) },
+                RectSpec{ Pct(55), Pct(0), Pct(45), Pct(100) },
                 sf::Color(0, 0, 0, 0),
                 sf::Color(0, 0, 0, 0),
                 0.0f,
                 0.0f
             );
+
+            // CHORD CONTROLS AND TITLES
+            {
+                auto chordPanelRightTop = new GUIPanel(
+                    RectSpec{ Pct(0), Pct(0), Pct(100), Pct(20) },
+                    sf::Color(0, 0, 0, 0),
+                    sf::Color(0, 0, 0, 0),
+                    0.0f,
+                    0.0f
+                );
+
+                chordPanelRight->addChild(chordPanelRightTop);
+
+                auto chordPanelRightTopTitles = new GUIPanel(
+                    RectSpec{ Pct(0), Pct(0), Pct(30), Pct(100) },
+                    sf::Color(0, 0, 0, 0),
+                    sf::Color(0, 0, 0, 0),
+                    0.0f,
+                    0.0f
+                );
+                chordPanelRightTop->addChild(chordPanelRightTopTitles);
+
+                auto chordPanelRightTopControls = new GUIPanel(
+                    RectSpec{ Pct(40), Pct(0), Pct(60), Pct(100) },
+                    sf::Color(0, 0, 0, 0),
+                    sf::Color(0, 0, 0, 0),
+                    0.0f,
+                    0.0f
+                );
+                chordPanelRightTop->addChild(chordPanelRightTopControls);
+
+                auto chordRootTitle = new PrimitiveText(
+                    RectSpec{ Pct(0), Pct(0), Pct(100), Pct(50) },
+                    MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                    12,
+                    "Root:",
+                    "C:/Windows/Fonts/segoeui.ttf",
+                    ALIGN_RIGHT,
+                    VERTICAL_ALIGN_MIDDLE
+                );
+                chordRootTitle->setFontSizeClamp(10, 14);
+
+                auto chordOctaveTitle = new PrimitiveText(
+                    RectSpec{ Pct(0), Pct(50), Pct(100), Pct(50) },
+                    MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                    12,
+                    "Octave:",
+                    "C:/Windows/Fonts/segoeui.ttf",
+                    ALIGN_RIGHT,
+                    VERTICAL_ALIGN_MIDDLE
+                );
+                chordOctaveTitle->setFontSizeClamp(10, 14);
+
+                chordPanelRightTopTitles->addChild(chordOctaveTitle);
+                chordPanelRightTopTitles->addChild(chordRootTitle);
+
+                const RectangleButtonColors chordStepperColors{
+                    Theme::Control,
+                    Theme::ControlHover,
+                    Theme::ControlPressed,
+                    Theme::Accent,
+                    Theme::AccentBright,
+                    Theme::TextCool,
+                    Theme::TextCool,
+                };
+
+                // Root row: [button] [textbox] [button]
+                auto* rootDecButton = new RectangleButton(
+                    RectSpec{ Pct(0.00f), Pct(0.00f), PctH(45), PctH(45) },
+                    MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                    chordStepperColors,
+                    nullptr
+                );
+                rootDecButton->setFontPath("C:/Windows/Fonts/segoeui.ttf");
+                rootDecButton->setText("-", 18);
+
+                auto* rootTextBox = new TextBox<std::string>(
+                    0.0f, 0.0f, 0.0f, 0.0f, 16, "C",
+                    Theme::Control, Theme::Accent, Theme::ControlHover, Theme::AccentBright,
+                    2.0f,
+                    [](const std::string& input) -> bool
+                    {
+                        if (input.empty() || input.size() > 3)
+                        {
+                            return false;
+                        }
+
+                        const char first = static_cast<char>(std::toupper(static_cast<unsigned char>(input[0])));
+                        if (first < 'A' || first > 'G')
+                        {
+                            return false;
+                        }
+
+                        if (input.size() == 1)
+                        {
+                            return true;
+                        }
+
+                        const char second = input[1];
+                        if (second != '#' && second != 'b')
+                        {
+                            return false;
+                        }
+
+                        if (input.size() == 2)
+                        {
+                            return true;
+                        }
+
+                        const char third = input[2];
+                        return (third == '#' || third == 'b') && third == second;
+                    }
+                    );
+                    rootTextBox->setRectSpec(RectSpec{ PctH(0.55f), Pct(0.00f), PctHInv(1.1f), PctH(0.45f) });
+                    rootTextBox->setMarginSpec(MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) });
+
+                    auto* rootIncButton = new RectangleButton(
+                        RectSpec{ PctHInv(0.45f), Pct(0.00f), PctH(45), PctH(45) },
+                        MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                        chordStepperColors,
+                        nullptr
+                    );
+                    rootIncButton->setFontPath("C:/Windows/Fonts/segoeui.ttf");
+                    rootIncButton->setText("+", 18);
+
+                    rootDecButton->setOnClick([rootTextBox]()
+                        {
+                            RenderUtilities::adjustRootLetter(rootTextBox, false);
+                        });
+                    rootIncButton->setOnClick([rootTextBox]()
+                        {
+                            RenderUtilities::adjustRootLetter(rootTextBox, true);
+                        });
+
+                    rootDecButton->setOnRightClick([rootTextBox]()
+                        {
+                            RenderUtilities::adjustRootAccidental(rootTextBox, false);
+                        });
+                    rootIncButton->setOnRightClick([rootTextBox]()
+                        {
+                            RenderUtilities::adjustRootAccidental(rootTextBox, true);
+                        });
+
+                    // Octave row: [button] [textbox] [button]
+                    auto* octaveDecButton = new RectangleButton(
+                        RectSpec{ Pct(0.00f), Pct(0.55f), PctH(45), PctH(45) },
+                        MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                        chordStepperColors,
+                        nullptr
+                    );
+                    octaveDecButton->setFontPath("C:/Windows/Fonts/segoeui.ttf");
+                    octaveDecButton->setText("-", 18);
+
+                    auto* octaveTextBox = new TextBox<int>(
+                        0.0f, 0.0f, 0.0f, 0.0f, 16, "4",
+                        Theme::Control, Theme::Accent, Theme::ControlHover, Theme::AccentBright,
+                        2.0f,
+                        [](const std::string& input) -> bool
+                        {
+                            if (input.empty())
+                            {
+                                return false;
+                            }
+
+                            if (!std::all_of(input.begin(), input.end(), [](char c)
+                                {
+                                    return std::isdigit(static_cast<unsigned char>(c)) != 0;
+                                }))
+                            {
+                                return false;
+                            }
+
+                            int octave = 0;
+                            try
+                            {
+                                octave = std::stoi(input);
+                            }
+                            catch (...)
+                            {
+                                return false;
+                            }
+
+                            return octave >= 0 && octave <= 8;
+                        }
+                    );
+                    octaveTextBox->setRectSpec(RectSpec{ PctH(0.55f), Pct(0.55f), PctHInv(1.1f), PctH(0.45f) });
+                    octaveTextBox->setMarginSpec(MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) });
+
+                    auto* octaveIncButton = new RectangleButton(
+                        RectSpec{ PctHInv(0.45f), Pct(0.55f), PctH(45), PctH(45) },
+                        MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
+                        chordStepperColors,
+                        nullptr
+                    );
+                    octaveIncButton->setFontPath("C:/Windows/Fonts/segoeui.ttf");
+                    octaveIncButton->setText("+", 18);
+
+                    octaveDecButton->setOnClick([octaveTextBox]()
+                        {
+                            RenderUtilities::adjustOctave(octaveTextBox, false);
+                        });
+                    octaveIncButton->setOnClick([octaveTextBox]()
+                        {
+                            RenderUtilities::adjustOctave(octaveTextBox, true);
+                        });
+
+                    chordPanelRightTopControls->addChild(rootDecButton);
+                    chordPanelRightTopControls->addChild(rootTextBox);
+                    chordPanelRightTopControls->addChild(rootIncButton);
+                    chordPanelRightTopControls->addChild(octaveDecButton);
+                    chordPanelRightTopControls->addChild(octaveTextBox);
+                    chordPanelRightTopControls->addChild(octaveIncButton);
+            }
+
+            // CHORD STAFF
+            {
+                auto chordStaffPanel = new GUIPanel(
+                    RectSpec{ Pct(0), Pct(30), Pct(100), Pct(70) },
+                    Theme::PanelAlt,
+                    Theme::BorderSubtle,
+                    2.0f,
+                    0.0f
+                );
+
+                chordPanelRight->addChild(chordStaffPanel);
+            }
+
+
 
             auto chordPanelLeftExtensions = new GUIPanel(
                 RectSpec{ Pct(0), Pct(20), Pct(100), Pct(80) },
@@ -717,7 +1153,7 @@ public:
                     { "Ninth", false },
                 });
             auto* chordTypeDropdown = new DropdownMenu<std::string>(
-                RectSpec{ Pct(0.0f), Pct(0.0f), Pct(100), Pct(0.12f) },
+                RectSpec{ Pct(0.0f), Pct(0.0f), Pct(100), Pct(0.10f) },
                 MarginSpec{ Pct(0), Pct(0), Pct(0), Pct(0) },
                 12,
                 static_cast<int>(chordTypeOptions.size()),
@@ -727,9 +1163,9 @@ public:
                 Theme::ControlHover,
                 Theme::AccentBright,
                 "Select Chord",
-                [chordPanelLeftExtensions, chordCheckboxStates](const std::string& chordType, int index)
+                [chordPanelLeftExtensions, chordCheckboxStates](DropdownMenu<std::string>* dropdown, const std::string&, int)
                 {
-                    RenderUtilities::chordSelected(chordType, index, chordPanelLeftExtensions, chordCheckboxStates);
+                    RenderUtilities::chordSelected(dropdown, chordPanelLeftExtensions, chordCheckboxStates);
                 });
             chordPanelLeft->addChild(chordTypeDropdown);
 

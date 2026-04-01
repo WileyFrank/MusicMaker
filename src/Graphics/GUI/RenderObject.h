@@ -124,6 +124,7 @@ public:
 	virtual RenderObject& getHoverObject() = 0;
 	virtual RenderObject& getActiveObject() { return *this; }
 	virtual void onClick() {}
+	virtual void onRightClick() {}
 	virtual void keyboardInput(sf::Uint32 input) {}
 	virtual void arrowKeyInput(sf::Keyboard::Key key) {}
 	virtual void onMouseButtonReleased(sf::Mouse::Button) {}

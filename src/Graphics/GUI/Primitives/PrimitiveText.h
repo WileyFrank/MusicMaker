@@ -89,6 +89,7 @@ public:
 	VerticalAlignment getVerticalAlign() const { return verticalAlign; }
 
 	void setFontSizeClamp(float minPx, float maxPx);
+	void setFontSizePx(float px);
 	float getMinFontSizePx() const { return minFontSizePx; }
 	float getMaxFontSizePx() const { return maxFontSizePx; }
 

@@ -62,8 +62,6 @@ private:
 
 	sf::Color staffColor, clefColor, noteColor, hoverColor, noteHoverColor, placeholderColor;
 
-	std::vector<SheetMusicMeasure*> measures;
-
 	float rowSpacing = 0.0f;
 	float continuationMeasureStart = 0.0f;
 	float lastMeasuredHeight = -1.0f;
@@ -79,6 +77,14 @@ private:
 	float getRowTop(int rowIndex) const;
 	float getRowPrefixWidth(int rowIndex) const;
 
+protected:
+	std::vector<SheetMusicMeasure*> measures;
+
+	/** When true, time signature is not drawn and does not reserve horizontal space in measureStart. */
+	bool hideTimeSignature_ = false;
+
+	void updateMeasureStarts();
+
 public:
 	SheetMusicStaff();
 	SheetMusicStaff(float x, float y, float width, float height, Clef clefType, 
@@ -91,12 +97,12 @@ public:
 		TimeSignature timeSignature = TimeSignature()
 	);
 
-	~SheetMusicStaff();
+	virtual ~SheetMusicStaff();
 
-	SheetMusicMeasure* addMeasure(SheetMusicMeasure* measure);
-	SheetMusicMeasure* addMeasure();
+	virtual SheetMusicMeasure* addMeasure(SheetMusicMeasure* measure);
+	virtual SheetMusicMeasure* addMeasure();
 
-	float addNote(Note note, float beat);
+	virtual float addNote(Note note, float beat);
 
 	void draw() override;
 	void resolveLayout(const sf::FloatRect& parentRect) override;

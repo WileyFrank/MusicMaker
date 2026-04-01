@@ -1,4 +1,6 @@
 #pragma once
+#include <cmath>
+#include <functional>
 #include "GUIUtilities.h"
 #include "RenderObject.h"
 #include "Primitives/PrimitiveText.h"
@@ -12,6 +14,7 @@ private:
     T value; //The value of the string as type T
 
     int fontSize, textDisplayStart = 0;
+    int maxFontSize;
     int startIndex, displayLength;
     float textY, cursorY;
     float margin;
@@ -36,6 +39,26 @@ private:
     float blinkPeriod = 500.0f;
 
     sf::Color backgroundColor, textColor, activeBackgroundColor, activeTextColor;
+    float outlineThickness;
+    std::function<bool(const std::string&)> inputValidator;
+
+    bool passesCustomValidation(const std::string& candidate) const
+    {
+        return !inputValidator || inputValidator(candidate);
+    }
+
+    void updateFontSizingForBounds()
+    {
+        const float outline = std::abs(outlineThickness); // stored as positive px; drawn inward
+        const float usableWidth = std::max(1.0f, width - margin - 2.0f * outline);
+        const float usableHeight = std::max(1.0f, height - 2.0f * outline);
+        const int fittedSize = static_cast<int>(std::floor(std::min(usableHeight, usableHeight)));
+        fontSize = std::max(1, std::min(maxFontSize, fittedSize));
+
+        text.setFontSizePx(static_cast<float>(fontSize));
+        selectedText.setFontSizePx(static_cast<float>(fontSize));
+        cursor.setSize(sf::Vector2f((float)fontSize / 12.0f, (float)fontSize));
+    }
 
 
     template<typename T>
@@ -55,13 +78,30 @@ private:
         return "";
     }
 
+    /** Place text and cursor vertically centered in the area inside the outline. */
+    void recomputeTextVerticalLayout()
+    {
+        const float outline = std::abs(outlineThickness);
+        const float innerTop = y + outline;
+        const float innerH = std::max(1.0f, height - 2.0f * outline);
+        const float lineHeight = static_cast<float>(fontSize) * 1.375f;
+        constexpr float kVerticalNudgePx = 0.0f;
+        textY = innerTop + (innerH - lineHeight) * 0.5f + kVerticalNudgePx;
+        cursorY = innerTop + (innerH - static_cast<float>(fontSize)) * 0.5f + kVerticalNudgePx;
+    }
+
     void initializeTextBox()
     {
-        textY = y + height - (fontSize * 1.375f);
-        cursorY = y + (height - fontSize) / 2;
+        updateFontSizingForBounds();
+        recomputeTextVerticalLayout();
 
         box = sf::RectangleShape(sf::Vector2f(width, height));
-        selectionHighlight = sf::RectangleShape(sf::Vector2f((float)fontSize, height - (fontSize * 1.125f)));
+        {
+            const float outline = std::abs(outlineThickness);
+            const float innerH = std::max(1.0f, height - 2.0f * outline);
+            const float highlightH = std::max(1.0f, innerH - static_cast<float>(fontSize) * 1.125f);
+            selectionHighlight = sf::RectangleShape(sf::Vector2f((float)fontSize, highlightH));
+        }
 
         box.setPosition(sf::Vector2f(x, y));
         text.setText(textString);
@@ -380,10 +420,14 @@ public:
 
     TextBox(float x, float y, float width, float height, int size, std::string textString = "",
         sf::Color backgroundColor = sf::Color(200, 200, 200), sf::Color textColor = sf::Color(50, 50, 50),
-        sf::Color activeBackgroundColor = sf::Color(255, 255, 255), sf::Color activeTextColor = sf::Color(0, 0, 0))
-        :fontSize(size), textString(textString),
+        sf::Color activeBackgroundColor = sf::Color(255, 255, 255), sf::Color activeTextColor = sf::Color(0, 0, 0),
+        float outlineThickness = 1.0f,
+        std::function<bool(const std::string&)> inputValidator = nullptr)
+        :fontSize(size), maxFontSize(std::max(1, size)), textString(textString),
         backgroundColor(backgroundColor), textColor(textColor),
         activeBackgroundColor(activeBackgroundColor), activeTextColor(activeTextColor),
+        outlineThickness(outlineThickness),
+        inputValidator(std::move(inputValidator)),
         text(x, y, size, textString), margin(height / 2), cursor(sf::Vector2f((float)size / 12, (float)size)),
         selectedText(x, y, size, ""),
         selectionStart(-1), selectionEnd(-1)
@@ -400,6 +444,10 @@ public:
 
     template<typename T>
     bool validateInput() {
+        if (!passesCustomValidation(textString))
+        {
+            return false;
+        }
         T newValue;
         bool success;
         std::istringstream iss(textString);
@@ -413,6 +461,10 @@ public:
     }
     template<>
     bool validateInput<int>() {
+        if (!passesCustomValidation(textString))
+        {
+            return false;
+        }
         int newValue;
         bool success;
         std::istringstream iss(textString);
@@ -436,6 +488,10 @@ public:
     }
     template<>
     bool validateInput<float>() {
+        if (!passesCustomValidation(textString))
+        {
+            return false;
+        }
         bool success;
         std::istringstream iss(textString);
 
@@ -455,6 +511,10 @@ public:
     }
     template<>
     bool validateInput<std::string>() {
+        if (!passesCustomValidation(textString))
+        {
+            return false;
+        }
         bool success;
         std::istringstream iss(textString);
 
@@ -479,7 +539,9 @@ public:
         selectionStart = 0;
         selectionEnd = textString.size();
     }
-    
+
+    const std::string& getTextString() const { return textString; }
+
     std::string valueToString() 
     {
         std::ostringstream oss;
@@ -504,13 +566,18 @@ public:
         height = pixelRect.height;
 
         margin = height / 2.0f;
-        textY = y + height - (fontSize * 1.375f);
-        cursorY = y + (height - fontSize) / 2.0f;
+        updateFontSizingForBounds();
+        recomputeTextVerticalLayout();
 
         box.setPosition(sf::Vector2f(x, y));
         box.setSize(sf::Vector2f(width, height));
 
-        selectionHighlight.setSize(sf::Vector2f((float)fontSize, height - (fontSize * 1.125f)));
+        {
+            const float outline = std::abs(outlineThickness);
+            const float innerH = std::max(1.0f, height - 2.0f * outline);
+            const float highlightH = std::max(1.0f, innerH - static_cast<float>(fontSize) * 1.125f);
+            selectionHighlight.setSize(sf::Vector2f((float)fontSize, highlightH));
+        }
 
         text.setPosition(sf::Vector2f(x + margin / 2.0f, textY));
         selectedText.setPosition(sf::Vector2f(x + margin / 2.0f, textY));
@@ -570,6 +637,7 @@ public:
         active = true;
         oldString = textString;
         box.setFillColor(activeBackgroundColor);
+        box.setOutlineThickness(-std::abs(outlineThickness)); // inward: stays inside layout bounds
         box.setOutlineColor(activeTextColor);
         text.setColor(activeTextColor);
 
@@ -579,7 +647,7 @@ public:
     {
         active = false;
         box.setFillColor(backgroundColor);
-        box.setOutlineThickness(1);
+        box.setOutlineThickness(-std::abs(outlineThickness));
         box.setOutlineColor(textColor);
         text.setColor(textColor);
         cursor.setFillColor(sf::Color::Transparent);

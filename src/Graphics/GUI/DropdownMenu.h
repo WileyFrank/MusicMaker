@@ -29,7 +29,7 @@ private:
     std::vector<PrimitiveText*> optionTexts; // Text for each option
     sf::Color backgroundColor, textColor, activeBackgroundColor, activeTextColor;
 
-    std::function<void(const T&, int)> onSelectionChanged;
+    std::function<void(DropdownMenu<T>*, const T&, int)> onSelectionChanged;
 
     /** Captured when opening; restored when closing without choosing an option (e.g. click outside). */
     std::string textAtOpen;
@@ -122,7 +122,7 @@ public:
         sf::Color backgroundColor = sf::Color(200, 200, 200), sf::Color textColor = sf::Color(50, 50, 50),
         sf::Color activeBackgroundColor = sf::Color(255, 255, 255), sf::Color activeTextColor = sf::Color(0, 0, 0),
         const std::string& placeholderText = "Select an Option",
-        std::function<void(const T&, int)> onSelectionChanged = nullptr)
+        std::function<void(DropdownMenu<T>*, const T&, int)> onSelectionChanged = nullptr)
         : options(options),
           defaultText(placeholderText),
           fontSize(fontSize),
@@ -151,7 +151,7 @@ public:
         sf::Color backgroundColor = sf::Color(200, 200, 200), sf::Color textColor = sf::Color(50, 50, 50),
         sf::Color activeBackgroundColor = sf::Color(255, 255, 255), sf::Color activeTextColor = sf::Color(0, 0, 0),
         const std::string& placeholderText = "Select an Option",
-        std::function<void(const T&, int)> onSelectionChanged = nullptr)
+        std::function<void(DropdownMenu<T>*, const T&, int)> onSelectionChanged = nullptr)
         : options(options),
           defaultText(placeholderText),
           fontSize(fontSize),
@@ -332,7 +332,7 @@ public:
             closeCommitsSelection = true;
             if (onSelectionChanged && selectedIndex >= 0 && selectedIndex < static_cast<int>(options.size()))
             {
-                onSelectionChanged(options[static_cast<size_t>(selectedIndex)], selectedIndex);
+                onSelectionChanged(this, options[static_cast<size_t>(selectedIndex)], selectedIndex);
             }
             this->setInactive();
         }
@@ -393,7 +393,7 @@ public:
                 closeCommitsSelection = true;
                 if (onSelectionChanged && selectedIndex >= 0 && selectedIndex < static_cast<int>(options.size()))
                 {
-                    onSelectionChanged(options[static_cast<size_t>(selectedIndex)], selectedIndex);
+                    onSelectionChanged(this, options[static_cast<size_t>(selectedIndex)], selectedIndex);
                 }
                 this->setInactive();
             }
@@ -440,6 +440,25 @@ public:
         }
 
         return *GUIUtilities::getEmptyRenderObject();
+    }
+
+    int getSelectedIndex() const
+    {
+        return selectedIndex;
+    }
+
+    bool hasSelection() const
+    {
+        return selectedIndex >= 0 && selectedIndex < static_cast<int>(options.size());
+    }
+
+    const T* getSelectedOptionPtr() const
+    {
+        if (!hasSelection())
+        {
+            return nullptr;
+        }
+        return &options[static_cast<size_t>(selectedIndex)];
     }
 
 

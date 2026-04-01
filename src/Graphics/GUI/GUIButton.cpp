@@ -38,9 +38,19 @@ void GUIButton::onClick()
 	}
 }
 
+void GUIButton::onRightClick()
+{
+	//Debug.Log("GUIButton::onRightClick");
+	setActive();
+	if (onRightClickAction)
+	{
+		onRightClickAction();
+	}
+}
+
 void GUIButton::onMouseButtonReleased(sf::Mouse::Button button)
 {
-	if (button == sf::Mouse::Left && !toggleMode)
+	if ((button == sf::Mouse::Left || button == sf::Mouse::Right) && !toggleMode)
 	{
 		setInactive();
 	}

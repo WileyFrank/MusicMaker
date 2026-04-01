@@ -587,7 +587,9 @@ void SheetMusicNote::loadNote()
 
 	this->positionY = staffY + (C4Position * staffHeight) - distance;
 
-	this->sprite.setPosition(sf::Vector2f((int)(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x), (int)(staffY + (C4Position * staffHeight) - distance)));
+	this->sprite.setPosition(sf::Vector2f(
+		std::round(staffX + accidentalWidth + sprite.getOrigin().x * sprite.getScale().x),
+		std::round(staffY + (C4Position * staffHeight) - distance)));
 
 
 	distance = (float)MusicUtilities::getNotesFromMiddleC(note.pitch, true);

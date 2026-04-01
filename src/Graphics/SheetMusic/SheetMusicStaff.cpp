@@ -30,21 +30,24 @@ SheetMusicStaff::SheetMusicStaff(float x, float y, float width, float height, Cl
 
 	GenerateStaffLines();
 
-	auto clefWidth = clef.getWidth();
-	clefWidth = sheetMusicKeySignature.getWidth();
-	clefWidth = sheetMusicTimeSignature.getWidth();
-
-	measureStart = (clef.getWidth()) +
-		(sheetMusicKeySignature.getWidth()) +
-		(sheetMusicTimeSignature.getWidth()) +
-		(this->height / 2);
-	continuationMeasureStart =
-		(clef.getWidth()) +
-		(this->height / 6.0f) +
-		(sheetMusicKeySignature.getWidth()) +
-		(this->height / 2);
 	rowSpacing = this->height * 1.125f;
+	updateMeasureStarts();
 
+}
+
+void SheetMusicStaff::updateMeasureStarts()
+{
+	const float timeSigWidth = hideTimeSignature_ ? 0.0f : sheetMusicTimeSignature.getWidth();
+	measureStart =
+		clef.getWidth() +
+		sheetMusicKeySignature.getWidth() +
+		timeSigWidth +
+		(this->height / 2.0f);
+	continuationMeasureStart =
+		clef.getWidth() +
+		(this->height / 6.0f) +
+		sheetMusicKeySignature.getWidth() +
+		(this->height / 2.0f);
 }
 
 SheetMusicStaff::SheetMusicStaff(
@@ -152,7 +155,10 @@ void SheetMusicStaff::draw()
 
 	clef.draw();
 	sheetMusicKeySignature.draw();
-	sheetMusicTimeSignature.draw();
+	if (!hideTimeSignature_)
+	{
+		sheetMusicTimeSignature.draw();
+	}
 	for (auto* wrappedClef : wrappedClefs)
 	{
 		if (wrappedClef != nullptr)
@@ -196,17 +202,8 @@ void SheetMusicStaff::resolveLayout(const sf::FloatRect& parentRect)
 		sheetMusicTimeSignature.setWindow(this->window);
 	}
 
-	measureStart =
-		(clef.getWidth()) +
-		(sheetMusicKeySignature.getWidth()) +
-		(sheetMusicTimeSignature.getWidth()) +
-		(this->height / 2);
-	continuationMeasureStart =
-		(clef.getWidth()) +
-		(this->height / 6.0f) +
-		(sheetMusicKeySignature.getWidth()) +
-		(this->height / 2);
 	rowSpacing = this->height * 1.125f;
+	updateMeasureStarts();
 	relayoutMeasuresWithWrap();
 
 	colorUpdate();
@@ -263,9 +260,12 @@ RenderObject& SheetMusicStaff::getHoverObject()
 	}
 
 
-	if (sheetMusicTimeSignature.getHoverObject().getType() != EmptyRenderObject)
+	if (!hideTimeSignature_)
 	{
-		return sheetMusicTimeSignature.getHoverObject();
+		if (sheetMusicTimeSignature.getHoverObject().getType() != EmptyRenderObject)
+		{
+			return sheetMusicTimeSignature.getHoverObject();
+		}
 	}
 	for (auto* wrappedClef : wrappedClefs)
 	{
@@ -300,7 +300,10 @@ void SheetMusicStaff::setHover(bool hover)
 
 	clef.setHover(hover);
 	sheetMusicKeySignature.setHover(hover);
-	sheetMusicTimeSignature.setHover(hover);
+	if (!hideTimeSignature_)
+	{
+		sheetMusicTimeSignature.setHover(hover);
+	}
 	for (auto* wrappedClef : wrappedClefs)
 	{
 		if (wrappedClef != nullptr)
@@ -326,7 +329,10 @@ void SheetMusicStaff::render()
 {
 	clef.update();
 	sheetMusicKeySignature.update();
-	sheetMusicTimeSignature.update();
+	if (!hideTimeSignature_)
+	{
+		sheetMusicTimeSignature.update();
+	}
 	for (auto* wrappedClef : wrappedClefs)
 	{
 		if (wrappedClef != nullptr)
@@ -410,7 +416,10 @@ void SheetMusicStaff::setColor(sf::Color color)
 	}
 	
 	clef.setColor(color);
-	sheetMusicTimeSignature.setColor(color);
+	if (!hideTimeSignature_)
+	{
+		sheetMusicTimeSignature.setColor(color);
+	}
 	for (auto* wrappedClef : wrappedClefs)
 	{
 		if (wrappedClef != nullptr)
@@ -455,7 +464,10 @@ void SheetMusicStaff::setHoverColor(sf::Color color)
 {
 	this->hoverColor = color;
 	sheetMusicKeySignature.setHoverColor(color);
-	sheetMusicTimeSignature.setHoverColor(color);
+	if (!hideTimeSignature_)
+	{
+		sheetMusicTimeSignature.setHoverColor(color);
+	}
 	clef.setHoverColor(color);
 	for (auto* wrappedKeySignature : wrappedKeySignatures)
 	{
